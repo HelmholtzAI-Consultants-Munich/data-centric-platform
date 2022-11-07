@@ -39,10 +39,23 @@ class NapariWindow(QWidget):
         self.img_filename = img_filename
         self.eval_data_path = eval_data_path
         self.train_data_path = train_data_path
-        self.img = imread(os.path.join(self.eval_data_path, self.img_filename))
+        potential_seg_name = Path(self.img_filename).stem+'_seg'+Path(self.img_filename).suffix
+        if os.path.exists(os.path.join(self.eval_data_path, self.img_filename)):
+            self.img = imread(os.path.join(self.eval_data_path, self.img_filename))
+            if os.path.exists(os.path.join(self.eval_data_path, potential_seg_name)):
+                seg = imread(os.path.join(self.eval_data_path, potential_seg_name))
+            else: seg = None
+        else: 
+            self.img = imread(os.path.join(self.train_data_path, self.img_filename))
+            if os.path.exists(os.path.join(self.train_data_path, potential_seg_name)):
+                seg = imread(os.path.join(self.train_data_path, potential_seg_name))
+            else: seg = None
+        
+        
         self.setWindowTitle("napari Viewer")
         self.viewer = napari.Viewer()
         self.viewer.add_image(self.img)
+        if seg is not None: self.viewer.add_labels(seg)
         main_window = self.viewer.window._qt_window
         layout = QVBoxLayout()
         layout.addWidget(main_window)
@@ -84,9 +97,9 @@ class MainWindow(QWidget):
         self.list_view_eval.setFixedSize(600, 600)
         self.list_view_eval.setRootIndex(model_eval.setRootPath(self.eval_data_path)) 
         self.list_view_eval.clicked.connect(self.item_eval_selected)
-        self.cur_eval_img = None
+        self.cur_selected_img = None
         self.left_layout.addWidget(self.list_view_eval)
-        self.launch_nap_button = QPushButton("Annotate image", self)
+        self.launch_nap_button = QPushButton("View and annotate image", self)
         self.launch_nap_button.clicked.connect(self.launch_napari_window)  # add selected image    
         self.left_layout.addWidget(self.launch_nap_button)
         self.main_layout.addLayout(self.left_layout)
@@ -103,6 +116,7 @@ class MainWindow(QWidget):
             self.list_view_train.hideColumn(i)
         self.list_view_train.setFixedSize(600, 600)
         self.list_view_train.setRootIndex(model_train.setRootPath(self.train_data_path)) 
+        self.list_view_train.clicked.connect(self.item_train_selected)
         self.right_layout.addWidget(self.list_view_train)
         self.train_button = QPushButton("Train Model", self)
         self.train_button.clicked.connect(self.train_model)  # add selected image    
@@ -117,13 +131,16 @@ class MainWindow(QWidget):
         self.show()
 
     def launch_napari_window(self):                                       
-        self.nap_win = NapariWindow(img_filename=self.cur_eval_img, 
+        self.nap_win = NapariWindow(img_filename=self.cur_selected_img, 
                                     eval_data_path=self.eval_data_path, 
-                                    train_data_path=self.train_data_path )
+                                    train_data_path=self.train_data_path)
         self.nap_win.show()
 
     def item_eval_selected(self, item):
-        self.cur_eval_img = item.data()
+        self.cur_selected_img = item.data()
+    
+    def item_train_selected(self, item):
+        self.cur_selected_img = item.data()
 
     def train_model(self):
         pass
@@ -135,7 +152,7 @@ class WelcomeWindow(QWidget):
         self.title = "Select Dataset"
         self.main_layout = QVBoxLayout()
         self.label = QLabel(self)
-        self.label.setText('Welcome to DC! Please select you dataset folder')
+        self.label.setText('Welcome to Helmholtz AI data centric tool! Please select your dataset folder')
         
         self.val_layout = QHBoxLayout()
         self.val_textbox = QLineEdit(self)
