@@ -61,34 +61,44 @@ class NapariWindow(QWidget):
         layout.addWidget(main_window)
         add_button = QPushButton('Add to training data')
         layout.addWidget(add_button)
-        self.return_button = QPushButton('Return')
-        layout.addWidget(self.return_button)
+        #self.return_button = QPushButton('Return')
+        #layout.addWidget(self.return_button)
 
-        def on_add_button_clicked():
-            seg = self.viewer.layers['Labels'].data
-            os.replace(os.path.join(self.eval_data_path, self.img_filename), os.path.join(self.train_data_path, self.img_filename))
-            seg_name = Path(self.img_filename).stem+'_seg'+Path(self.img_filename).suffix
-            imsave(os.path.join(self.train_data_path, seg_name),seg)
-
-        def on_return_button_clicked():
-            self.close()
-
-        add_button.clicked.connect(on_add_button_clicked)
-        self.return_button.clicked.connect(on_return_button_clicked)
+        add_button.clicked.connect(self.on_add_button_clicked)
+        #self.return_button.clicked.connect(self.on_return_button_clicked)
         self.setLayout(layout)
         self.show()
+
+    def on_add_button_clicked(self):
+        seg = self.viewer.layers['Labels'].data
+        os.replace(os.path.join(self.eval_data_path, self.img_filename), os.path.join(self.train_data_path, self.img_filename))
+        seg_name = Path(self.img_filename).stem+'_seg'+Path(self.img_filename).suffix
+        imsave(os.path.join(self.train_data_path, seg_name),seg)
+        self.close()
+
+    '''
+    def on_return_button_clicked(self):
+        self.close()
+    '''
 
 class MainWindow(QWidget):
     def __init__(self, eval_data_path, train_data_path):
         super().__init__()
+
         self.title = "Data Overview"
+        self.eval_data_path = eval_data_path
+        self.train_data_path = train_data_path
+        self.main_window()
+
+    def main_window(self):
+        self.setWindowTitle(self.title)
         self.resize(1000, 1500)
-        self.main_layout = QHBoxLayout()
-        
-        self.left_layout = QVBoxLayout()
+        self.main_layout = QVBoxLayout()  
+        self.top_layout = QHBoxLayout()
+        self.bottom_layout = QHBoxLayout()
+
+        # add eval dir list
         model_eval = QFileSystemModel()
-        self.eval_data_path =  eval_data_path
-        #imgs_list = [file for file in os.listdir(self.eval_data_path) if file.endswith('.png')]
         model_eval.setIconProvider(IconProvider())
         self.list_view_eval = QTreeView(self)
         self.list_view_eval.setModel(model_eval)
@@ -98,16 +108,10 @@ class MainWindow(QWidget):
         self.list_view_eval.setRootIndex(model_eval.setRootPath(self.eval_data_path)) 
         self.list_view_eval.clicked.connect(self.item_eval_selected)
         self.cur_selected_img = None
-        self.left_layout.addWidget(self.list_view_eval)
-        self.launch_nap_button = QPushButton("View and annotate image", self)
-        self.launch_nap_button.clicked.connect(self.launch_napari_window)  # add selected image    
-        self.left_layout.addWidget(self.launch_nap_button)
-        self.main_layout.addLayout(self.left_layout)
+        self.top_layout.addWidget(self.list_view_eval)
 
-
-        self.right_layout = QVBoxLayout()    
+        # add train dir list
         model_train = QFileSystemModel()
-        self.train_data_path = train_data_path #"/Users/christina.bukas/Desktop/train/"
         #self.list_view = QListView(self)
         self.list_view_train = QTreeView(self)
         model_train.setIconProvider(IconProvider())
@@ -117,16 +121,25 @@ class MainWindow(QWidget):
         self.list_view_train.setFixedSize(600, 600)
         self.list_view_train.setRootIndex(model_train.setRootPath(self.train_data_path)) 
         self.list_view_train.clicked.connect(self.item_train_selected)
-        self.right_layout.addWidget(self.list_view_train)
+        self.top_layout.addWidget(self.list_view_train)
+
+        self.main_layout.addLayout(self.top_layout)
+        
+        # add buttons
+        self.launch_nap_button = QPushButton("View and annotate image", self)
+        self.launch_nap_button.clicked.connect(self.launch_napari_window)  # add selected image    
+        self.bottom_layout.addWidget(self.launch_nap_button)
+        
         self.train_button = QPushButton("Train Model", self)
         self.train_button.clicked.connect(self.train_model)  # add selected image    
-        self.right_layout.addWidget(self.train_button)
-        self.main_layout.addLayout(self.right_layout)
+        self.bottom_layout.addWidget(self.train_button)
 
-        self.main_window()
+        self.inference_button = QPushButton("Generate Labels", self)
+        self.inference_button.clicked.connect(self.run_inference)  # add selected image    
+        self.bottom_layout.addWidget(self.inference_button)
 
-    def main_window(self):
-        self.setWindowTitle(self.title)
+        self.main_layout.addLayout(self.bottom_layout)
+
         self.setLayout(self.main_layout)
         self.show()
 
@@ -143,6 +156,9 @@ class MainWindow(QWidget):
         self.cur_selected_img = item.data()
 
     def train_model(self):
+        pass
+
+    def run_inference(self):
         pass
 
 class WelcomeWindow(QWidget):
