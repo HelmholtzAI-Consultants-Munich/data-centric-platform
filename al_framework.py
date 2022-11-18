@@ -2,20 +2,17 @@ import sys
 import os
 from pathlib import Path
 from typing import List
+import numpy as np
+from skimage.io import imread, imsave
+from skimage.transform import resize
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QMainWindow, QFileSystemModel, QListView, QHBoxLayout, QFileIconProvider, QLabel, QFileDialog, QLineEdit, QTreeView
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap, QIcon
 import napari
-from skimage.io import imread, imsave
-from cellpose import models, utils
 import torch 
-from skimage.transform import resize
-import numpy as np
-from skimage.morphology import dilation, disk
+from cellpose import models, utils
 
-from matplotlib import pyplot as plt
-
-ICON_SIZE = QSize(128,128)
+ICON_SIZE = QSize(512,512)
 accepted_types = (".jpg",".tiff",".png", ".tif")
 
 def changeWindow(w1, w2):
