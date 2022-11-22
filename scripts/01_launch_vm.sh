@@ -10,7 +10,7 @@ openstack keypair create --public-key ~/.ssh/id_rsa_project2 project2_key
 # Create a network
 openstack network create --no-share my-projects-internal-network
 openstack subnet create my-projects-internal-network-subnet --network my-projects-internal-network \
- --subnet-range 10.0.0.0/8
+ --subnet-range 10.0.0.0/16
 
 # Create a router
 openstack router create my-projects-internal-network-to-internet
