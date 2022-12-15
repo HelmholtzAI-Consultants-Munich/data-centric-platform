@@ -1,14 +1,21 @@
 import sys
 import os
 from pathlib import Path
+from typing import List
+import numpy as np
+from skimage.io import imread, imsave
+from skimage.transform import resize, rescale
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QMainWindow, QFileSystemModel, QListView, QHBoxLayout, QFileIconProvider, QLabel, QFileDialog, QLineEdit, QTreeView
-from PyQt5.QtCore import QDir, QSize
+from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap, QIcon
 import napari
-from skimage.io import imread, imsave
+import torch 
+from cellpose import models, utils
+import warnings
+warnings.simplefilter('ignore')
 
-ICON_SIZE = QSize(128,128)
-accepted_types = (".jpg",".tiff",".png")
+ICON_SIZE = QSize(512,512)
+accepted_types = (".jpg", ".jpeg", ".png", ".tiff", ".tif")
 
 def changeWindow(w1, w2):
     w1.hide()
@@ -39,7 +46,7 @@ class NapariWindow(QWidget):
         self.img_filename = img_filename
         self.eval_data_path = eval_data_path
         self.train_data_path = train_data_path
-        potential_seg_name = Path(self.img_filename).stem+'_seg'+Path(self.img_filename).suffix
+        potential_seg_name = Path(self.img_filename).stem+'_seg.tiff' #+Path(self.img_filename).suffix
         if os.path.exists(os.path.join(self.eval_data_path, self.img_filename)):
             self.img = imread(os.path.join(self.eval_data_path, self.img_filename))
             if os.path.exists(os.path.join(self.eval_data_path, potential_seg_name)):
@@ -51,29 +58,50 @@ class NapariWindow(QWidget):
                 seg = imread(os.path.join(self.train_data_path, potential_seg_name))
             else: seg = None
         
-        
         self.setWindowTitle("napari Viewer")
-        self.viewer = napari.Viewer()
+        self.viewer = napari.Viewer(show=False)
         self.viewer.add_image(self.img)
-        if seg is not None: self.viewer.add_labels(seg)
+
+        if seg is not None: 
+            self.viewer.add_labels(seg)
+
         main_window = self.viewer.window._qt_window
         layout = QVBoxLayout()
         layout.addWidget(main_window)
+
         add_button = QPushButton('Add to training data')
         layout.addWidget(add_button)
+        add_button.clicked.connect(self.on_add_button_clicked)
+
         #self.return_button = QPushButton('Return')
         #layout.addWidget(self.return_button)
-
-        add_button.clicked.connect(self.on_add_button_clicked)
         #self.return_button.clicked.connect(self.on_return_button_clicked)
+
         self.setLayout(layout)
         self.show()
 
+    def _get_layer_names(self, layer_type: napari.layers.Layer = napari.layers.Labels) -> List[str]:
+        """
+        Get list of layer names of a given layer type.
+        """
+        layer_names = [
+            layer.name
+            for layer in self.viewer.layers
+            if type(layer) == layer_type
+        ]
+        if layer_names:
+            return [] + layer_names
+        else:
+            return []
+
     def on_add_button_clicked(self):
-        seg = self.viewer.layers['Labels'].data
+        label_names = self._get_layer_names()
+        seg = self.viewer.layers[label_names[0]].data
         os.replace(os.path.join(self.eval_data_path, self.img_filename), os.path.join(self.train_data_path, self.img_filename))
-        seg_name = Path(self.img_filename).stem+'_seg'+Path(self.img_filename).suffix
+        seg_name = Path(self.img_filename).stem+'_seg.tiff' #+Path(self.img_filename).suffix
         imsave(os.path.join(self.train_data_path, seg_name),seg)
+        if os.path.exists(os.path.join(self.eval_data_path, seg_name)): 
+            os.remove(os.path.join(self.eval_data_path, seg_name))
         self.close()
 
     '''
@@ -92,11 +120,16 @@ class MainWindow(QWidget):
 
     def main_window(self):
         self.setWindowTitle(self.title)
-        self.resize(1000, 1500)
+        #self.resize(1000, 1500)
         self.main_layout = QVBoxLayout()  
         self.top_layout = QHBoxLayout()
         self.bottom_layout = QHBoxLayout()
 
+        self.eval_dir_layout = QVBoxLayout() 
+        self.eval_dir_layout.setContentsMargins(0,0,0,0)
+        self.label_eval = QLabel(self)
+        self.label_eval.setText("Uncurated dataset")
+        self.eval_dir_layout.addWidget(self.label_eval)
         # add eval dir list
         model_eval = QFileSystemModel()
         model_eval.setIconProvider(IconProvider())
@@ -104,12 +137,18 @@ class MainWindow(QWidget):
         self.list_view_eval.setModel(model_eval)
         for i in range(1,4):
             self.list_view_eval.hideColumn(i)
-        self.list_view_eval.setFixedSize(600, 600)
+        #self.list_view_eval.setFixedSize(600, 600)
         self.list_view_eval.setRootIndex(model_eval.setRootPath(self.eval_data_path)) 
         self.list_view_eval.clicked.connect(self.item_eval_selected)
         self.cur_selected_img = None
-        self.top_layout.addWidget(self.list_view_eval)
+        self.eval_dir_layout.addWidget(self.list_view_eval)
+        self.top_layout.addLayout(self.eval_dir_layout)
 
+        self.train_dir_layout = QVBoxLayout() 
+        self.train_dir_layout.setContentsMargins(0,0,0,0)
+        self.label_train = QLabel(self)
+        self.label_train.setText("Curated dataset")
+        self.train_dir_layout.addWidget(self.label_train)
         # add train dir list
         model_train = QFileSystemModel()
         #self.list_view = QListView(self)
@@ -118,15 +157,16 @@ class MainWindow(QWidget):
         self.list_view_train.setModel(model_train)
         for i in range(1,4):
             self.list_view_train.hideColumn(i)
-        self.list_view_train.setFixedSize(600, 600)
+        #self.list_view_train.setFixedSize(600, 600)
         self.list_view_train.setRootIndex(model_train.setRootPath(self.train_data_path)) 
         self.list_view_train.clicked.connect(self.item_train_selected)
-        self.top_layout.addWidget(self.list_view_train)
+        self.train_dir_layout.addWidget(self.list_view_train)
+        self.top_layout.addLayout(self.train_dir_layout)
 
         self.main_layout.addLayout(self.top_layout)
         
         # add buttons
-        self.launch_nap_button = QPushButton("View and annotate image", self)
+        self.launch_nap_button = QPushButton("View image and fix label", self)
         self.launch_nap_button.clicked.connect(self.launch_napari_window)  # add selected image    
         self.bottom_layout.addWidget(self.launch_nap_button)
         
@@ -159,7 +199,69 @@ class MainWindow(QWidget):
         pass
 
     def run_inference(self):
-        pass
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if device=="cuda":
+            model = models.Cellpose(gpu=True, model_type="cyto")
+        else:
+            model = models.Cellpose(gpu=False, model_type="cyto")
+        
+        list_files = [file for file in os.listdir(self.eval_data_path) if Path(file).suffix in accepted_types]
+        
+        for img_filename in list_files:
+            # don't do this for segmentations in the folder
+            if '_seg' in img_filename:  
+                continue
+                #extend to check the prefix also matches an existing image
+                #seg_name = Path(self.img_filename).stem+'_seg'+Path(self.img_filename).suffix
+            else:
+                img = imread(os.path.join(self.eval_data_path, img_filename)) #DAPI
+                orig_size = img.shape
+                seg_name = Path(img_filename).stem+'_seg.tiff' #+Path(img_filename).suffix
+
+                # png and jpeg will be RGB by deafult and 2D
+                # tif can be grayscale 2D
+                # or 2D RGB and RGBA
+                if Path(img_filename).suffix in (".jpg", ".jpeg", ".png") or (Path(img_filename).suffix in (".tiff", ".tif") and len(orig_size)==2 or (len(orig_size)==3 and (orig_size[-1]==3 or orig_size[-1]==4))):
+                    height, width = orig_size[0], orig_size[1]
+                    max_dim  = max(height, width)
+                    rescale_factor = max_dim/512
+                    img = rescale(img, 1/rescale_factor)
+                    mask, _, _, _ = model.eval(img)
+                    mask = resize(mask, (height, width), order=0)
+
+                # or 3D tiff grayscale 
+                elif Path(img_filename).suffix in (".tiff", ".tif") and len(orig_size)==3:
+                    print('Warning: 3D image stack found. We are assuming your first dimension is your stack dimension. Please cross check this.')
+                    height, width = orig_size[1], orig_size[2]
+                    max_dim = max(height, width)
+                    rescale_factor = max_dim/512
+                    img = rescale(img, 1/rescale_factor, channel_axis=0)
+                    mask, _, _, _ = model.eval(img, z_axis=0)
+                    mask = resize(mask, (orig_size[0], height, width), order=0)
+                    
+                else: 
+                    print('Image type not supported. Only 2D and 3D image shapes currently supported. 3D stacks must be of type grayscale. \
+                            Currently supported image file formats are: ', accepted_types, 'Exiting now.')
+                    sys.exit()
+
+                imsave(os.path.join(self.eval_data_path, seg_name), mask)
+
+                '''
+                labels = np.unique(mask)
+                for l in labels:
+                    if l==0: continue
+                    gfp_img[mask!=l] = 0 
+                '''
+
+                '''
+                # For Zischka
+                outlines = utils.masks_to_outlines(mask) #[True, False] outputs
+                new_mask = mask.copy()
+                
+                new_mask[mask!=0] = 2
+                new_mask[outlines==True] = 1
+                imsave(os.path.join(self.eval_data_path, seg_name), new_mask)
+                '''
 
 class WelcomeWindow(QWidget):
     def __init__(self):
