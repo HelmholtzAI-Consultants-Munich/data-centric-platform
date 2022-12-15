@@ -4,16 +4,18 @@ from pathlib import Path
 from typing import List
 import numpy as np
 from skimage.io import imread, imsave
-from skimage.transform import resize
+from skimage.transform import resize, rescale
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QMainWindow, QFileSystemModel, QListView, QHBoxLayout, QFileIconProvider, QLabel, QFileDialog, QLineEdit, QTreeView
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap, QIcon
 import napari
 import torch 
 from cellpose import models, utils
+import warnings
+warnings.simplefilter('ignore')
 
 ICON_SIZE = QSize(512,512)
-accepted_types = (".jpg",".tiff",".png", ".tif")
+accepted_types = (".jpg", ".jpeg", ".png", ".tiff", ".tif")
 
 def changeWindow(w1, w2):
     w1.hide()
@@ -44,7 +46,7 @@ class NapariWindow(QWidget):
         self.img_filename = img_filename
         self.eval_data_path = eval_data_path
         self.train_data_path = train_data_path
-        potential_seg_name = Path(self.img_filename).stem+'_seg'+Path(self.img_filename).suffix
+        potential_seg_name = Path(self.img_filename).stem+'_seg.tiff' #+Path(self.img_filename).suffix
         if os.path.exists(os.path.join(self.eval_data_path, self.img_filename)):
             self.img = imread(os.path.join(self.eval_data_path, self.img_filename))
             if os.path.exists(os.path.join(self.eval_data_path, potential_seg_name)):
@@ -56,21 +58,25 @@ class NapariWindow(QWidget):
                 seg = imread(os.path.join(self.train_data_path, potential_seg_name))
             else: seg = None
         
-        
         self.setWindowTitle("napari Viewer")
-        self.viewer = napari.Viewer()
+        self.viewer = napari.Viewer(show=False)
         self.viewer.add_image(self.img)
-        if seg is not None: self.viewer.add_labels(seg)
+
+        if seg is not None: 
+            self.viewer.add_labels(seg)
+
         main_window = self.viewer.window._qt_window
         layout = QVBoxLayout()
         layout.addWidget(main_window)
+
         add_button = QPushButton('Add to training data')
         layout.addWidget(add_button)
+        add_button.clicked.connect(self.on_add_button_clicked)
+
         #self.return_button = QPushButton('Return')
         #layout.addWidget(self.return_button)
-
-        add_button.clicked.connect(self.on_add_button_clicked)
         #self.return_button.clicked.connect(self.on_return_button_clicked)
+
         self.setLayout(layout)
         self.show()
 
@@ -92,7 +98,7 @@ class NapariWindow(QWidget):
         label_names = self._get_layer_names()
         seg = self.viewer.layers[label_names[0]].data
         os.replace(os.path.join(self.eval_data_path, self.img_filename), os.path.join(self.train_data_path, self.img_filename))
-        seg_name = Path(self.img_filename).stem+'_seg'+Path(self.img_filename).suffix
+        seg_name = Path(self.img_filename).stem+'_seg.tiff' #+Path(self.img_filename).suffix
         imsave(os.path.join(self.train_data_path, seg_name),seg)
         if os.path.exists(os.path.join(self.eval_data_path, seg_name)): 
             os.remove(os.path.join(self.eval_data_path, seg_name))
@@ -198,30 +204,64 @@ class MainWindow(QWidget):
             model = models.Cellpose(gpu=True, model_type="cyto")
         else:
             model = models.Cellpose(gpu=False, model_type="cyto")
-        list_files = [file for file in os.listdir(self.eval_data_path) if file.endswith('.tif')]
+        
+        list_files = [file for file in os.listdir(self.eval_data_path) if Path(file).suffix in accepted_types]
+        
         for img_filename in list_files:
+            # don't do this for segmentations in the folder
             if '_seg' in img_filename:  
                 continue
                 #extend to check the prefix also matches an existing image
                 #seg_name = Path(self.img_filename).stem+'_seg'+Path(self.img_filename).suffix
             else:
-                img = imread(os.path.join(self.eval_data_path, img_filename))
+                img = imread(os.path.join(self.eval_data_path, img_filename)) #DAPI
                 orig_size = img.shape
-                img = resize(img, (384, 512))
-                mask, _, _, _ = model.eval(img)
-                seg_name = Path(img_filename).stem+'_seg'+Path(img_filename).suffix
-                mask = resize(mask, orig_size, order=0)
+                seg_name = Path(img_filename).stem+'_seg.tiff' #+Path(img_filename).suffix
+
+                # png and jpeg will be RGB by deafult and 2D
+                # tif can be grayscale 2D
+                # or 2D RGB and RGBA
+                if Path(img_filename).suffix in (".jpg", ".jpeg", ".png") or (Path(img_filename).suffix in (".tiff", ".tif") and len(orig_size)==2 or (len(orig_size)==3 and (orig_size[-1]==3 or orig_size[-1]==4))):
+                    height, width = orig_size[0], orig_size[1]
+                    max_dim  = max(height, width)
+                    rescale_factor = max_dim/512
+                    img = rescale(img, 1/rescale_factor)
+                    mask, _, _, _ = model.eval(img)
+                    mask = resize(mask, (height, width), order=0)
+
+                # or 3D tiff grayscale 
+                elif Path(img_filename).suffix in (".tiff", ".tif") and len(orig_size)==3:
+                    print('Warning: 3D image stack found. We are assuming your first dimension is your stack dimension. Please cross check this.')
+                    height, width = orig_size[1], orig_size[2]
+                    max_dim = max(height, width)
+                    rescale_factor = max_dim/512
+                    img = rescale(img, 1/rescale_factor, channel_axis=0)
+                    mask, _, _, _ = model.eval(img, z_axis=0)
+                    mask = resize(mask, (orig_size[0], height, width), order=0)
+                    
+                else: 
+                    print('Image type not supported. Only 2D and 3D image shapes currently supported. 3D stacks must be of type grayscale. \
+                            Currently supported image file formats are: ', accepted_types, 'Exiting now.')
+                    sys.exit()
+
+                imsave(os.path.join(self.eval_data_path, seg_name), mask)
+
+                '''
+                labels = np.unique(mask)
+                for l in labels:
+                    if l==0: continue
+                    gfp_img[mask!=l] = 0 
+                '''
+
+                '''
+                # For Zischka
                 outlines = utils.masks_to_outlines(mask) #[True, False] outputs
-                #outlines = dilation(outlines, disk(4))
                 new_mask = mask.copy()
                 
-                #mask[mask!=0] = 125
-                imsave('temp.tif', np.logical_and(mask, outlines))
                 new_mask[mask!=0] = 2
                 new_mask[outlines==True] = 1
                 imsave(os.path.join(self.eval_data_path, seg_name), new_mask)
-                #imsave(os.path.join(self.eval_data_path, seg_name), mask)
-
+                '''
 
 class WelcomeWindow(QWidget):
     def __init__(self):
