@@ -246,22 +246,6 @@ class MainWindow(QWidget):
 
                 imsave(os.path.join(self.eval_data_path, seg_name), mask)
 
-                '''
-                labels = np.unique(mask)
-                for l in labels:
-                    if l==0: continue
-                    gfp_img[mask!=l] = 0 
-                '''
-
-                '''
-                # For Zischka
-                outlines = utils.masks_to_outlines(mask) #[True, False] outputs
-                new_mask = mask.copy()
-                
-                new_mask[mask!=0] = 2
-                new_mask[outlines==True] = 1
-                imsave(os.path.join(self.eval_data_path, seg_name), new_mask)
-                '''
 
 class WelcomeWindow(QWidget):
     def __init__(self):
