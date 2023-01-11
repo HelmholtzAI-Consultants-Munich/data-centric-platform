@@ -8,5 +8,8 @@ A data centric tool for microscopy imaging
 
 
 ## Installation
-pip install -r requirements.txt
+```pip install -r requirements.txt```
+
+## Run application
+```python al_framework.py```
 
