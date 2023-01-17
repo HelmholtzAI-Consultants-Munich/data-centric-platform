@@ -5,7 +5,7 @@ from typing import List
 import numpy as np
 from skimage.io import imread, imsave
 from skimage.transform import resize, rescale
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QMainWindow, QFileSystemModel, QListView, QHBoxLayout, QFileIconProvider, QLabel, QFileDialog, QLineEdit, QTreeView
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QFileIconProvider, QLabel, QFileDialog, QLineEdit, QTreeView, QMessageBox
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap, QIcon
 import napari
@@ -183,11 +183,19 @@ class MainWindow(QWidget):
         self.setLayout(self.main_layout)
         self.show()
 
-    def launch_napari_window(self):                                       
-        self.nap_win = NapariWindow(img_filename=self.cur_selected_img, 
-                                    eval_data_path=self.eval_data_path, 
-                                    train_data_path=self.train_data_path)
-        self.nap_win.show()
+    def launch_napari_window(self):                                      
+        if not self.cur_selected_img or '_seg.tiff' in self.cur_selected_img:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Information)
+            msg.setText("Please first select an image you wish to visualise. The selected image must belong be an original images, not a mask.")
+            msg.setWindowTitle("Warning")
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec()
+        else:
+            self.nap_win = NapariWindow(img_filename=self.cur_selected_img, 
+                                        eval_data_path=self.eval_data_path, 
+                                        train_data_path=self.train_data_path)
+            self.nap_win.show()
 
     def item_eval_selected(self, item):
         self.cur_selected_img = item.data()
@@ -281,6 +289,10 @@ class WelcomeWindow(QWidget):
         self.start_button.clicked.connect(self.start_main)
         self.main_layout.addWidget(self.start_button)
         self.setLayout(self.main_layout)
+
+        self.filename_train = ''
+        self.filename_val = ''
+
         self.show()
 
     def browse_eval_clicked(self):
@@ -299,8 +311,16 @@ class WelcomeWindow(QWidget):
 
     
     def start_main(self):
-        self.hide()
-        self.mw = MainWindow(self.filename_val, self.filename_train)
+        if self.filename_train and self.filename_val:
+            self.hide()
+            self.mw = MainWindow(self.filename_val, self.filename_train)
+        else:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Information)
+            msg.setText("You need to specify a folder both for your uncurated and curated dataset (even if the curated folder is currently empty). Please go back and select folders for both.")
+            msg.setWindowTitle("Warning")
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec()
     
 
 if __name__ == "__main__":
