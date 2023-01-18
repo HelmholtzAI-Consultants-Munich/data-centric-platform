@@ -239,7 +239,8 @@ class MainWindow(QWidget):
 
     def run_inference(self):
         ''' 
-        Runs inference for the images without labeles (in the evaluation data path)
+        Runs inference for the images without labeles (in the evaluation data path). 
+        Currently, cellpose is used for segmentation.
         '''
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -292,7 +293,9 @@ class MainWindow(QWidget):
 
 class WelcomeWindow(QWidget):
     '''Welcome Window Widget object.
-    The first window of the application where data directories are chosen. By clicking 'start' the MainWindow is called.
+    The first window of the application providing a dialog that allows users to select directories. 
+    Currently supported image file types that can be selected for segmentation are: .jpg, .jpeg, .png, .tiff, .tif.
+    By clicking 'start' the MainWindow is called.
     '''
 
     def __init__(self):
@@ -335,6 +338,11 @@ class WelcomeWindow(QWidget):
         self.show()
 
     def browse_eval_clicked(self):
+        '''
+        Activates  when the user clicks the button to choose the evaluation directory (QFileDialog) and 
+        displays the name of the evaluation directory chosen in the validation textbox line (QLineEdit).
+        '''
+
         fd = QFileDialog()
         fd.setFileMode(QFileDialog.Directory)
         if fd.exec_():
@@ -342,6 +350,11 @@ class WelcomeWindow(QWidget):
         self.val_textbox.setText(self.filename_val)
     
     def browse_train_clicked(self):
+        '''
+        Activates  when the user clicks the button to choose the train directory (QFileDialog) and 
+        displays the name of the train directory chosen in the train textbox line (QLineEdit).
+        '''
+
         fd = QFileDialog()
         fd.setFileMode(QFileDialog.Directory)
         if fd.exec_():
@@ -350,6 +363,10 @@ class WelcomeWindow(QWidget):
 
     
     def start_main(self):
+        '''
+        Starts the main window after the user clicks 'Start' and only if both evaluation and train directories are chosen. 
+        '''
+        
         if self.filename_train and self.filename_val:
             self.hide()
             self.mw = MainWindow(self.filename_val, self.filename_train)
