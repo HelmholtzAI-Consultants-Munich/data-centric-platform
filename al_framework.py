@@ -14,12 +14,15 @@ from cellpose import models, utils
 import warnings
 warnings.simplefilter('ignore')
 
+
 ICON_SIZE = QSize(512,512)
 accepted_types = (".jpg", ".jpeg", ".png", ".tiff", ".tif")
+
 
 def changeWindow(w1, w2):
     w1.hide()
     w2.show()
+
 
 class IconProvider(QFileIconProvider):
 
@@ -37,7 +40,18 @@ class IconProvider(QFileIconProvider):
         else:
             return super().icon(type)
 
+
 class NapariWindow(QWidget):
+    '''Napari Window Widget object.
+    Opens the napari image viewer to view and fix the labeles.
+    :param img_filename:
+    :type img_filename: string
+    :param eval_data_path:
+    :type eval_data_path:
+    :param train_data_path:
+    :type train_data_path:
+    '''
+
     def __init__(self, 
                 img_filename,
                 eval_data_path,
@@ -81,11 +95,11 @@ class NapariWindow(QWidget):
         self.show()
 
     def _get_layer_names(self, layer_type: napari.layers.Layer = napari.layers.Labels) -> List[str]:
-        """
+        '''
         Get list of layer names of a given layer type.
-        """
+        '''
         layer_names = [
-            layer.name
+            layer.names
             for layer in self.viewer.layers
             if type(layer) == layer_type
         ]
@@ -95,6 +109,10 @@ class NapariWindow(QWidget):
             return []
 
     def on_add_button_clicked(self):
+        '''
+        Defines what happens when the button is clicked.
+        '''
+
         label_names = self._get_layer_names()
         seg = self.viewer.layers[label_names[0]].data
         os.replace(os.path.join(self.eval_data_path, self.img_filename), os.path.join(self.train_data_path, self.img_filename))
@@ -110,6 +128,15 @@ class NapariWindow(QWidget):
     '''
 
 class MainWindow(QWidget):
+    '''Main Window Widget object.
+    Opens the main window of the app where selected images in both directories are listed. 
+    User can view the images, train the mdoel to get the labels, and visualise the result.
+    :param eval_data_path: Chosen path to images without labeles, selected by the user in the WelcomeWindow
+    :type eval_data_path: string
+    :param train_data_path: Chosen path to images with labeles, selected by the user in the WelcomeWindow
+    :type train_data_path: string
+    '''
+
     def __init__(self, eval_data_path, train_data_path):
         super().__init__()
 
@@ -183,7 +210,11 @@ class MainWindow(QWidget):
         self.setLayout(self.main_layout)
         self.show()
 
-    def launch_napari_window(self):                                      
+    def launch_napari_window(self):   
+        ''' 
+        Launches the napari window after the image is selected.
+        '''
+
         if not self.cur_selected_img or '_seg.tiff' in self.cur_selected_img:
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Information)
@@ -207,6 +238,10 @@ class MainWindow(QWidget):
         pass
 
     def run_inference(self):
+        ''' 
+        Runs inference for the images without labeles (in the evaluation data path)
+        '''
+
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if device=="cuda":
             model = models.Cellpose(gpu=True, model_type="cyto")
@@ -256,6 +291,10 @@ class MainWindow(QWidget):
 
 
 class WelcomeWindow(QWidget):
+    '''Welcome Window Widget object.
+    The first window of the application where data directories are chosen. By clicking 'start' the MainWindow is called.
+    '''
+
     def __init__(self):
         super().__init__()
         self.resize(200, 200)
