@@ -1,3 +1,4 @@
 napari==0.4.17
 PyQt5
-cellpose
+cellpose>=2.2
+bentoml
