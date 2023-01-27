@@ -47,6 +47,10 @@ cellpose_runner = t.cast(
     "CellposeRunner", bentoml.Runner(CellposeRunnable, name="cellpose_runner")
 )
 
+# Save the model (you can see it by typing 'bentoml models list' in the terminal)
+# I'll leave it commented as I think it is not best to have it here
+
+# bentoml.picklable_model.save_model('cellpose', cellpose_runner)
 
 svc = bentoml.Service("cellpose_segm_test", runners=[cellpose_runner])
 
