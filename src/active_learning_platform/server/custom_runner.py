@@ -16,11 +16,11 @@ from skimage.transform import resize, rescale
 import os
 
 
-if TYPE_CHECKING:
-    from bentoml._internal.runner.runner import RunnerMethod
+# if TYPE_CHECKING:
+#     from bentoml._internal.runner.runner import RunnerMethod
 
-    class RunnerImpl(bentoml.Runner):
-        is_positive: RunnerMethod
+#     class RunnerImpl(bentoml.Runner):
+#         evaluate: RunnerMethod
 
 
 class CellposeRunnable(bentoml.Runnable):
@@ -79,6 +79,6 @@ async def segment_image(input_path: str):
 
     save_path = os.path.join(Path(input_path).parents[0], seg_name)
     imsave(save_path, mask)
-    
+
     msg = "Success. Saved in " + save_path
     return msg
