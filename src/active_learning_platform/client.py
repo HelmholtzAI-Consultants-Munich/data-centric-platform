@@ -230,7 +230,6 @@ class MainWindow(QWidget):
     
     def on_run_inference_button_clicked(self):
         list_of_files_not_suported = run_inference(self.eval_data_path, accepted_types)
-        print(list_of_files_not_suported)
         if len(list_of_files_not_suported) > 0:
             message_text = "Image types not supported. Only 2D and 3D image shapes currently supported. 3D stacks must be of type grayscale. \
             Currently supported image file formats are: ', accepted_types. The files that were not supported are: " + ", ".join(list_of_files_not_suported)

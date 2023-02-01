@@ -1,20 +1,21 @@
 from __future__ import annotations
-
+import os
 import time
 import typing as t
+from typing import List
 from typing import TYPE_CHECKING
+from pathlib import Path
 
 import numpy as np
+from skimage.io import imread, imsave
+from skimage.color import rgb2gray
+from skimage.transform import resize, rescale
+from cellpose import models
 
 import bentoml
 from bentoml.io import Image, Text, NumpyNdarray
 
-from pathlib import Path
-from cellpose import models
-from skimage.io import imread, imsave
-from skimage.transform import resize, rescale
-import os
-
+accepted_types = (".jpg", ".jpeg", ".png", ".tiff", ".tif")
 
 # if TYPE_CHECKING:
 #     from bentoml._internal.runner.runner import RunnerMethod
@@ -28,20 +29,20 @@ class CellposeRunnable(bentoml.Runnable):
     SUPPORTS_CPU_MULTI_THREADING = False
 
     def __init__(self):
-        self.model = models.Cellpose(gpu=True, model_type="cyto")
+        #self.model = models.Cellpose(gpu=True, model_type="cyto")
+        self.model = models.CellposeModel(gpu=True, model_type="cyto")
 
     @bentoml.Runnable.method(batchable=False)
-    def evaluate(self, img: np.ndarray, flag: int) -> np.ndarray:
+    def evaluate(self, img: np.ndarray, z_axis: int) -> np.ndarray: # flag: int
         #self should be cellpose
-        if flag==0: # for simplicity and testing now I just used flags, there can be a nicer solution
-            mask, _, _, _ = self.model.eval(img) #this eval is the cellposes's function eval
-        elif flag==1:
-            mask, _, _, _ = self.model.eval(img, z_axis=0)
-        else:
-            pass
-
+        mask, _, _ = self.model.eval(img, z_axis=z_axis)
         return mask
-    
+
+    @bentoml.Runnable.method(batchable=False)
+    def train(self, imgs: List[np.ndarray], masks: List[np.ndarray]) -> str:
+        save_model_path = 'mytrainedmodel'
+        self.model.train(imgs, masks, n_epochs=2, channels=[0], save_path=save_model_path)
+        return save_model_path
 
 cellpose_runner = t.cast(
     "CellposeRunner", bentoml.Runner(CellposeRunnable, name="cellpose_runner")
@@ -49,40 +50,71 @@ cellpose_runner = t.cast(
 
 # Save the model (you can see it by typing 'bentoml models list' in the terminal)
 # I'll leave it commented as I think it is not best to have it here
-
 # bentoml.picklable_model.save_model('cellpose', cellpose_runner)
 
 svc = bentoml.Service("cellpose_segm_test", runners=[cellpose_runner])
 
-@svc.api(input=Text(), output=Text())  #input path to the image output message with success and the save path
+@svc.api(input=Text(), output=NumpyNdarray())  #input path to the image output message with success and the save path
 async def segment_image(input_path: str):
-    img = imread(os.path.join(input_path))
-    orig_size = img.shape
-    seg_name = Path(input_path).stem+'_seg.tiff'
-    # This is copied from our local_inference, first case flag = 0, second case flag=1 for the evaluate function above
-    if Path(input_path).suffix in (".jpg", ".jpeg", ".png") or (Path(input_path).suffix in (".tiff", ".tif") and len(orig_size)==2 or (len(orig_size)==3 and (orig_size[-1]==3 or orig_size[-1]==4))):
-        height, width = orig_size[0], orig_size[1]
-        max_dim  = max(height, width)
-        rescale_factor = max_dim/512
-        img = rescale(img, 1/rescale_factor)
-        mask = await cellpose_runner.evaluate.async_run(img, flag=0)
-        mask = resize(mask, (height, width), order=0)
 
-        # or 3D tiff grayscale 
-    elif Path(input_path).suffix in (".tiff", ".tif") and len(orig_size)==3:
-        print('Warning: 3D image stack found. We are assuming your first dimension is your stack dimension. Please cross check this.')
-        height, width = orig_size[1], orig_size[2]
-        max_dim = max(height, width)
-        rescale_factor = max_dim/512
-        img = rescale(img, 1/rescale_factor, channel_axis=0)
-        mask = await cellpose_runner.evaluate.async_run(img, flag=1)
-        mask = resize(mask, (orig_size[0], height, width), order=0)
-        
-    else: 
-        pass
+    list_files = [file for file in os.listdir(input_path) if Path(file).suffix in accepted_types]
+    list_of_files_not_supported = []
 
-    save_path = os.path.join(Path(input_path).parents[0], seg_name)
-    imsave(save_path, mask)
+    for img_filename in list_files:
+        # don't do this for segmentations in the folder
+        if '_seg' in img_filename:  
+            continue
+            #extend to check the prefix also matches an existing image
+            #seg_name = Path(self.img_filename).stem+'_seg'+Path(self.img_filename).suffix
+        else:
+            img = imread(os.path.join(input_path, img_filename)) #DAPI
+            orig_size = img.shape
+            seg_name = Path(img_filename).stem+'_seg.tiff' #+Path(img_filename).suffix
 
-    msg = "Success. Saved in " + save_path
+            # png and jpeg will be RGB by default and 2D
+            # tif can be grayscale 2D or 2D RGB and RGBA
+            if Path(img_filename).suffix in (".jpg", ".jpeg", ".png") or (Path(img_filename).suffix in (".tiff", ".tif") and len(orig_size)==2 or (len(orig_size)==3 and (orig_size[-1]==3 or orig_size[-1]==4))):
+                height, width = orig_size[0], orig_size[1]
+                channel_ax = None
+            # or 3D tiff grayscale 
+            elif Path(img_filename).suffix in (".tiff", ".tif") and len(orig_size)==3:
+                print('Warning: 3D image stack found. We are assuming your first dimension is your stack dimension. Please cross check this.')
+                height, width = orig_size[1], orig_size[2]
+                channel_ax = 0                
+            else: 
+                list_of_files_not_supported.append(img_filename)
+                continue
+
+            max_dim  = max(height, width)
+            rescale_factor = max_dim/512
+            img = rescale(img, 1/rescale_factor, channel_axis=channel_ax)
+            mask = await cellpose_runner.evaluate.async_run(img, z_axis=channel_ax)
+            mask = resize(mask, (height, width), order=0)
+            imsave(os.path.join(input_path, seg_name), mask)
+            
+    #msg = "Success. Segmentations saved in " + input_path
+    #return msg
+    return np.array(list_of_files_not_supported)
+
+@svc.api(input=Text(), output=Text())
+async def retrain(input_path):
+    print("Calling retrain from server.")
+    #imgs_path = os.path.join(input_path, 'images')
+    #masks_path = os.path.join(input_path, 'masks')
+    train_imgs = [os.path.join(input_path, file) for file in os.listdir(input_path) if Path(file).suffix in accepted_types and '_seg.tiff' not in file]
+    train_masks = [os.path.join(input_path, file) for file in os.listdir(input_path) if '_seg.tiff' in file]
+    #train_imgs = [os.path.join(imgs_path, file) for file in os.listdir(imgs_path) if file.endswith('.png')]
+    #train_masks = [os.path.join(masks_path, file) for file in os.listdir(masks_path) if file.endswith('.png')]
+    train_imgs.sort()
+    train_masks.sort()
+    imgs=[]
+    masks=[]
+    for img_file, mask_file in zip(train_imgs, train_masks):
+        imgs.append(rgb2gray(imread(img_file)))
+        masks.append(imread(mask_file))
+    model_path = await cellpose_runner.train.async_run(imgs, masks)
+    #await cellpose_runner.train.async_run(imgs, masks)
+    msg = "Success. Trained model saved in: " + model_path
     return msg
+    
+    
