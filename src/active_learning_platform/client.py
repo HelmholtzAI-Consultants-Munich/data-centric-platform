@@ -2,18 +2,22 @@ import sys
 import os
 from pathlib import Path
 from typing import List
+import asyncio
+
 from skimage.io import imread, imsave
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QFileIconProvider, QLabel, QFileDialog, QLineEdit, QTreeView, QMessageBox
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap, QIcon
 import napari
-from server.local_inference import run_inference
+from bentoml.client import Client
+#from server.local_inference import run_inference
 import warnings
 warnings.simplefilter('ignore')
 
 ICON_SIZE = QSize(512,512)
 accepted_types = (".jpg", ".jpeg", ".png", ".tiff", ".tif")
 
+client = Client.from_url("http://0.0.0.0:7010") # have the url of the bentoml service here
 
 class IconProvider(QFileIconProvider):
     def __init__(self) -> None:
@@ -225,11 +229,21 @@ class MainWindow(QWidget):
     def item_train_selected(self, item):
         self.cur_selected_img = item.data()
 
+    async def _run_train(self):
+        response = await client.async_retrain(self.train_data_path)
+        return response
+
     def on_train_button_clicked(self):
-        pass # will train function
-    
+        message_text = asyncio.run(self._run_train())
+        create_warning_box(message_text)
+
+    async def _run_inference(self):
+        response = await client.async_segment_image(self.eval_data_path)
+        return response
+
     def on_run_inference_button_clicked(self):
-        list_of_files_not_suported = run_inference(self.eval_data_path, accepted_types)
+        list_of_files_not_suported = asyncio.run(self._run_inference())
+        list_of_files_not_suported = list(list_of_files_not_suported)
         if len(list_of_files_not_suported) > 0:
             message_text = "Image types not supported. Only 2D and 3D image shapes currently supported. 3D stacks must be of type grayscale. \
             Currently supported image file formats are: ', accepted_types. The files that were not supported are: " + ", ".join(list_of_files_not_suported)
