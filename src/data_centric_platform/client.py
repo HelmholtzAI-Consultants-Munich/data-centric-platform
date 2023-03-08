@@ -54,7 +54,9 @@ class NapariWindow(QWidget):
         self.img_filename = img_filename
         self.eval_data_path = eval_data_path
         self.train_data_path = train_data_path
-        potential_seg_name = Path(self.img_filename).stem+'_seg.tiff' #+Path(self.img_filename).suffix
+
+ 
+        potential_seg_name = Path(self.img_filename).stem + '_seg.tiff' #+Path(self.img_filename).suffix
         if os.path.exists(os.path.join(self.eval_data_path, self.img_filename)):
             self.img = imread(os.path.join(self.eval_data_path, self.img_filename))
             if os.path.exists(os.path.join(self.eval_data_path, potential_seg_name)):
@@ -112,7 +114,7 @@ class NapariWindow(QWidget):
         label_names = self._get_layer_names()
         seg = self.viewer.layers[label_names[0]].data
         os.replace(os.path.join(self.eval_data_path, self.img_filename), os.path.join(self.train_data_path, self.img_filename))
-        seg_name = Path(self.img_filename).stem+'_seg.tiff' #+Path(self.img_filename).suffix
+        seg_name = Path(self.img_filename).stem+ '_seg.tiff' #+Path(self.img_filename).suffix
         imsave(os.path.join(self.train_data_path, seg_name),seg)
         if os.path.exists(os.path.join(self.eval_data_path, seg_name)): 
             os.remove(os.path.join(self.eval_data_path, seg_name))
@@ -345,7 +347,8 @@ class WelcomeWindow(QWidget):
 
         self.filename_train = ''
         self.filename_val = ''
-        self.filename_inprogr = os.getcwd() #TODO: what is the inprogress path if nothing is specified?
+        #self.filename_inprogr = os.getcwd() #TODO: what is the inprogress path if nothing is specified?
+        self.filename_inprogr = ''
 
         self.show()
 
