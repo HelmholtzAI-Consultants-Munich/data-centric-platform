@@ -150,9 +150,11 @@ class MainWindow(QWidget):
     def main_window(self):
         self.setWindowTitle(self.title)
         #self.resize(1000, 1500)
-        self.main_layout = QVBoxLayout()  
-        self.top_layout = QHBoxLayout()
-        self.bottom_layout = QHBoxLayout()
+        self.main_layout = QHBoxLayout()  
+        
+        self.uncurated_layout = QVBoxLayout()
+        self.inprogress_layout = QVBoxLayout()
+        self.curated_layout = QVBoxLayout()
 
         self.eval_dir_layout = QVBoxLayout() 
         self.eval_dir_layout.setContentsMargins(0,0,0,0)
@@ -171,8 +173,16 @@ class MainWindow(QWidget):
         self.list_view_eval.clicked.connect(self.item_eval_selected)
         self.cur_selected_img = None
         self.eval_dir_layout.addWidget(self.list_view_eval)
-        self.top_layout.addLayout(self.eval_dir_layout)
+        self.uncurated_layout.addLayout(self.eval_dir_layout)
 
+        # add buttons
+        self.inference_button = QPushButton("Generate Labels", self)
+        self.inference_button.clicked.connect(self.on_run_inference_button_clicked)  # add selected image    
+        self.uncurated_layout.addWidget(self.inference_button, alignment=Qt.AlignCenter)
+
+        self.main_layout.addLayout(self.uncurated_layout)
+
+        # In progress layout
         self.inprogr_dir_layout = QVBoxLayout() 
         self.inprogr_dir_layout.setContentsMargins(0,0,0,0)
         self.label_inprogr = QLabel(self)
@@ -190,8 +200,15 @@ class MainWindow(QWidget):
         self.list_view_inprogr.setRootIndex(model_inprogr.setRootPath(self.inprogr_data_path)) 
         self.list_view_inprogr.clicked.connect(self.item_inprogr_selected)
         self.inprogr_dir_layout.addWidget(self.list_view_inprogr)
-        self.top_layout.addLayout(self.inprogr_dir_layout)
+        self.inprogress_layout.addLayout(self.inprogr_dir_layout)
 
+        self.launch_nap_button = QPushButton("View image and fix label", self)
+        self.launch_nap_button.clicked.connect(self.launch_napari_window)  # add selected image    
+        self.inprogress_layout.addWidget(self.launch_nap_button, alignment=Qt.AlignCenter)
+
+        self.main_layout.addLayout(self.inprogress_layout)
+
+        # Curated layout
         self.train_dir_layout = QVBoxLayout() 
         self.train_dir_layout.setContentsMargins(0,0,0,0)
         self.label_train = QLabel(self)
@@ -209,25 +226,13 @@ class MainWindow(QWidget):
         self.list_view_train.setRootIndex(model_train.setRootPath(self.train_data_path)) 
         self.list_view_train.clicked.connect(self.item_train_selected)
         self.train_dir_layout.addWidget(self.list_view_train)
-        self.top_layout.addLayout(self.train_dir_layout)
-
-        self.main_layout.addLayout(self.top_layout)
-        
-        # add buttons
-        self.inference_button = QPushButton("Generate Labels", self)
-        self.inference_button.clicked.connect(self.on_run_inference_button_clicked)  # add selected image    
-        self.bottom_layout.addWidget(self.inference_button)
-
-        self.launch_nap_button = QPushButton("View image and fix label", self)
-        self.launch_nap_button.clicked.connect(self.launch_napari_window)  # add selected image    
-        self.bottom_layout.addWidget(self.launch_nap_button)
+        self.curated_layout.addLayout(self.train_dir_layout)
         
         self.train_button = QPushButton("Train Model", self)
         self.train_button.clicked.connect(self.on_train_button_clicked)  # add selected image    
-        self.bottom_layout.addWidget(self.train_button)
+        self.curated_layout.addWidget(self.train_button, alignment=Qt.AlignCenter)
 
-
-        self.main_layout.addLayout(self.bottom_layout)
+        self.main_layout.addLayout(self.curated_layout)
 
         self.setLayout(self.main_layout)
         self.show()
