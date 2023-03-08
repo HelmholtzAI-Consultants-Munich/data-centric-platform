@@ -135,12 +135,13 @@ class MainWindow(QWidget):
     '''
 
 
-    def __init__(self, eval_data_path, train_data_path):
+    def __init__(self, eval_data_path, train_data_path, inprogr_data_path):
         super().__init__()
 
         self.title = "Data Overview"
         self.eval_data_path = eval_data_path
         self.train_data_path = train_data_path
+        self.inprogr_data_path = inprogr_data_path
         self.main_window()
 
 
@@ -170,6 +171,25 @@ class MainWindow(QWidget):
         self.eval_dir_layout.addWidget(self.list_view_eval)
         self.top_layout.addLayout(self.eval_dir_layout)
 
+        self.inprogr_dir_layout = QVBoxLayout() 
+        self.inprogr_dir_layout.setContentsMargins(0,0,0,0)
+        self.label_inprogr = QLabel(self)
+        self.label_inprogr.setText("Curation in progress")
+        self.inprogr_dir_layout.addWidget(self.label_inprogr)
+        # add in progress dir list
+        model_inprogr = QFileSystemModel()
+        #self.list_view = QListView(self)
+        self.list_view_inprogr = QTreeView(self)
+        model_inprogr.setIconProvider(IconProvider())
+        self.list_view_inprogr.setModel(model_inprogr)
+        for i in range(1,4):
+            self.list_view_inprogr.hideColumn(i)
+        #self.list_view_inprogr.setFixedSize(600, 600)
+        self.list_view_inprogr.setRootIndex(model_inprogr.setRootPath(self.inprogr_data_path)) 
+        self.list_view_inprogr.clicked.connect(self.item_inprogr_selected)
+        self.inprogr_dir_layout.addWidget(self.list_view_inprogr)
+        self.top_layout.addLayout(self.inprogr_dir_layout)
+
         self.train_dir_layout = QVBoxLayout() 
         self.train_dir_layout.setContentsMargins(0,0,0,0)
         self.label_train = QLabel(self)
@@ -192,6 +212,10 @@ class MainWindow(QWidget):
         self.main_layout.addLayout(self.top_layout)
         
         # add buttons
+        self.inference_button = QPushButton("Generate Labels", self)
+        self.inference_button.clicked.connect(self.on_run_inference_button_clicked)  # add selected image    
+        self.bottom_layout.addWidget(self.inference_button)
+
         self.launch_nap_button = QPushButton("View image and fix label", self)
         self.launch_nap_button.clicked.connect(self.launch_napari_window)  # add selected image    
         self.bottom_layout.addWidget(self.launch_nap_button)
@@ -200,9 +224,6 @@ class MainWindow(QWidget):
         self.train_button.clicked.connect(self.on_train_button_clicked)  # add selected image    
         self.bottom_layout.addWidget(self.train_button)
 
-        self.inference_button = QPushButton("Generate Labels", self)
-        self.inference_button.clicked.connect(self.on_run_inference_button_clicked)  # add selected image    
-        self.bottom_layout.addWidget(self.inference_button)
 
         self.main_layout.addLayout(self.bottom_layout)
 
@@ -227,6 +248,9 @@ class MainWindow(QWidget):
         self.cur_selected_img = item.data()
     
     def item_train_selected(self, item):
+        self.cur_selected_img = item.data()
+
+    def item_inprogr_selected(self, item):
         self.cur_selected_img = item.data()
 
     async def _run_train(self):
@@ -370,7 +394,7 @@ class WelcomeWindow(QWidget):
         
         if self.filename_train and self.filename_val:
             self.hide()
-            self.mw = MainWindow(self.filename_val, self.filename_train)
+            self.mw = MainWindow(self.filename_val, self.filename_train, self.filename_inprogr)
         else:
             message_text = "You need to specify a folder both for your uncurated and curated dataset (even if the curated folder is currently empty). Please go back and select folders for both."
             create_warning_box(message_text, message_title="Warning")
