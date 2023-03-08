@@ -6,7 +6,7 @@ import asyncio
 
 from skimage.io import imread, imsave
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QFileIconProvider, QLabel, QFileDialog, QLineEdit, QTreeView, QMessageBox
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QPixmap, QIcon
 import napari
 from bentoml.client import Client
@@ -285,6 +285,17 @@ class WelcomeWindow(QWidget):
         self.val_layout.addWidget(self.val_textbox)
         self.val_layout.addWidget(self.fileOpenButton)
 
+        self.inprogr_layout = QHBoxLayout()
+        inprogr_label = QLabel(self)
+        inprogr_label.setText('Curation in progress path:')
+        self.inprogr_textbox = QLineEdit(self)
+        self.fileOpenButton = QPushButton('Browse',self)
+        self.fileOpenButton.show()
+        self.fileOpenButton.clicked.connect(self.browse_inprogr_clicked)
+        self.inprogr_layout.addWidget(inprogr_label)
+        self.inprogr_layout.addWidget(self.inprogr_textbox)
+        self.inprogr_layout.addWidget(self.fileOpenButton)
+
         self.train_layout = QHBoxLayout()
         train_label = QLabel(self)
         train_label.setText('Curated dataset path:')
@@ -298,16 +309,19 @@ class WelcomeWindow(QWidget):
 
         self.main_layout.addWidget(self.label)
         self.main_layout.addLayout(self.val_layout)
+        self.main_layout.addLayout(self.inprogr_layout)
         self.main_layout.addLayout(self.train_layout)
 
         self.start_button = QPushButton('Start', self)
+        self.start_button.setFixedSize(120, 30)
         self.start_button.show()
         self.start_button.clicked.connect(self.start_main)
-        self.main_layout.addWidget(self.start_button)
+        self.main_layout.addWidget(self.start_button, alignment=Qt.AlignCenter)
         self.setLayout(self.main_layout)
 
         self.filename_train = ''
         self.filename_val = ''
+        self.filename_inprogr = os.getcwd() #TODO: what is the inprogress path if nothing is specified?
 
         self.show()
 
@@ -335,6 +349,19 @@ class WelcomeWindow(QWidget):
             self.filename_train = fd.selectedFiles()[0]
         self.train_textbox.setText(self.filename_train)
 
+
+    def browse_inprogr_clicked(self):
+        '''
+        Activates  when the user clicks the button to choose the curation in progress directory (QFileDialog) and 
+        displays the name of the evaluation directory chosen in the validation textbox line (QLineEdit).
+        '''
+
+        fd = QFileDialog()
+        fd.setFileMode(QFileDialog.Directory)
+        if fd.exec_(): # Browse clicked
+            self.filename_inprogr = fd.selectedFiles()[0] #TODO: case when browse is clicked but nothing is specified - currently it is filled with os.getcwd()
+        self.inprogr_textbox.setText(self.filename_inprogr)
+  
     
     def start_main(self):
         '''
