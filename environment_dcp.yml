@@ -1,4 +1,4 @@
-name: test-dc-tool2
+name: dcp-env
 channels:
   - defaults
 dependencies:
