@@ -9,6 +9,7 @@ Simply run:
 ```
 pip install -r requirements.txt
 ```
+*Note:* The environment has currently only been tested with Python version 3.9. 
 
 ## How to use this?
 
