@@ -49,11 +49,13 @@ class NapariWindow(QWidget):
     def __init__(self, 
                 img_filename,
                 eval_data_path,
-                train_data_path):
+                train_data_path,
+                inprogr_data_path):
         super().__init__()
         self.img_filename = img_filename
         self.eval_data_path = eval_data_path
         self.train_data_path = train_data_path
+        self.inprogr_data_path = inprogr_data_path
 
  
         potential_seg_name = Path(self.img_filename).stem + '_seg.tiff' #+Path(self.img_filename).suffix
@@ -79,9 +81,17 @@ class NapariWindow(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(main_window)
 
-        add_button = QPushButton('Add to training data')
-        layout.addWidget(add_button)
-        add_button.clicked.connect(self.on_add_button_clicked)
+        buttons_layout = QHBoxLayout()
+
+        add_to_inprogress_button = QPushButton('Move to \'Curatation in progress\' folder')
+        buttons_layout.addWidget(add_to_inprogress_button)
+        add_to_inprogress_button.clicked.connect(self.on_add_to_inprogress_button_clicked)
+    
+        add_to_curated_button = QPushButton('Move to \'Curated dataset\' folder')
+        buttons_layout.addWidget(add_to_curated_button)
+        add_to_curated_button.clicked.connect(self.on_add_to_curated_button_clicked)
+
+        layout.addLayout(buttons_layout)
 
         #self.return_button = QPushButton('Return')
         #layout.addWidget(self.return_button)
@@ -106,7 +116,7 @@ class NapariWindow(QWidget):
             return []
 
 
-    def on_add_button_clicked(self):
+    def on_add_to_curated_button_clicked(self):
         '''
         Defines what happens when the button is clicked.
         '''
@@ -119,6 +129,21 @@ class NapariWindow(QWidget):
         if os.path.exists(os.path.join(self.eval_data_path, seg_name)): 
             os.remove(os.path.join(self.eval_data_path, seg_name))
         self.close()
+
+    def on_add_to_inprogress_button_clicked(self):
+        '''
+        Defines what happens when the button is clicked.
+        '''
+
+        label_names = self._get_layer_names()
+        seg = self.viewer.layers[label_names[0]].data
+        os.replace(os.path.join(self.eval_data_path, self.img_filename), os.path.join(self.inprogr_data_path, self.img_filename))
+        seg_name = Path(self.img_filename).stem + '_' + label_names[0] + '.tiff' #+Path(self.img_filename).suffix
+        imsave(os.path.join(self.inprogr_data_path, seg_name),seg)
+        if os.path.exists(os.path.join(self.eval_data_path, seg_name)): 
+            os.remove(os.path.join(self.eval_data_path, seg_name))
+        self.close()
+
 
     '''
     def on_return_button_clicked(self):
@@ -248,7 +273,8 @@ class MainWindow(QWidget):
         else:
             self.nap_win = NapariWindow(img_filename=self.cur_selected_img, 
                                         eval_data_path=self.eval_data_path, 
-                                        train_data_path=self.train_data_path)
+                                        train_data_path=self.train_data_path,
+                                        inprogr_data_path=self.inprogr_data_path)
             self.nap_win.show()
 
     def item_eval_selected(self, item):
