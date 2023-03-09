@@ -268,7 +268,7 @@ class MainWindow(QWidget):
         '''
 
         if not self.cur_selected_img or '_seg.tiff' in self.cur_selected_img:
-            message_text = "Please first select an image you wish to visualise. The selected image must belong be an original images, not a mask."
+            message_text = "Please first select an image you wish to visualise. The selected image must be an original images, not a mask."
             create_warning_box(message_text, message_title="Warning")
         else:
             self.nap_win = NapariWindow(img_filename=self.cur_selected_img, 
