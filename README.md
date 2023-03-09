@@ -18,7 +18,7 @@ cd src/data-centric-platform
 serve service:svc --reload --port=7010
 ```
 
-To run the user interface (while the server is running) do: python client.py
+To run the user interface (while the server is running) do: ```python client.py```
 
 ### Toy data
 This repo includes the data/ directory with some toy data which you can use as the 'uncurated dataset' folder. You can create (empty) folders for the other two directories required in the welcome window.
