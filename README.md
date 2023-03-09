@@ -16,7 +16,7 @@ This repo includes a client and server side for using our data centric platform.
 
 ```
 cd src/data-centric-platform/server
-serve service:svc --reload --port=7010
+bentoml serve service:svc --reload --port=7010
 ```
 
 To run the user interface (while the server is running) do: ```python client.py```
