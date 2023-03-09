@@ -7,7 +7,10 @@ A data centric platform for microscopy imaging
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/HelmholtzAI-Consultants-Munich/active-learning-platform)
 
 ## Installation
+Simply run:
+```
 pip install -r requirements.txt
+```
 
 ## How to use this?
 
