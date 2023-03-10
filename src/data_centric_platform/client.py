@@ -68,7 +68,7 @@ class NapariWindow(QWidget):
                 seg = imread(os.path.join(self.train_data_path, potential_seg_name))
             else: seg = None
         
-        self.setWindowTitle("napari Viewer")
+        self.setWindowTitle("napari viewer")
         self.viewer = napari.Viewer(show=False)
         self.viewer.add_image(self.img)
 
