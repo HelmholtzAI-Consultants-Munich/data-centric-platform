@@ -4,7 +4,11 @@ A data centric platform for microscopy imaging
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/HelmholtzAI-Consultants-Munich/active-learning-platform)
 ![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
 
-
+## Installation
+To run DCP create a new conda environment with the provided yaml file by typing the following:
+```
+conda env create -f environment_dcp.yml
+```
 
 ## How to use this?
 
