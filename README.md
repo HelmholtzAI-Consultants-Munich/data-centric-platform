@@ -23,7 +23,7 @@ bentoml serve service:svc --reload --port=7010
 To run the user interface (while the server is running) open a new terminal and do: 
 ```
 conda activate dcp-env
-python src/data_centric_platform/client.py
+python src/data_centric_platform/client/main.py
 ```
 
 ### Toy data
