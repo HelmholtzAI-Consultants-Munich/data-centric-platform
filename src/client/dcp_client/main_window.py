@@ -3,8 +3,8 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QFileSystemModel,
 from PyQt5.QtCore import Qt
 from bentoml.client import Client
 
-import settings
-from utils import IconProvider, create_warning_box
+from . import settings
+from .utils import IconProvider, create_warning_box
 from napari_window import NapariWindow
 
 class MainWindow(QWidget):

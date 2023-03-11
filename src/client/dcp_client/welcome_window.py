@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QLineEdit
 from PyQt5.QtCore import Qt
 
-from main_window import MainWindow
+from .main_window import MainWindow
 from utils import create_warning_box
 
 class WelcomeWindow(QWidget):
