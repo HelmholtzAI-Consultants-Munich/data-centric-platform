@@ -1,16 +1,13 @@
-FROM continuumio/continuumio/anaconda3
+FROM continuumio/miniconda3
 
 COPY . .
-RUN conda create -n dcp-env python=3.9
 
 RUN apt-get update 
-RUN apt-get -y install gcc libaec-dev libblosc-dev
-
-#apt-get install -y libaec-dev
-
+RUN apt-get -y install build-essential libaec-dev libblosc-dev
 
 #RUN conda init bash
 # Make RUN commands use the new environment:
+RUN conda create -n dcp-env python=3.9
 RUN echo "conda activate dcp-env" >> ~/.bashrc
 SHELL ["/bin/bash", "--login", "-c"]
 
