@@ -1,8 +1,13 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QFileIconProvider, QMessageBox
 
-from . import app
+if TYPE_CHECKING:
+    from dcp_client.app import Application
 
 
 class IconProvider(QFileIconProvider):
@@ -14,7 +19,7 @@ class IconProvider(QFileIconProvider):
 
         fn = type.filePath()
 
-        if fn.endswith(app.accepted_types):
+        if fn.endswith(Application.accepted_types):
             a = QPixmap(self.ICON_SIZE)
             a.load(fn)
             return QIcon(a)

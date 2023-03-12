@@ -1,12 +1,16 @@
-import asyncio
+from __future__ import annotations
+
+
 from typing import Optional
+import asyncio
 
 from bentoml.client import Client as BentoClient
 
-accepted_types = (".jpg", ".jpeg", ".png", ".tiff", ".tif")
+from .app import Application, MLClient
 
 
-class MLClient:
+
+class BentomMLClient(MLClient):
     def __init__(self, client: Optional[BentoClient] = None) -> None:
         self.client = client
         
@@ -32,7 +36,7 @@ class MLClient:
         list_of_files_not_suported = list(list_of_files_not_suported)
         if len(list_of_files_not_suported) > 0:
             return "Image types not supported. Only 2D and 3D image shapes currently supported. 3D stacks must be of type grayscale. \
-            Currently supported image file formats are: ", accepted_types, "The files that were not supported are: " + ", ".join(list_of_files_not_suported)
+            Currently supported image file formats are: ", Application.accepted_types, "The files that were not supported are: " + ", ".join(list_of_files_not_suported)
         else:
             return "Success! Masks generated for all images"
     

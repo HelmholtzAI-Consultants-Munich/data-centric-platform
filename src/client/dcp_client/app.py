@@ -1,13 +1,31 @@
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Tuple, Optional
+from typing import TYPE_CHECKING, ClassVar, Tuple, Optional
 
 from skimage.io import imread, imsave
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
-from .mlclient import MLClient
+
+
+class MLClient(ABC):
+
+    @abstractmethod
+    def connect(self, ip: str, port: int) -> None: ...
+
+    @abstractmethod
+    def is_connected(self) -> bool: ...
+
+    @abstractmethod
+    def run_train(self, path) -> str: ...
+
+    @abstractmethod
+    def run_inference(self, path) -> str: ...
+
 
 
 @dataclass  # Builtin library, helps reduce boilerplate code, see https://www.youtube.com/watch?v=vBH6GRJ1REM for tutorial
@@ -19,6 +37,8 @@ class Application:
     eval_data_path: str = ''
     train_data_path: str = ''
     inprogr_data_path: str = ''
+    accepted_types: ClassVar = (".jpg", ".jpeg", ".png", ".tiff", ".tif")
+
         
 
     def load_image_and_seg(self) -> Tuple[NDArray, Optional[NDArray]]:

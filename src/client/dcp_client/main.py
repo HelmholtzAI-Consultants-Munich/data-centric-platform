@@ -3,17 +3,15 @@ import warnings
 
 from PyQt5.QtWidgets import QApplication
 
-from .app import Application
-from .mlclient import MLClient
-from .welcome_window import WelcomeWindow
+from dcp_client.app import Application
+from dcp_client.bento_mlclient import BentomMLClient
+from dcp_client.gui.welcome_window import WelcomeWindow
 
 warnings.simplefilter('ignore')
 
-
-
-if __name__ == "__main__":
+def main():
     app = Application(
-        mlclient=MLClient(),
+        mlclient=BentomMLClient(),
         server_ip='0.0.0.0',
         server_port=7010,
         img_filename=None, 
@@ -24,3 +22,7 @@ if __name__ == "__main__":
     event_loop = QApplication(sys.argv)
     window = WelcomeWindow(app=app)
     sys.exit(event_loop.exec())
+
+
+if __name__ == "__main__":
+    main()

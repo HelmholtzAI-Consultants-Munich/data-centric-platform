@@ -1,9 +1,15 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView
 from PyQt5.QtCore import Qt
 
 from .utils import IconProvider, create_warning_box
 from .napari_window import NapariWindow
-from .app import Application
+if TYPE_CHECKING:
+    from dcp_client.app import Application
+
 
 class MainWindow(QWidget):
     '''Main Window Widget object.

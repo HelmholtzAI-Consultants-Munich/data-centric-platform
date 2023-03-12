@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 import napari
@@ -5,6 +7,7 @@ from PyQt5.QtWidgets import QHBoxLayout, QPushButton, QVBoxLayout, QWidget
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
+    from dcp_client.app import Application
 
 
 

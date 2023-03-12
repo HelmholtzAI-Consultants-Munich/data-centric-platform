@@ -1,10 +1,16 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QFileDialog, QHBoxLayout, QLabel, QLineEdit,
                              QPushButton, QVBoxLayout, QWidget)
 
-from .app import Application
 from .main_window import MainWindow
 from .utils import create_warning_box
+
+if TYPE_CHECKING:
+    from dcp_client.app import Application
 
 
 class WelcomeWindow(QWidget):
