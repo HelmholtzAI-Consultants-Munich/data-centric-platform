@@ -1,11 +1,9 @@
-import asyncio
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView
 from PyQt5.QtCore import Qt
-from bentoml.client import Client
 
-import settings
-from utils import IconProvider, create_warning_box
-from napari_window import NapariWindow
+from .utils import IconProvider, create_warning_box
+from .napari_window import NapariWindow
+from .app import Application
 
 class MainWindow(QWidget):
     '''Main Window Widget object.
@@ -17,17 +15,11 @@ class MainWindow(QWidget):
     :type train_data_path: string
     '''
 
-    def __init__(self, eval_data_path, train_data_path, inprogr_data_path):
+    def __init__(self, app: Application):
         super().__init__()
-
         self.title = "Data Overview"
-        self.eval_data_path = eval_data_path
-        self.train_data_path = train_data_path
-        self.inprogr_data_path = inprogr_data_path
-
-        self.client = Client.from_url("http://0.0.0.0:7010") # have the url of the bentoml service here
+        self.app = app
         self.main_window()
-
 
     def main_window(self):
         self.setWindowTitle(self.title)
@@ -53,7 +45,6 @@ class MainWindow(QWidget):
         #self.list_view_eval.setFixedSize(600, 600)
         self.list_view_eval.setRootIndex(model_eval.setRootPath(self.eval_data_path)) 
         self.list_view_eval.clicked.connect(self.item_eval_selected)
-        self.cur_selected_img = None
         self.eval_dir_layout.addWidget(self.list_view_eval)
         self.uncurated_layout.addLayout(self.eval_dir_layout)
 
@@ -124,43 +115,31 @@ class MainWindow(QWidget):
         Launches the napari window after the image is selected.
         '''
 
-        if not self.cur_selected_img or '_seg.tiff' in self.cur_selected_img:
+        if not self.app.img_filename or '_seg.tiff' in self.app.img_filename:
             message_text = "Please first select an image you wish to visualise. The selected image must be an original images, not a mask."
             create_warning_box(message_text, message_title="Warning")
         else:
-            self.nap_win = NapariWindow(img_filename=self.cur_selected_img, 
-                                        eval_data_path=self.eval_data_path, 
-                                        train_data_path=self.train_data_path,
-                                        inprogr_data_path=self.inprogr_data_path)
+            self.nap_win = NapariWindow(app=self.app)
             self.nap_win.show()
 
+
+    def set_cur_selected_img(self, item):
+        self.app.img_filename = item.data()
+
     def item_eval_selected(self, item):
-        self.cur_selected_img = item.data()
+        self.set_cur_selected_img(item)
     
     def item_train_selected(self, item):
-        self.cur_selected_img = item.data()
+        self.set_cur_selected_img(item)
 
     def item_inprogr_selected(self, item):
-        self.cur_selected_img = item.data()
-
-    async def _run_train(self):
-        response = await self.client.async_retrain(self.train_data_path)
-        return response
+        self.set_cur_selected_img(item)
 
     def on_train_button_clicked(self):
-        message_text = asyncio.run(self._run_train())
+        message_text = self.app.run_train()
         create_warning_box(message_text)
 
-    async def _run_inference(self):
-        response = await self.client.async_segment_image(self.eval_data_path)
-        return response
-
     def on_run_inference_button_clicked(self):
-        list_of_files_not_suported = asyncio.run(self._run_inference())
-        list_of_files_not_suported = list(list_of_files_not_suported)
-        if len(list_of_files_not_suported) > 0:
-            message_text = "Image types not supported. Only 2D and 3D image shapes currently supported. 3D stacks must be of type grayscale. \
-            Currently supported image file formats are: ", settings.accepted_types, "The files that were not supported are: " + ", ".join(list_of_files_not_suported)
+        message_text = self.app.run_inference()
+        if message_text:
             create_warning_box(message_text)
-        else:
-            create_warning_box("Success! Masks generated for all images", message_title="Success")

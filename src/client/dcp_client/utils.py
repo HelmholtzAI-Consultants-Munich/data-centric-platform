@@ -1,8 +1,9 @@
-from PyQt5.QtWidgets import  QFileIconProvider, QMessageBox
 from PyQt5.QtCore import QSize
-from PyQt5.QtGui import QPixmap, QIcon
+from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtWidgets import QFileIconProvider, QMessageBox
 
-import settings
+from . import app
+
 
 class IconProvider(QFileIconProvider):
     def __init__(self) -> None:
@@ -13,12 +14,13 @@ class IconProvider(QFileIconProvider):
 
         fn = type.filePath()
 
-        if fn.endswith(settings.accepted_types):
+        if fn.endswith(app.accepted_types):
             a = QPixmap(self.ICON_SIZE)
             a.load(fn)
             return QIcon(a)
         else:
             return super().icon(type)
+
 
 def create_warning_box(message_text, message_title="Warning"):
     msg = QMessageBox()
