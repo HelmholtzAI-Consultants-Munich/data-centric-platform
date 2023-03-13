@@ -2,6 +2,7 @@ import asyncio
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView
 from PyQt5.QtCore import Qt
 from bentoml.client import Client
+from pathlib import Path
 
 import settings
 from utils import IconProvider, create_warning_box
@@ -128,20 +129,24 @@ class MainWindow(QWidget):
             message_text = "Please first select an image you wish to visualise. The selected image must be an original images, not a mask."
             create_warning_box(message_text, message_title="Warning")
         else:
-            self.nap_win = NapariWindow(img_filename=self.cur_selected_img, 
+            print(f"This is the path {self.cur_selected_img}")
+            self.nap_win = NapariWindow(img_filepath=self.cur_selected_img_fullpath, 
                                         eval_data_path=self.eval_data_path, 
                                         train_data_path=self.train_data_path,
                                         inprogr_data_path=self.inprogr_data_path)
             self.nap_win.show()
 
     def item_eval_selected(self, item):
-        self.cur_selected_img = item.data()
+        self.cur_selected_img = item.data() #TODO see if needed at all
+        self.cur_selected_img_fullpath = Path(self.eval_data_path, item.data())
     
     def item_train_selected(self, item):
-        self.cur_selected_img = item.data()
+        self.cur_selected_img = item.data() #TODO see if needed at all
+        self.cur_selected_img_fullpath = Path(self.train_data_path, item.data())
 
     def item_inprogr_selected(self, item):
-        self.cur_selected_img = item.data()
+        self.cur_selected_img = item.data() #TODO see if needed at all
+        self.cur_selected_img_fullpath = Path(self.inprogr_data_path, item.data())
 
     async def _run_train(self):
         response = await self.client.async_retrain(self.train_data_path)
