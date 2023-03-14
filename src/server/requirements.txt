@@ -1,3 +1,2 @@
 cellpose==2.2
 bentoml==1.0.15
-scikit-image
