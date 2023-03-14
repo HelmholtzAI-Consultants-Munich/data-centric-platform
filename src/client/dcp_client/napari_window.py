@@ -6,6 +6,42 @@ from skimage.io import imread, imsave
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout
 import napari
 
+class Application():
+    '''Contains functions with main code'''
+
+    def __init__(self, 
+                img_filename,
+                eval_data_path,
+                train_data_path,
+                inprogr_data_path):
+        self.img_filename = img_filename
+        self.eval_data_path = eval_data_path
+        self.train_data_path = train_data_path
+        self.inprogr_data_path = inprogr_data_path
+
+    def load_image_seg(self):
+        self.potential_seg_name = Path(self.img_filename).stem + '_seg.tiff' #+Path(self.img_filename).suffix
+        if os.path.exists(os.path.join(self.eval_data_path, self.img_filename)):
+            img = imread(os.path.join(self.eval_data_path, self.img_filename))
+            if os.path.exists(os.path.join(self.eval_data_path, self.potential_seg_name)):
+                seg = imread(os.path.join(self.eval_data_path, self.potential_seg_name))
+            else: seg = None
+        else: 
+            img = imread(os.path.join(self.train_data_path, self.img_filename))
+            if os.path.exists(os.path.join(self.train_data_path, self.potential_seg_name)):
+                seg = imread(os.path.join(self.train_data_path, self.potential_seg_name))
+            else: seg = None
+        return img, seg
+    
+    def save_seg(self, seg, from_directory, to_directory):
+        
+        os.replace(os.path.join(from_directory, self.img_filename), os.path.join(to_directory, self.img_filename))
+        seg_name = Path(self.img_filename).stem+ '_seg.tiff' #+Path(self.img_filename).suffix
+        imsave(os.path.join(to_directory, seg_name), seg)
+        if os.path.exists(os.path.join(from_directory, seg_name)): 
+            os.remove(os.path.join(from_directory, seg_name))
+
+
 class NapariWindow(QWidget):
     '''Napari Window Widget object.
     Opens the napari image viewer to view and fix the labeles.
@@ -23,27 +59,18 @@ class NapariWindow(QWidget):
                 train_data_path,
                 inprogr_data_path):
         super().__init__()
-        self.img_filename = img_filename
-        self.eval_data_path = eval_data_path
-        self.train_data_path = train_data_path
-        self.inprogr_data_path = inprogr_data_path
+        self.app = Application(
+            img_filename = img_filename,
+            eval_data_path = eval_data_path,
+            train_data_path = train_data_path,
+            inprogr_data_path = inprogr_data_path
+        )
 
+        img, seg = self.app.load_image_seg()
  
-        self.potential_seg_name = Path(self.img_filename).stem + '_seg.tiff' #+Path(self.img_filename).suffix
-        if os.path.exists(os.path.join(self.eval_data_path, self.img_filename)):
-            self.img = imread(os.path.join(self.eval_data_path, self.img_filename))
-            if os.path.exists(os.path.join(self.eval_data_path, self.potential_seg_name)):
-                seg = imread(os.path.join(self.eval_data_path, self.potential_seg_name))
-            else: seg = None
-        else: 
-            self.img = imread(os.path.join(self.train_data_path, self.img_filename))
-            if os.path.exists(os.path.join(self.train_data_path, self.potential_seg_name)):
-                seg = imread(os.path.join(self.train_data_path, self.potential_seg_name))
-            else: seg = None
-        
         self.setWindowTitle("napari viewer")
         self.viewer = napari.Viewer(show=False)
-        self.viewer.add_image(self.img)
+        self.viewer.add_image(img)
 
         if seg is not None: 
             self.viewer.add_labels(seg)
@@ -94,11 +121,7 @@ class NapariWindow(QWidget):
 
         label_names = self._get_layer_names()
         seg = self.viewer.layers[label_names[0]].data
-        os.replace(os.path.join(self.eval_data_path, self.img_filename), os.path.join(self.train_data_path, self.img_filename))
-        seg_name = Path(self.img_filename).stem+ '_seg.tiff' #+Path(self.img_filename).suffix
-        imsave(os.path.join(self.train_data_path, seg_name),seg)
-        if os.path.exists(os.path.join(self.eval_data_path, seg_name)): 
-            os.remove(os.path.join(self.eval_data_path, seg_name))
+        self.app.save_seg(seg, from_directory=self.app.eval_data_path, to_directory=self.app.train_data_path)
         self.close()
 
     def on_add_to_inprogress_button_clicked(self):
@@ -108,12 +131,7 @@ class NapariWindow(QWidget):
 
         label_names = self._get_layer_names()
         seg = self.viewer.layers[label_names[0]].data
-        os.replace(os.path.join(self.eval_data_path, self.img_filename), os.path.join(self.inprogr_data_path, self.img_filename))
-        seg_name = Path(self.img_filename).stem + '_' + label_names[0] + '.tiff' #+Path(self.img_filename).suffix
-        imsave(os.path.join(self.inprogr_data_path, seg_name),seg)
-        if os.path.exists(os.path.join(self.eval_data_path, self.potential_seg_name)): 
-            os.replace(os.path.join(self.eval_data_path, self.potential_seg_name), os.path.join(self.inprogr_data_path, self.potential_seg_name))
-
+        self.app.save_seg(seg, from_directory=self.app.eval_data_path, to_directory=self.app.inprogr_data_path)
         self.close()
 
     '''
