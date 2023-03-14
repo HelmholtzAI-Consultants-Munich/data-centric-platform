@@ -1,0 +1,13 @@
+# Build and Run automatically using the `docker compose up` command
+# Cheatsheet for the syntax: https://devhints.io/docker-compose
+version: '2'
+
+services:
+  server:
+    build:
+      context: ./  # path to dockerfile
+      dockerfile: Dockerfile  # name of dockerfile
+    ports:
+     - "7010:7010" # host:container
+    volumes:
+     - .:/code
