@@ -18,6 +18,10 @@ Run:
 conda run -n dcp-env bentoml serve service:svc --reload --port=7010
 ```
 
+### Build distribution with pyproject.toml
+```
+python -m build
+```
 
 ### Docker-Compose
 ```
