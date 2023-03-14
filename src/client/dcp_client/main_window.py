@@ -7,6 +7,8 @@ import settings
 from utils import IconProvider, create_warning_box
 from napari_window import NapariWindow
 
+from app import Napari_Application
+
 class MainWindow(QWidget):
     '''Main Window Widget object.
     Opens the main window of the app where selected images in both directories are listed. 
@@ -128,10 +130,11 @@ class MainWindow(QWidget):
             message_text = "Please first select an image you wish to visualise. The selected image must be an original images, not a mask."
             create_warning_box(message_text, message_title="Warning")
         else:
-            self.nap_win = NapariWindow(img_filename=self.cur_selected_img, 
+            napari_app = Napari_Application(img_filename=self.cur_selected_img, 
                                         eval_data_path=self.eval_data_path, 
                                         train_data_path=self.train_data_path,
                                         inprogr_data_path=self.inprogr_data_path)
+            self.nap_win = NapariWindow(napari_app)
             self.nap_win.show()
 
     def item_eval_selected(self, item):
