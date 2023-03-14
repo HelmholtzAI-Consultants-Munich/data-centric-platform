@@ -22,10 +22,12 @@ classifiers = [
 readme = "README.md"
 dynamic = ["dependencies"]
 authors = [
-  {name="Christina Bukas", email="christina.bukas@helmholtz-muenchen.de"}
+  {name="Christina Bukas", email="christina.bukas@helmholtz-muenchen.de"},
+  {name="Helena Pelin", email="helena.pelin@helmholtz-muenchen.de"}
 ]
 maintainers = [
-  {name="Christina Bukas", email="christina.bukas@helmholtz-muenchen.de"}
+  {name="Christina Bukas", email="christina.bukas@helmholtz-muenchen.de"},
+  {name="Helena Pelin", email="helena.pelin@helmholtz-muenchen.de"}
 ]
 
 [project.optional-dependencies]
