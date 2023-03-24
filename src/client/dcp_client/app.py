@@ -3,6 +3,7 @@ from pathlib import Path
 
 from skimage.io import imread, imsave
 
+
 class Napari_Application():
     '''Contains functions with main code'''
 
@@ -37,3 +38,11 @@ class Napari_Application():
         imsave(os.path.join(to_directory, seg_name), seg)
         if os.path.exists(os.path.join(from_directory, seg_name)): 
             os.remove(os.path.join(from_directory, seg_name))
+
+
+class WelcomeApplication:
+    def __init__(self):
+        self.filename_train = ''
+        self.filename_val = ''
+        self.filename_inprogr = ''
+

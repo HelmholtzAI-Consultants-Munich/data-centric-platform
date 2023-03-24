@@ -1,9 +1,12 @@
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QLineEdit
 from PyQt5.QtCore import Qt
 
+from app import WelcomeApplication
 from main_window import MainWindow
 from utils import create_warning_box
 
+
+        
 class WelcomeWindow(QWidget):
     '''Welcome Window Widget object.
     The first window of the application providing a dialog that allows users to select directories. 
@@ -11,8 +14,9 @@ class WelcomeWindow(QWidget):
     By clicking 'start' the MainWindow is called.
     '''
 
-    def __init__(self):
+    def __init__(self, app: WelcomeApplication):
         super().__init__()
+        self.app = app
         self.resize(200, 200)
         self.title = "Select Dataset"
         self.main_layout = QVBoxLayout()
@@ -67,10 +71,10 @@ class WelcomeWindow(QWidget):
         self.main_layout.addWidget(self.start_button, alignment=Qt.AlignCenter)
         self.setLayout(self.main_layout)
 
-        self.filename_train = ''
-        self.filename_val = ''
-        #self.filename_inprogr = os.getcwd() #TODO: what is the inprogress path if nothing is specified?
-        self.filename_inprogr = ''
+        # self.filename_train = ''
+        # self.filename_val = ''
+        # #self.app.filename_inprogr = os.getcwd() #TODO: what is the inprogress path if nothing is specified?
+        # self.filename_inprogr = ''
 
         self.show()
 
@@ -83,8 +87,8 @@ class WelcomeWindow(QWidget):
         fd = QFileDialog()
         fd.setFileMode(QFileDialog.Directory)
         if fd.exec_():
-            self.filename_val = fd.selectedFiles()[0]
-        self.val_textbox.setText(self.filename_val)
+            self.app.filename_val = fd.selectedFiles()[0]
+        self.val_textbox.setText(self.app.filename_val)
     
     def browse_train_clicked(self):
         '''
@@ -95,8 +99,8 @@ class WelcomeWindow(QWidget):
         fd = QFileDialog()
         fd.setFileMode(QFileDialog.Directory)
         if fd.exec_():
-            self.filename_train = fd.selectedFiles()[0]
-        self.train_textbox.setText(self.filename_train)
+            self.app.filename_train = fd.selectedFiles()[0]
+        self.train_textbox.setText(self.app.filename_train)
 
 
     def browse_inprogr_clicked(self):
@@ -108,8 +112,8 @@ class WelcomeWindow(QWidget):
         fd = QFileDialog()
         fd.setFileMode(QFileDialog.Directory)
         if fd.exec_(): # Browse clicked
-            self.filename_inprogr = fd.selectedFiles()[0] #TODO: case when browse is clicked but nothing is specified - currently it is filled with os.getcwd()
-        self.inprogr_textbox.setText(self.filename_inprogr)
+            self.app.filename_inprogr = fd.selectedFiles()[0] #TODO: case when browse is clicked but nothing is specified - currently it is filled with os.getcwd()
+        self.inprogr_textbox.setText(self.app.filename_inprogr)
   
     
     def start_main(self):
@@ -117,9 +121,9 @@ class WelcomeWindow(QWidget):
         Starts the main window after the user clicks 'Start' and only if both evaluation and train directories are chosen. 
         '''
         
-        if self.filename_train and self.filename_val:
+        if self.app.filename_train and self.app.filename_val:
             self.hide()
-            self.mw = MainWindow(self.filename_val, self.filename_train, self.filename_inprogr)
+            self.mw = MainWindow(self.app.filename_val, self.app.filename_train, self.app.filename_inprogr)
         else:
             message_text = "You need to specify a folder both for your uncurated and curated dataset (even if the curated folder is currently empty). Please go back and select folders for both."
             create_warning_box(message_text, message_title="Warning")
