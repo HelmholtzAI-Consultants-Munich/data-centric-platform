@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt
 import settings
 from utils import IconProvider, create_warning_box
 from napari_window import NapariWindow
-from app import Napari_Application, MainWindowApplication
+from app import Napari_Application
 
 
 
@@ -19,9 +19,9 @@ class MainWindow(QWidget):
     :type train_data_path: string
     '''
 
-    def __init__(self, eval_data_path, train_data_path, inprogr_data_path):
+    def __init__(self, app):
         super().__init__()
-        self.app = MainWindowApplication(eval_data_path, train_data_path, inprogr_data_path)
+        self.app = app
         self.title = "Data Overview"
         self.main_window()
         
@@ -152,9 +152,14 @@ class MainWindow(QWidget):
             self.nap_win = NapariWindow(napari_app)
             self.nap_win.show()
 
+
+
 if __name__ == "__main__":
     import sys
     from PyQt5.QtWidgets import QApplication
+    from app import MainWindowApplication
+    
     app = QApplication(sys.argv)
-    window = MainWindow('', '','')
+    app_ = MainWindowApplication('', '', '')
+    window = MainWindow(app=app_)
     sys.exit(app.exec())

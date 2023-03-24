@@ -1,8 +1,5 @@
-import os
-from pathlib import Path
 from typing import List
 
-from skimage.io import imread, imsave
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout
 import napari
 

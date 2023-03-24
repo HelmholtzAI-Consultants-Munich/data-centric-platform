@@ -1,10 +1,14 @@
+from typing import TYPE_CHECKING
+
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QLineEdit
 from PyQt5.QtCore import Qt
 
-from app import WelcomeApplication
+from app import MainWindowApplication
 from main_window import MainWindow
 from utils import create_warning_box
 
+if TYPE_CHECKING:
+    from app import WelcomeApplication
 
         
 class WelcomeWindow(QWidget):
@@ -123,6 +127,7 @@ class WelcomeWindow(QWidget):
         
         if self.app.filename_train and self.app.filename_val:
             self.hide()
+            app = MainWindowApplication('', '', '')
             self.mw = MainWindow(self.app.filename_val, self.app.filename_train, self.app.filename_inprogr)
         else:
             message_text = "You need to specify a folder both for your uncurated and curated dataset (even if the curated folder is currently empty). Please go back and select folders for both."
