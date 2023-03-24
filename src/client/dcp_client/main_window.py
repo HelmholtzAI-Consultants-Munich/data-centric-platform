@@ -1,12 +1,14 @@
+from typing import TYPE_CHECKING
+
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView
 from PyQt5.QtCore import Qt
 
 import settings
 from utils import IconProvider, create_warning_box
 from napari_window import NapariWindow
-from app import Napari_Application
 
-
+if TYPE_CHECKING:
+    from app import Application
 
 
 class MainWindow(QWidget):
@@ -19,7 +21,7 @@ class MainWindow(QWidget):
     :type train_data_path: string
     '''
 
-    def __init__(self, app):
+    def __init__(self, app: Application):
         super().__init__()
         self.app = app
         self.title = "Data Overview"
@@ -145,11 +147,7 @@ class MainWindow(QWidget):
             message_text = "Please first select an image you wish to visualise. The selected image must be an original images, not a mask."
             create_warning_box(message_text, message_title="Warning")
         else:
-            napari_app = Napari_Application(img_filename=self.cur_selected_img, 
-                                        eval_data_path=self.eval_data_path, 
-                                        train_data_path=self.train_data_path,
-                                        inprogr_data_path=self.inprogr_data_path)
-            self.nap_win = NapariWindow(napari_app)
+            self.nap_win = NapariWindow(self.app)
             self.nap_win.show()
 
 
@@ -157,9 +155,9 @@ class MainWindow(QWidget):
 if __name__ == "__main__":
     import sys
     from PyQt5.QtWidgets import QApplication
-    from app import MainWindowApplication
-    
+    from app import Application
+
     app = QApplication(sys.argv)
-    app_ = MainWindowApplication('', '', '')
+    app_ = Application('', '', '')
     window = MainWindow(app=app_)
     sys.exit(app.exec())
