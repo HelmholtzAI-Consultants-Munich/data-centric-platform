@@ -1,12 +1,11 @@
-import os
-from pathlib import Path
-from typing import List
+from __future__ import annotations
+from typing import List, TYPE_CHECKING
 
-from skimage.io import imread, imsave
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout
 import napari
 
-from app import Napari_Application
+if TYPE_CHECKING:
+    from app import Application
 
 
 class NapariWindow(QWidget):
@@ -20,7 +19,7 @@ class NapariWindow(QWidget):
     :type train_data_path:
     '''
 
-    def __init__(self, app: Napari_Application):
+    def __init__(self, app: Application):
         super().__init__()
         self.app = app
 

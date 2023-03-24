@@ -1,12 +1,15 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView
 from PyQt5.QtCore import Qt
 
 import settings
 from utils import IconProvider, create_warning_box
 from napari_window import NapariWindow
-from app import Napari_Application, MainWindowApplication
 
-
+if TYPE_CHECKING:
+    from app import Application
 
 
 class MainWindow(QWidget):
@@ -19,9 +22,9 @@ class MainWindow(QWidget):
     :type train_data_path: string
     '''
 
-    def __init__(self, eval_data_path, train_data_path, inprogr_data_path):
+    def __init__(self, app: Application):
         super().__init__()
-        self.app = MainWindowApplication(eval_data_path, train_data_path, inprogr_data_path)
+        self.app = app
         self.title = "Data Overview"
         self.main_window()
         
@@ -57,7 +60,7 @@ class MainWindow(QWidget):
 
         # add buttons
         self.inference_button = QPushButton("Generate Labels", self)
-        self.inference_button.clicked.connect(self.on_inference_button_clicked)  # add selected image    
+        self.inference_button.clicked.connect(self.on_run_inference_button_clicked)  # add selected image    
         self.uncurated_layout.addWidget(self.inference_button, alignment=Qt.AlignCenter)
 
         self.main_layout.addLayout(self.uncurated_layout)
@@ -145,16 +148,17 @@ class MainWindow(QWidget):
             message_text = "Please first select an image you wish to visualise. The selected image must be an original images, not a mask."
             create_warning_box(message_text, message_title="Warning")
         else:
-            napari_app = Napari_Application(img_filename=self.cur_selected_img, 
-                                        eval_data_path=self.eval_data_path, 
-                                        train_data_path=self.train_data_path,
-                                        inprogr_data_path=self.inprogr_data_path)
-            self.nap_win = NapariWindow(napari_app)
+            self.nap_win = NapariWindow(self.app)
             self.nap_win.show()
+
+
 
 if __name__ == "__main__":
     import sys
     from PyQt5.QtWidgets import QApplication
+    from app import Application
+
     app = QApplication(sys.argv)
-    window = MainWindow('', '','')
+    app_ = Application('', '', '')
+    window = MainWindow(app=app_)
     sys.exit(app.exec())

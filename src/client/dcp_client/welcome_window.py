@@ -1,10 +1,14 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QLineEdit
 from PyQt5.QtCore import Qt
 
-from app import WelcomeApplication
 from main_window import MainWindow
 from utils import create_warning_box
 
+if TYPE_CHECKING:
+    from app import Application
 
         
 class WelcomeWindow(QWidget):
@@ -14,7 +18,7 @@ class WelcomeWindow(QWidget):
     By clicking 'start' the MainWindow is called.
     '''
 
-    def __init__(self, app: WelcomeApplication):
+    def __init__(self, app: Application):
         super().__init__()
         self.app = app
         self.resize(200, 200)
@@ -87,8 +91,8 @@ class WelcomeWindow(QWidget):
         fd = QFileDialog()
         fd.setFileMode(QFileDialog.Directory)
         if fd.exec_():
-            self.app.filename_val = fd.selectedFiles()[0]
-        self.val_textbox.setText(self.app.filename_val)
+            self.app.eval_data_path = fd.selectedFiles()[0]
+        self.val_textbox.setText(self.app.eval_data_path)
     
     def browse_train_clicked(self):
         '''
@@ -99,8 +103,8 @@ class WelcomeWindow(QWidget):
         fd = QFileDialog()
         fd.setFileMode(QFileDialog.Directory)
         if fd.exec_():
-            self.app.filename_train = fd.selectedFiles()[0]
-        self.train_textbox.setText(self.app.filename_train)
+            self.app.train_data_path = fd.selectedFiles()[0]
+        self.train_textbox.setText(self.app.train_data_path)
 
 
     def browse_inprogr_clicked(self):
@@ -112,8 +116,8 @@ class WelcomeWindow(QWidget):
         fd = QFileDialog()
         fd.setFileMode(QFileDialog.Directory)
         if fd.exec_(): # Browse clicked
-            self.app.filename_inprogr = fd.selectedFiles()[0] #TODO: case when browse is clicked but nothing is specified - currently it is filled with os.getcwd()
-        self.inprogr_textbox.setText(self.app.filename_inprogr)
+            self.app.inprogr_data_path = fd.selectedFiles()[0] #TODO: case when browse is clicked but nothing is specified - currently it is filled with os.getcwd()
+        self.inprogr_textbox.setText(self.app.inprogr_data_path)
   
     
     def start_main(self):
@@ -121,9 +125,9 @@ class WelcomeWindow(QWidget):
         Starts the main window after the user clicks 'Start' and only if both evaluation and train directories are chosen. 
         '''
         
-        if self.app.filename_train and self.app.filename_val:
+        if self.app.train_data_path and self.app.eval_data_path:
             self.hide()
-            self.mw = MainWindow(self.app.filename_val, self.app.filename_train, self.app.filename_inprogr)
+            self.mw = MainWindow(self.app)
         else:
             message_text = "You need to specify a folder both for your uncurated and curated dataset (even if the curated folder is currently empty). Please go back and select folders for both."
             create_warning_box(message_text, message_title="Warning")
