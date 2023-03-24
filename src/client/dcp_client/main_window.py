@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView
@@ -59,7 +60,7 @@ class MainWindow(QWidget):
 
         # add buttons
         self.inference_button = QPushButton("Generate Labels", self)
-        self.inference_button.clicked.connect(self.on_inference_button_clicked)  # add selected image    
+        self.inference_button.clicked.connect(self.on_run_inference_button_clicked)  # add selected image    
         self.uncurated_layout.addWidget(self.inference_button, alignment=Qt.AlignCenter)
 
         self.main_layout.addLayout(self.uncurated_layout)

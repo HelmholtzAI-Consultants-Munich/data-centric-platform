@@ -1,9 +1,9 @@
+from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QLineEdit
 from PyQt5.QtCore import Qt
 
-from app import Application
 from main_window import MainWindow
 from utils import create_warning_box
 
@@ -127,8 +127,7 @@ class WelcomeWindow(QWidget):
         
         if self.app.train_data_path and self.app.eval_data_path:
             self.hide()
-            app = Application()
-            self.mw = MainWindow(self.app.eval_data_path, self.app.train_data_path, self.app.inprogr_data_path)
+            self.mw = MainWindow(self.app)
         else:
             message_text = "You need to specify a folder both for your uncurated and curated dataset (even if the curated folder is currently empty). Please go back and select folders for both."
             create_warning_box(message_text, message_title="Warning")

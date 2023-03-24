@@ -30,7 +30,7 @@ class Application:
         return asyncio.run(self._run_train())
     
     async def _run_inference(self):
-        response = await self.app.client.async_segment_image(self.app.eval_data_path)
+        response = await self.client.async_segment_image(self.eval_data_path)
         return response
     
     def run_inference(self):
