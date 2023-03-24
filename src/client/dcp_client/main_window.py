@@ -7,6 +7,11 @@ import settings
 from utils import IconProvider, create_warning_box
 from napari_window import NapariWindow
 
+
+
+
+
+
 class Application:
     def __init__(self, eval_data_path, train_data_path, inprogr_data_path) -> None:
     
@@ -177,3 +182,10 @@ class MainWindow(QWidget):
     def on_inference_button_clicked(self):
         message_text, message_title = self.app.run_inference()
         create_warning_box(message_text, message_title)
+
+if __name__ == "__main__":
+    import sys
+    from PyQt5.QtWidgets import QApplication
+    app = QApplication(sys.argv)
+    window = MainWindow('', '','')
+    sys.exit(app.exec())
