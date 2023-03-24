@@ -1,50 +1,13 @@
-import asyncio
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView
 from PyQt5.QtCore import Qt
-from bentoml.client import Client
 
 import settings
 from utils import IconProvider, create_warning_box
 from napari_window import NapariWindow
-from app import Napari_Application
+from app import Napari_Application, MainWindowApplication
 
 
 
-
-
-
-class Application:
-    def __init__(self, eval_data_path, train_data_path, inprogr_data_path) -> None:
-    
-        self.eval_data_path = eval_data_path
-        self.train_data_path = train_data_path
-        self.inprogr_data_path = inprogr_data_path
-        self.client = Client.from_url("http://0.0.0.0:7010") # have the url of the bentoml service here
-        self.cur_selected_img = None
-    
-    # run train
-    async def _run_train(self):
-        response = await self.client.async_retrain(self.train_data_path)
-        return response
-    
-    def run_train(self):
-        return asyncio.run(self._run_train())
-    
-    async def _run_inference(self):
-        response = await self.app.client.async_segment_image(self.app.eval_data_path)
-        return response
-    
-    def run_inference(self):
-        list_of_files_not_suported = asyncio.run(self._run_inference())
-        list_of_files_not_suported = list(list_of_files_not_suported)
-        if len(list_of_files_not_suported) > 0:
-            message_text = "Image types not supported. Only 2D and 3D image shapes currently supported. 3D stacks must be of type grayscale. \
-            Currently supported image file formats are: ", settings.accepted_types, "The files that were not supported are: " + ", ".join(list_of_files_not_suported)
-            message_title = "Warning"
-        else:
-            message_text = "Success! Masks generated for all images"
-            message_title="Success"
-        return message_text, message_title
 
 class MainWindow(QWidget):
     '''Main Window Widget object.
@@ -58,7 +21,7 @@ class MainWindow(QWidget):
 
     def __init__(self, eval_data_path, train_data_path, inprogr_data_path):
         super().__init__()
-        self.app = Application(eval_data_path, train_data_path, inprogr_data_path)
+        self.app = MainWindowApplication(eval_data_path, train_data_path, inprogr_data_path)
         self.title = "Data Overview"
         self.main_window()
         
