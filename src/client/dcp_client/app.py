@@ -1,9 +1,6 @@
-import os
-from pathlib import Path
-
-from skimage.io import imread, imsave
 import asyncio
 from bentoml.client import Client
+from fsimagestorage import FilesystemImageStorage
 
 import settings
 
@@ -12,6 +9,7 @@ class Application:
 
     def __init__(
         self, 
+        fs_image_storage: FilesystemImageStorage,
         eval_data_path = '', 
         train_data_path = '', 
         inprogr_data_path = '',
@@ -21,7 +19,7 @@ class Application:
         self.inprogr_data_path = inprogr_data_path
         self.client = Client.from_url("http://0.0.0.0:7010") # have the url of the bentoml service here
         self.cur_selected_img = ''
-        self.fs_image_storage = FilesystemImageStorage()
+        self.fs_image_storage = fs_image_storage
 
     async def _run_train(self):
         response = await self.client.async_retrain(self.train_data_path)
@@ -61,26 +59,3 @@ class Application:
        
 
 
-class FilesystemImageStorage:
-
-    def load_image_seg(self, eval_data_path, train_data_path, cur_selected_img):
-        
-        potential_seg_name = Path(cur_selected_img).stem + '_seg.tiff' #+Path(self.img_filename).suffix
-        if os.path.exists(os.path.join(eval_data_path, cur_selected_img)):
-            img = imread(os.path.join(eval_data_path, cur_selected_img))
-            if os.path.exists(os.path.join(eval_data_path, potential_seg_name)):
-                seg = imread(os.path.join(eval_data_path, potential_seg_name))
-            else: seg = None
-        else: 
-            img = imread(os.path.join(train_data_path, cur_selected_img))
-            if os.path.exists(os.path.join(train_data_path, potential_seg_name)):
-                seg = imread(os.path.join(train_data_path, potential_seg_name))
-            else: seg = None
-        return img, seg      
-    
-    def save_seg(self, seg, from_directory, to_directory, cur_selected_img):
-        os.replace(os.path.join(from_directory, cur_selected_img), os.path.join(to_directory, cur_selected_img))
-        seg_name = Path(cur_selected_img).stem+ '_seg.tiff' #+Path(self.img_filename).suffix
-        imsave(os.path.join(to_directory, seg_name), seg)
-        if os.path.exists(os.path.join(from_directory, seg_name)): 
-            os.remove(os.path.join(from_directory, seg_name))   
