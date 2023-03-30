@@ -2,15 +2,23 @@ import os
 from pathlib import Path
 
 from skimage.io import imread, imsave
-from bentoml_model import BentomlModel
-import settings
 
+import settings
+from abc import ABC, abstractmethod
+
+class Model(ABC):
+    @abstractmethod
+    def run_train(self, path: str) -> None:
+        pass
+    
+    @abstractmethod
+    def run_inference(self, path: str) -> None:
+        pass
 
 class Application:
-
     def __init__(
         self, 
-        bentoml_model: BentomlModel,
+        bentoml_model: Model,
         eval_data_path: str = '', 
         train_data_path = '', 
         inprogr_data_path = '',     
@@ -37,8 +45,6 @@ class Application:
             message_title="Success"
         return message_text, message_title
 
-    
-
     def load_image_seg(self):
         self.potential_seg_name = Path(self.cur_selected_img).stem + '_seg.tiff' #+Path(self.img_filename).suffix
         if os.path.exists(os.path.join(self.eval_data_path, self.cur_selected_img)):
@@ -54,7 +60,6 @@ class Application:
         return img, seg
     
     def save_seg(self, seg, from_directory, to_directory):
-        
         os.replace(os.path.join(from_directory, self.cur_selected_img), os.path.join(to_directory, self.cur_selected_img))
         seg_name = Path(self.cur_selected_img).stem+ '_seg.tiff' #+Path(self.img_filename).suffix
         imsave(os.path.join(to_directory, seg_name), seg)

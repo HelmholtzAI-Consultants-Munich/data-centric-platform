@@ -1,8 +1,8 @@
 import asyncio
 from bentoml.client import Client
+from app import Model
 
-
-class BentomlModel:
+class BentomlModel(Model):
 
     def __init__(
         self,
