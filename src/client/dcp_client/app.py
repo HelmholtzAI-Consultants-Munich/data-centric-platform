@@ -34,14 +34,13 @@ class Application:
 
     def __init__(
         self, 
-        # bentoml_model: BentomlModel,
+        bentoml_model: BentomlModel,
         eval_data_path: str = '', 
         train_data_path = '', 
         inprogr_data_path = '',     
         
     ):
-        self.bentoml_model = BentomlModel()
-        # self.bentoml_model = bentoml_model
+        self.bentoml_model = bentoml_model
         self.eval_data_path = eval_data_path
         self.train_data_path = train_data_path
         self.inprogr_data_path = inprogr_data_path
