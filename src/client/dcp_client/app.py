@@ -1,10 +1,8 @@
-import os
-from pathlib import Path
-
-from skimage.io import imread, imsave
-
 import settings
 from abc import ABC, abstractmethod
+from typing import Tuple
+from numpy.typing import NDArray
+
 
 class Model(ABC):
     @abstractmethod
@@ -15,21 +13,34 @@ class Model(ABC):
     def run_inference(self, path: str) -> None:
         pass
 
+
+class ImageStorage(ABC):
+    @abstractmethod
+    def load_image_seg(self, eval_data_path, train_data_path, cur_selected_img) -> Tuple[NDArray, NDArray]:
+        pass
+
+    @abstractmethod
+    def save_seg(self, seg, from_directory, to_directory, cur_selected_img) -> None:
+        pass
+
+
 class Application:
     def __init__(
         self, 
         ml_model: Model,
-        eval_data_path: str = '', 
+        image_storage: ImageStorage,
+        eval_data_path = '', 
         train_data_path = '', 
         inprogr_data_path = '',     
-        
     ):
         self.ml_model = ml_model
+        self.fs_image_storage = image_storage
         self.eval_data_path = eval_data_path
         self.train_data_path = train_data_path
         self.inprogr_data_path = inprogr_data_path
         self.cur_selected_img = ''
-        
+       
+    
     def run_train(self):
         return self.ml_model.run_train(self.train_data_path)
     
@@ -46,24 +57,13 @@ class Application:
         return message_text, message_title
 
     def load_image_seg(self):
-        self.potential_seg_name = Path(self.cur_selected_img).stem + '_seg.tiff' #+Path(self.img_filename).suffix
-        if os.path.exists(os.path.join(self.eval_data_path, self.cur_selected_img)):
-            img = imread(os.path.join(self.eval_data_path, self.cur_selected_img))
-            if os.path.exists(os.path.join(self.eval_data_path, self.potential_seg_name)):
-                seg = imread(os.path.join(self.eval_data_path, self.potential_seg_name))
-            else: seg = None
-        else: 
-            img = imread(os.path.join(self.train_data_path, self.cur_selected_img))
-            if os.path.exists(os.path.join(self.train_data_path, self.potential_seg_name)):
-                seg = imread(os.path.join(self.train_data_path, self.potential_seg_name))
-            else: seg = None
-        return img, seg
+        return self.fs_image_storage.load_image_seg(
+            eval_data_path=self.eval_data_path,
+            train_data_path=self.train_data_path,
+            cur_selected_img = self.cur_selected_img,
+        )
     
     def save_seg(self, seg, from_directory, to_directory):
-        os.replace(os.path.join(from_directory, self.cur_selected_img), os.path.join(to_directory, self.cur_selected_img))
-        seg_name = Path(self.cur_selected_img).stem+ '_seg.tiff' #+Path(self.img_filename).suffix
-        imsave(os.path.join(to_directory, seg_name), seg)
-        if os.path.exists(os.path.join(from_directory, seg_name)): 
-            os.remove(os.path.join(from_directory, seg_name))
+        self.fs_image_storage.save_seg(seg, from_directory, to_directory, self.cur_selected_img)
 
 
