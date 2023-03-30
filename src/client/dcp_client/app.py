@@ -18,23 +18,23 @@ class Model(ABC):
 class Application:
     def __init__(
         self, 
-        bentoml_model: Model,
+        ml_model: Model,
         eval_data_path: str = '', 
         train_data_path = '', 
         inprogr_data_path = '',     
         
     ):
-        self.bentoml_model = bentoml_model
+        self.ml_model = ml_model
         self.eval_data_path = eval_data_path
         self.train_data_path = train_data_path
         self.inprogr_data_path = inprogr_data_path
         self.cur_selected_img = ''
         
     def run_train(self):
-        return self.bentoml_model.run_train(self.train_data_path)
+        return self.ml_model.run_train(self.train_data_path)
     
     def run_inference(self):
-        list_of_files_not_suported = self.bentoml_model.run_inference(self.eval_data_path)
+        list_of_files_not_suported = self.ml_model.run_inference(self.eval_data_path)
         list_of_files_not_suported = list(list_of_files_not_suported)
         if len(list_of_files_not_suported) > 0:
             message_text = "Image types not supported. Only 2D and 3D image shapes currently supported. 3D stacks must be of type grayscale. \

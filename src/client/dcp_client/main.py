@@ -12,7 +12,7 @@ settings.init()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    bentoml_model = BentomlModel()
-    welcome_app = Application(bentoml_model)
+    ml_model = BentomlModel()
+    welcome_app = Application(ml_model)
     window = WelcomeWindow(welcome_app)
     sys.exit(app.exec())
