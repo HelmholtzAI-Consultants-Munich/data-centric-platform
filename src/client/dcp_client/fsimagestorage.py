@@ -2,8 +2,10 @@ from skimage.io import imread, imsave
 import os
 from pathlib import Path
 
+from app import ImageStorage
 
-class FilesystemImageStorage:
+
+class FilesystemImageStorage(ImageStorage):
 
     def load_image_seg(self, eval_data_path, train_data_path, cur_selected_img):
         

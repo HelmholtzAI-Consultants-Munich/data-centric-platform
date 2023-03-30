@@ -11,8 +11,8 @@ import settings
 settings.init()
 
 if __name__ == "__main__":
-    fs_image_storage = FilesystemImageStorage()
+    image_storage = FilesystemImageStorage()
     app = QApplication(sys.argv)
-    welcome_app = Application(fs_image_storage=fs_image_storage)
+    welcome_app = Application(image_storage=image_storage)
     window = WelcomeWindow(welcome_app)
     sys.exit(app.exec())

@@ -159,8 +159,8 @@ if __name__ == "__main__":
     from app import Application
     from fsimagestorage import FilesystemImageStorage
 
-    fs_image_storage = FilesystemImageStorage()
+    image_storage = FilesystemImageStorage()
     app = QApplication(sys.argv)
-    app_ = Application(fs_image_storage,'', '', '')
+    app_ = Application(image_storage,'', '', '')
     window = MainWindow(app=app_)
     sys.exit(app.exec())

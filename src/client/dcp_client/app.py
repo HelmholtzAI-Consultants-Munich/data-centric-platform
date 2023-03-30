@@ -1,15 +1,27 @@
 import asyncio
 from bentoml.client import Client
-from fsimagestorage import FilesystemImageStorage
 
 import settings
+
+from abc import ABC, abstractmethod
+from typing import Tuple
+from numpy.typing import NDArray
+
+class ImageStorage(ABC):
+    @abstractmethod
+    def load_image_seg(self, eval_data_path, train_data_path, cur_selected_img) -> Tuple[NDArray, NDArray]:
+        pass
+
+    @abstractmethod
+    def save_seg(self, seg, from_directory, to_directory, cur_selected_img) -> None:
+        pass
 
 
 class Application:
 
     def __init__(
         self, 
-        fs_image_storage: FilesystemImageStorage,
+        image_storage: ImageStorage,
         eval_data_path = '', 
         train_data_path = '', 
         inprogr_data_path = '',
@@ -19,7 +31,7 @@ class Application:
         self.inprogr_data_path = inprogr_data_path
         self.client = Client.from_url("http://0.0.0.0:7010") # have the url of the bentoml service here
         self.cur_selected_img = ''
-        self.fs_image_storage = fs_image_storage
+        self.fs_image_storage = image_storage
 
     async def _run_train(self):
         response = await self.client.async_retrain(self.train_data_path)
