@@ -1,7 +1,8 @@
 import sys
 from PyQt5.QtWidgets import QApplication
 from welcome_window import WelcomeWindow
-from app import Application, BentomlModel
+from app import Application
+from bentoml_model import BentomlModel
 
 import warnings
 warnings.simplefilter('ignore')
