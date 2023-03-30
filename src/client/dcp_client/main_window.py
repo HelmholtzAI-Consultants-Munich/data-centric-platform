@@ -157,8 +157,10 @@ if __name__ == "__main__":
     import sys
     from PyQt5.QtWidgets import QApplication
     from app import Application
+    from fsimagestorage import FilesystemImageStorage
 
+    image_storage = FilesystemImageStorage()
     app = QApplication(sys.argv)
-    app_ = Application('', '', '')
+    app_ = Application(image_storage,'', '', '')
     window = MainWindow(app=app_)
     sys.exit(app.exec())
