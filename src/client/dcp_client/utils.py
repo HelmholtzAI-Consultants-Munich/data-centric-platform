@@ -2,6 +2,8 @@ from PyQt5.QtWidgets import  QFileIconProvider, QMessageBox
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap, QIcon
 
+from pathlib import Path
+
 import settings
 
 class IconProvider(QFileIconProvider):
@@ -27,3 +29,9 @@ def create_warning_box(message_text, message_title="Warning"):
     msg.setWindowTitle(message_title)
     msg.setStandardButtons(QMessageBox.Ok)
     msg.exec()
+
+def get_path_stem(filepath): return Path(filepath).stem
+
+def get_path_parent(filepath): return Path(filepath).parent
+
+def join_path(root_dir, filepath): return Path(root_dir, filepath)
