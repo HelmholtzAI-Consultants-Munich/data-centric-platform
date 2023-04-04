@@ -22,17 +22,16 @@ class ImageStorage(ABC):
         pass
 
     @abstractmethod
-    def save_seg(self, seg, from_directory, to_directory, cur_selected_img) -> None:
+    def save_image(self, seg, from_directory, to_directory, cur_selected_img) -> None:
         pass
 
-    @abstractmethod    
     def search_seg(self, cur_selected_img):
         """Returns a list of full paths of segmentations for an image"""
         # Check the directory the image was selected from:
         img_directory = utils.get_path_parent(cur_selected_img)
         # Take all segmentations of the image from the current directory:
         search_string = utils.get_path_stem(cur_selected_img) + '_seg'
-        seg_files = [file_name for file_name in os.listdir(img_directory) if search_string in file_name]
+        seg_files = [os.path.join(img_directory, file_name) for file_name in os.listdir(img_directory) if search_string in file_name]
         return seg_files
 
 

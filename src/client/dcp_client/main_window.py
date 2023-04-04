@@ -119,24 +119,21 @@ class MainWindow(QWidget):
         self.show()
 
     def on_train_item_selected(self, item):
-        self.app.cur_selected_img = utils.join_path(self.train_data_path, item.data())
+        self.app.cur_selected_img = utils.join_path(self.app.train_data_path, item.data())
 
     def on_item_eval_selected(self, item):
-        self.app.cur_selected_img = utils.join_path(self.eval_data_path, item.data())
-    
+        self.app.cur_selected_img = utils.join_path(self.app.eval_data_path, item.data())
+
     def on_item_inprogr_selected(self, item):
-        self.app.cur_selected_img = utils.join_path(self.inprogr_data_path, item.data())
+        self.app.cur_selected_img = utils.join_path(self.app.inprogr_data_path, item.data())
 
     def on_train_button_clicked(self):
         message_text = self.app.run_train()
         utils.create_warning_box(message_text)
 
     def on_run_inference_button_clicked(self):
-        list_of_files_not_suported = self.app.run_inference()
-        list_of_files_not_suported = list(list_of_files_not_suported)
-        if len(list_of_files_not_suported) > 0:
-            message_text = "Image types not supported. Only 2D and 3D image shapes currently supported. 3D stacks must be of type grayscale. \
-            Currently supported image file formats are: ", settings.accepted_types, "The files that were not supported are: " + ", ".join(list_of_files_not_suported)
+        message_text, message_title = self.app.run_inference()
+        utils.create_warning_box(message_text, message_title )
 
     def on_launch_napari_button_clicked(self):   
         ''' 
@@ -153,10 +150,13 @@ if __name__ == "__main__":
     import sys
     from PyQt5.QtWidgets import QApplication
     from app import Application
+    from bentoml_model import BentomlModel
     from fsimagestorage import FilesystemImageStorage
-
+    import settings
+    settings.init()
     image_storage = FilesystemImageStorage()
+    ml_model = BentomlModel()
     app = QApplication(sys.argv)
-    app_ = Application(image_storage,'', '', '')
+    app_ = Application(ml_model, image_storage, '', '', '')
     window = MainWindow(app=app_)
     sys.exit(app.exec())

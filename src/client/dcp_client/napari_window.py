@@ -87,7 +87,7 @@ class NapariWindow(QWidget):
         '''
         # TODO: Do we allow this? What if they moved it by mistake? User can always manually move from their folders?)
         current_dir = utils.get_path_parent(self.app.cur_selected_img)
-        if current_dir == str(self.train_data_path):
+        if current_dir == str(self.app.train_data_path):
             message_text = "Images from '\Curated data'\ folder can not be moved back to \'Curatation in progress\' folder."
             utils.create_warning_box(message_text, message_title="Warning")
             return
