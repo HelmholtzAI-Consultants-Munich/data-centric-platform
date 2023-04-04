@@ -75,11 +75,6 @@ class WelcomeWindow(QWidget):
         self.main_layout.addWidget(self.start_button, alignment=Qt.AlignCenter)
         self.setLayout(self.main_layout)
 
-        # self.filename_train = ''
-        # self.filename_val = ''
-        # #self.app.filename_inprogr = os.getcwd() #TODO: what is the inprogress path if nothing is specified?
-        # self.filename_inprogr = ''
-
         self.show()
 
     def browse_eval_clicked(self):
