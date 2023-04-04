@@ -5,10 +5,7 @@ A data centric platform for microscopy imaging
 ![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
 
 ## Installation
-To run DCP create a new conda environment with the provided yaml file by typing the following:
-```
-conda env create -f environment_dcp.yml
-```
+TBA
 
 ## How to use this?
 
