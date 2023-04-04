@@ -1,12 +1,11 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from pathlib import Path
 
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView
 from PyQt5.QtCore import Qt
 
 import settings
-from utils import IconProvider, create_warning_box
+import utils
 from napari_window import NapariWindow
 
 if TYPE_CHECKING:
@@ -45,7 +44,7 @@ class MainWindow(QWidget):
         self.eval_dir_layout.addWidget(self.label_eval)
         # add eval dir list
         model_eval = QFileSystemModel()
-        model_eval.setIconProvider(IconProvider())
+        model_eval.setIconProvider(utils.IconProvider())
         self.list_view_eval = QTreeView(self)
         self.list_view_eval.setModel(model_eval)
         for i in range(1,4):
@@ -74,7 +73,7 @@ class MainWindow(QWidget):
         model_inprogr = QFileSystemModel()
         #self.list_view = QListView(self)
         self.list_view_inprogr = QTreeView(self)
-        model_inprogr.setIconProvider(IconProvider())
+        model_inprogr.setIconProvider(utils.IconProvider())
         self.list_view_inprogr.setModel(model_inprogr)
         for i in range(1,4):
             self.list_view_inprogr.hideColumn(i)
@@ -100,7 +99,7 @@ class MainWindow(QWidget):
         model_train = QFileSystemModel()
         #self.list_view = QListView(self)
         self.list_view_train = QTreeView(self)
-        model_train.setIconProvider(IconProvider())
+        model_train.setIconProvider(utils.IconProvider())
         self.list_view_train.setModel(model_train)
         for i in range(1,4):
             self.list_view_train.hideColumn(i)
@@ -120,20 +119,17 @@ class MainWindow(QWidget):
         self.show()
 
     def on_train_item_selected(self, item):
-        self.app.cur_selected_img = item.data()
-        self.app.cur_selected_img_fullpath = Path(self.train_data_path, item.data())
+        self.app.cur_selected_img = utils.join_path(self.train_data_path, item.data())
 
     def on_item_eval_selected(self, item):
-        self.app.cur_selected_img = item.data()
-        self.app.cur_selected_img_fullpath = Path(self.eval_data_path, item.data())
+        self.app.cur_selected_img = utils.join_path(self.eval_data_path, item.data())
     
     def on_item_inprogr_selected(self, item):
-        self.app.cur_selected_img = item.data()
-        self.app.cur_selected_img_fullpath = Path(self.inprogr_data_path, item.data())
+        self.app.cur_selected_img = utils.join_path(self.inprogr_data_path, item.data())
 
     def on_train_button_clicked(self):
         message_text = self.app.run_train()
-        create_warning_box(message_text)
+        utils.create_warning_box(message_text)
 
     def on_run_inference_button_clicked(self):
         list_of_files_not_suported = self.app.run_inference()
@@ -148,7 +144,7 @@ class MainWindow(QWidget):
         '''
         if not self.app.cur_selected_img or '_seg.tiff' in self.app.cur_selected_img:
             message_text = "Please first select an image you wish to visualise. The selected image must be an original images, not a mask."
-            create_warning_box(message_text, message_title="Warning")
+            utils.create_warning_box(message_text, message_title="Warning")
         else:
             self.nap_win = NapariWindow(self.app)
             self.nap_win.show()

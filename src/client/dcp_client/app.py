@@ -2,7 +2,9 @@ import settings
 from abc import ABC, abstractmethod
 from typing import Tuple
 from numpy.typing import NDArray
+import os
 
+import utils
 
 class Model(ABC):
     @abstractmethod
@@ -16,12 +18,22 @@ class Model(ABC):
 
 class ImageStorage(ABC):
     @abstractmethod
-    def load_image_seg(self, eval_data_path, train_data_path, cur_selected_img) -> Tuple[NDArray, NDArray]:
+    def load_image(self, cur_selected_img) -> Tuple[NDArray, NDArray]:
         pass
 
     @abstractmethod
     def save_seg(self, seg, from_directory, to_directory, cur_selected_img) -> None:
         pass
+
+    @abstractmethod    
+    def search_seg(self, cur_selected_img):
+        """Returns a list of full paths of segmentations for an image"""
+        # Check the directory the image was selected from:
+        img_directory = utils.get_path_parent(cur_selected_img)
+        # Take all segmentations of the image from the current directory:
+        search_string = utils.get_path_stem(cur_selected_img) + '_seg'
+        seg_files = [file_name for file_name in os.listdir(img_directory) if search_string in file_name]
+        return seg_files
 
 
 class Application:
@@ -56,14 +68,22 @@ class Application:
             message_title="Success"
         return message_text, message_title
 
-    def load_image_seg(self):
-        return self.fs_image_storage.load_image_seg(
-            eval_data_path=self.eval_data_path,
-            train_data_path=self.train_data_path,
-            cur_selected_img = self.cur_selected_img,
-        )
+    def load_image(self, image_path=None):
+        if image_path is None:
+            return self.fs_image_storage.load_image(self.cur_selected_img)
+        else: return self.fs_image_storage.load_image(image_path)
     
-    def save_seg(self, seg, from_directory, to_directory):
-        self.fs_image_storage.save_seg(seg, from_directory, to_directory, self.cur_selected_img)
+    def search_segs(self):
+        return self.fs_image_storage.search_seg(self.cur_selected_img)
+    
+    def save_image(self, to_directory, cur_selected_img, img):
+        self.fs_image_storage.save_image(to_directory, cur_selected_img, img)
+
+    def move_image(self, from_directory, to_directory, cur_selected_img):
+        self.fs_image_storage.move_image(from_directory, to_directory, cur_selected_img)
+
+    def delete_image(self, from_directory, cur_selected_img):
+        if os.path.exists(os.path.join(from_directory, cur_selected_img)):    
+            self.fs_image_storage.delete_image(from_directory, cur_selected_img)
 
 
