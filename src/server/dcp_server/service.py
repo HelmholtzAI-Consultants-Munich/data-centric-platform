@@ -8,10 +8,10 @@ from fsimagestorage import FilesystemImageStorage
 from bentomlrunners import CellposeRunnable
 from segmentationclasses import GeneralSegmentation
 
-# This is where we will decide on model type, currently not working, need to figure it out
-# cp = CellposeRunnable(cellpose_model_type='cyto')
+# This is where we will decide on model type (cyto is default inside the class definition):
 custom_model_runner = t.cast(
-    "CellposeRunner", bentoml.Runner(CellposeRunnable, name="cellpose_runner")
+    "CellposeRunner", bentoml.Runner(CellposeRunnable, name="cellpose_runner",
+                                       runnable_init_params={"cellpose_model_type": "cyto"})
 )
 
 # This is where we decide which segmentation we use - see segmentationclasses.py
