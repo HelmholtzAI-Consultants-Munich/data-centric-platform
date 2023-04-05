@@ -12,14 +12,14 @@ This repo includes a client and server side for using our data centric platform.
 
 ```
 conda activate dcp-env
-cd src/data_centric_platform/server/dcp_server
+cd src/server/dcp_server
 bentoml serve service:svc --reload --port=7010
 ```
 
 To run the client GUI open a new terminal and do: 
 ```
 conda activate dcp-env
-python src/data_centric_platform/client/dcp_client/main.py
+python src/client/dcp_client/main.py
 ```
 
 ### Toy data
