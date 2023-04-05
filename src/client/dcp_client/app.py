@@ -18,20 +18,18 @@ class Model(ABC):
 
 class ImageStorage(ABC):
     @abstractmethod
-    def load_image(self, cur_selected_img) -> Tuple[NDArray, NDArray]:
+    def load_image(self, from_directory, cur_selected_img) -> Tuple[NDArray, NDArray]:
         pass
 
     @abstractmethod
-    def save_image(self, seg, from_directory, to_directory, cur_selected_img) -> None:
+    def save_image(self, to_directory, cur_selected_img, img) -> None:
         pass
 
-    def search_seg(self, cur_selected_img):
+    def search_seg(self, img_directory, cur_selected_img):
         """Returns a list of full paths of segmentations for an image"""
-        # Check the directory the image was selected from:
-        img_directory = utils.get_path_parent(cur_selected_img)
         # Take all segmentations of the image from the current directory:
         search_string = utils.get_path_stem(cur_selected_img) + '_seg'
-        seg_files = [os.path.join(img_directory, file_name) for file_name in os.listdir(img_directory) if search_string in file_name]
+        seg_files = [file_name for file_name in os.listdir(img_directory) if search_string in file_name]
         return seg_files
 
 
@@ -54,15 +52,19 @@ class Application:
         self.train_data_path = train_data_path
         self.inprogr_data_path = inprogr_data_path
         self.cur_selected_img = ''
+        self.cur_selected_path = ''
+        self.seg_filepaths = []
        
     
     def run_train(self):
+        """ Checks if the ml model is connected to the server, connects if not (and if possible), and trains the model with all data available in train_data_path """
         if not self.ml_model.is_connected:
             connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
             if not connection_success: return "Connection could not be established. Please check if the server is running and try again."
         return self.ml_model.run_train(self.train_data_path)
     
     def run_inference(self):
+        """ Checks if the ml model is connected to the server, connects if not (and if possible), and runs inference on all images in eval_data_path """
         if not self.ml_model.is_connected:
             connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
             if not connection_success: 
@@ -79,22 +81,35 @@ class Application:
             message_title="Success"
         return message_text, message_title
 
-    def load_image(self, image_path=None):
-        if image_path is None:
-            return self.fs_image_storage.load_image(self.cur_selected_img)
-        else: return self.fs_image_storage.load_image(image_path)
+    def load_image(self, image_name=None):
+        """ Loads an image  from the cur_selected_path """
+        # if an image path is not given load the cur_selected_img
+        if image_name is None:
+            return self.fs_image_storage.load_image(self.cur_selected_path, self.cur_selected_img)
+        else: return self.fs_image_storage.load_image(self.cur_selected_path, image_name)
     
+    def save_image(self, dst_directory, image_name, img):
+        """ Saves img array image in the dst_directory with filename cur_selected_img """
+        self.fs_image_storage.save_image(dst_directory, image_name, img)
+
+    def move_images(self, dst_directory, move_segs=False):
+        """ Moves cur_selected_img image from the current directory to the dst_directory """
+        #if image_name is None:
+        self.fs_image_storage.move_image(self.cur_selected_path, dst_directory, self.cur_selected_img)
+        if move_segs:
+            for seg_name in self.seg_filepaths:
+                self.fs_image_storage.move_image(self.cur_selected_path, dst_directory, seg_name)
+
+
+    def delete_images(self, image_names):
+        """ If image_name in the image_names list exists in the current directory it is deleted """
+        for image_name in image_names:
+            if os.path.exists(os.path.join(self.cur_selected_path, image_name)):    
+                self.fs_image_storage.delete_image(self.cur_selected_path, image_name)
+
     def search_segs(self):
-        return self.fs_image_storage.search_seg(self.cur_selected_img)
-    
-    def save_image(self, to_directory, cur_selected_img, img):
-        self.fs_image_storage.save_image(to_directory, cur_selected_img, img)
-
-    def move_image(self, from_directory, to_directory, cur_selected_img):
-        self.fs_image_storage.move_image(from_directory, to_directory, cur_selected_img)
-
-    def delete_image(self, from_directory, cur_selected_img):
-        if os.path.exists(os.path.join(from_directory, cur_selected_img)):    
-            self.fs_image_storage.delete_image(from_directory, cur_selected_img)
+        """  Searches in cur_selected_path for all possible segmentation files associated to cur_selected_img.
+            These files should have a _seg extension to the cur_selected_img filename. """
+        self.seg_filepaths = self.fs_image_storage.search_seg(self.cur_selected_path, self.cur_selected_img)
 
 
