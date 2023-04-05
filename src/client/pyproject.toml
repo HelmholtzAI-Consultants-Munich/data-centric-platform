@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ['dcp_client']
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[project]
+name = "data-centric-tool-client"
+version = "0.1"
+requires-python = ">=3.8"
+description = ""
+# license = {file = "LICENSE.txt"}
+keywords = []
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+readme = "README.md"
+dynamic = ["dependencies"]
+authors = [
+  {name="Christina Bukas", email="christina.bukas@helmholtz-muenchen.de"},
+  {name="Helena Pelin", email="helena.pelin@helmholtz-muenchen.de"}
+]
+maintainers = [
+  {name="Christina Bukas", email="christina.bukas@helmholtz-muenchen.de"},
+  {name="Helena Pelin", email="helena.pelin@helmholtz-muenchen.de"}
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+]
+
+[project.urls]
+repository = "https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform"
+# homepage = "https://example.com"
+# documentation = "https://readthedocs.org"
+
+[project.scripts]
+dcp-client = "dcp_client.main:main"
