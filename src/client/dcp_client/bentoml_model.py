@@ -16,7 +16,7 @@ class BentomlModel(Model):
         try:
             self.client = BentoClient.from_url(url) 
             return True
-        except ConnectionRefusedError: return False
+        except : return False # except ConnectionRefusedError
     
     @property
     def is_connected(self):
