@@ -8,18 +8,18 @@ A data centric platform for microscopy imaging
 
 ## How to use this?
 
-This repo includes a client and server side for using our data centric platform. The client and server communicate via the [bentoml](https://www.bentoml.com/?gclid=Cj0KCQiApKagBhC1ARIsAFc7Mc6iqOLi2OcLtqMbGx1KrFjtLUEZ-bhnqlT2zWREE0x7JImhtNmKlFEaAvSSEALw_wcB) library. The client interacts with the server every time we run model inference or training. To start the server side you will need to run:
+This repo includes a client and server side for using our data centric platform. The client and server communicate via the [bentoml](https://www.bentoml.com/?gclid=Cj0KCQiApKagBhC1ARIsAFc7Mc6iqOLi2OcLtqMbGx1KrFjtLUEZ-bhnqlT2zWREE0x7JImhtNmKlFEaAvSSEALw_wcB) library. The client interacts with the server every time we run model inference or training. For full functionality of the software the server should be running. To start the server side you will need to run:
 
 ```
 conda activate dcp-env
-cd src/data_centric_platform/server
+cd src/data_centric_platform/server/dcp_server
 bentoml serve service:svc --reload --port=7010
 ```
 
-To run the user interface (while the server is running) open a new terminal and do: 
+To run the client GUI open a new terminal and do: 
 ```
 conda activate dcp-env
-python src/data_centric_platform/client/main.py
+python src/data_centric_platform/client/dcp_client/main.py
 ```
 
 ### Toy data
