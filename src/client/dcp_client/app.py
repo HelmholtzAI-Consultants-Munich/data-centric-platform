@@ -25,7 +25,7 @@ class ImageStorage(ABC):
     def save_image(self, seg, from_directory, to_directory, cur_selected_img) -> None:
         pass
 
-    def search_seg(self, cur_selected_img):
+    def search_segs(self, cur_selected_img):
         """Returns a list of full paths of segmentations for an image"""
         # Check the directory the image was selected from:
         img_directory = utils.get_path_parent(cur_selected_img)
@@ -85,7 +85,7 @@ class Application:
         else: return self.fs_image_storage.load_image(image_path)
     
     def search_segs(self):
-        return self.fs_image_storage.search_seg(self.cur_selected_img)
+        return self.fs_image_storage.search_segs(self.cur_selected_img)
     
     def save_image(self, to_directory, cur_selected_img, img):
         self.fs_image_storage.save_image(to_directory, cur_selected_img, img)
