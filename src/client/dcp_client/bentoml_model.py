@@ -1,13 +1,26 @@
 import asyncio
-from bentoml.client import Client
+from typing import Optional
+from bentoml.client import Client as BentoClient
 from app import Model
 
 class BentomlModel(Model):
 
     def __init__(
         self,
+        client: Optional[BentoClient] = None
     ):
-        self.client = Client.from_url("http://0.0.0.0:7010") # have the url of the bentoml service here
+        self.client = client
+
+    def connect(self, ip: str = '0.0.0.0', port: int = 7010):
+        url = f"http://{ip}:{port}" #"http://0.0.0.0:7010"
+        try:
+            self.client = BentoClient.from_url(url) 
+            return True
+        except ConnectionRefusedError: return False
+    
+    @property
+    def is_connected(self):
+        return bool(self.client)
 
     async def _run_train(self, data_path):
         response = await self.client.async_retrain(data_path)

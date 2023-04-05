@@ -157,6 +157,12 @@ if __name__ == "__main__":
     image_storage = FilesystemImageStorage()
     ml_model = BentomlModel()
     app = QApplication(sys.argv)
-    app_ = Application(ml_model, image_storage, '', '', '')
+    app_ = Application(ml_model=ml_model, 
+                       image_storage=image_storage, 
+                       server_ip='0.0.0.0',
+                       server_port=7010,
+                       eval_data_path='data', 
+                       train_data_path='', # set path
+                       inprogr_data_path='') # set path
     window = MainWindow(app=app_)
     sys.exit(app.exec())

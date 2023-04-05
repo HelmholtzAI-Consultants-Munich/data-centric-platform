@@ -40,12 +40,16 @@ class Application:
         self, 
         ml_model: Model,
         image_storage: ImageStorage,
-        eval_data_path = '', 
-        train_data_path = '', 
-        inprogr_data_path = '',     
+        server_ip: str = '0.0.0.0',
+        server_port: int = 7010,
+        eval_data_path: str = '', 
+        train_data_path: str = '', 
+        inprogr_data_path: str = '',     
     ):
         self.ml_model = ml_model
         self.fs_image_storage = image_storage
+        self.server_ip = server_ip
+        self.server_port = server_port
         self.eval_data_path = eval_data_path
         self.train_data_path = train_data_path
         self.inprogr_data_path = inprogr_data_path
@@ -53,9 +57,17 @@ class Application:
        
     
     def run_train(self):
+        if not self.ml_model.is_connected:
+            connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
+            if not connection_success: return "Connection could not be established. Please check if the server is running and try again."
         return self.ml_model.run_train(self.train_data_path)
     
     def run_inference(self):
+        if not self.ml_model.is_connected:
+            connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
+            if not connection_success: 
+                message_text = "Connection could not be established. Please check if the server is running and try again."
+                return message_text, "Warning"
         list_of_files_not_suported = self.ml_model.run_inference(self.eval_data_path)
         list_of_files_not_suported = list(list_of_files_not_suported)
         if len(list_of_files_not_suported) > 0:

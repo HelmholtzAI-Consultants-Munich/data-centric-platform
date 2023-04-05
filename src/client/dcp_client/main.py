@@ -14,7 +14,10 @@ settings.init()
 if __name__ == "__main__":
     image_storage = FilesystemImageStorage()
     ml_model = BentomlModel()
-    welcome_app = Application(ml_model=ml_model, image_storage=image_storage)
+    welcome_app = Application(ml_model=ml_model, 
+                              image_storage=image_storage,
+                              server_ip='0.0.0.0',
+                              server_port=7010)
     app = QApplication(sys.argv)
     window = WelcomeWindow(welcome_app)
     sys.exit(app.exec())
