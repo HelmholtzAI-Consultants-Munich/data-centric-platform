@@ -5,7 +5,7 @@ import typing as t
 from fsimagestorage import FilesystemImageStorage
 from bentomlrunners import CellposeRunnable
 from segmentationclasses import GeneralSegmentation
-from service_types import OurBentoService
+from serviceclasses import OurBentoService
 from abc import ABC, abstractmethod
 
 
