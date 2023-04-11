@@ -4,7 +4,8 @@ from typing import Tuple
 from numpy.typing import NDArray
 import os
 
-import dcp_client.utils
+from dcp_client import utils
+
 
 class Model(ABC):
     @abstractmethod
@@ -54,7 +55,6 @@ class Application:
         self.cur_selected_img = ''
         self.cur_selected_path = ''
         self.seg_filepaths = []
-       
     
     def run_train(self):
         """ Checks if the ml model is connected to the server, connects if not (and if possible), and trains the model with all data available in train_data_path """
@@ -99,7 +99,6 @@ class Application:
         if move_segs:
             for seg_name in self.seg_filepaths:
                 self.fs_image_storage.move_image(self.cur_selected_path, dst_directory, seg_name)
-
 
     def delete_images(self, image_names):
         """ If image_name in the image_names list exists in the current directory it is deleted """
