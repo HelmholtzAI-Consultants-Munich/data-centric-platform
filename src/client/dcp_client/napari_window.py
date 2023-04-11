@@ -5,9 +5,9 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout
 import napari
 
 if TYPE_CHECKING:
-    from app import Application
+    from dcp_client.app import Application
 
-import utils
+from dcp_client import utils
 
 class NapariWindow(QWidget):
     '''Napari Window Widget object.

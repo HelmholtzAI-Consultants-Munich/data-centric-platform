@@ -4,12 +4,12 @@ from typing import TYPE_CHECKING
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView
 from PyQt5.QtCore import Qt
 
-import settings
-from utils import IconProvider, create_warning_box
-from napari_window import NapariWindow
+from dcp_client import settings
+from dcp_client.utils import IconProvider, create_warning_box
+from dcp_client.napari_window import NapariWindow
 
 if TYPE_CHECKING:
-    from app import Application
+    from dcp_client.app import Application
 
 
 class MainWindow(QWidget):

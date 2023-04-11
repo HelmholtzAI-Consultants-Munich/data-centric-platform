@@ -1,7 +1,8 @@
 import asyncio
 from typing import Optional
 from bentoml.client import Client as BentoClient
-from app import Model
+
+from dcp_client.app import Model
 
 class BentomlModel(Model):
 

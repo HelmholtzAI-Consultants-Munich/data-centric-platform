@@ -1,11 +1,11 @@
 import sys
 from PyQt5.QtWidgets import QApplication
 
-import settings
-from fsimagestorage import FilesystemImageStorage
-from bentoml_model import BentomlModel
-from app import Application
-from welcome_window import WelcomeWindow
+from dcp_client import settings
+from dcp_client.fsimagestorage import FilesystemImageStorage
+from dcp_client.bentoml_model import BentomlModel
+from dcp_client.app import Application
+from dcp_client.welcome_window import WelcomeWindow
 
 import warnings
 warnings.simplefilter('ignore')

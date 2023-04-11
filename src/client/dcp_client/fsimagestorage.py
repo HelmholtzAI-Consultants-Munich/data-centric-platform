@@ -1,7 +1,7 @@
 from skimage.io import imread, imsave
 import os
 
-from app import ImageStorage
+from dcp_client.app import ImageStorage
 
 class FilesystemImageStorage(ImageStorage):
 

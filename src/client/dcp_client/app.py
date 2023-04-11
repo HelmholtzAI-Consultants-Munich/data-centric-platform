@@ -1,10 +1,10 @@
-import settings
+from dcp_client import settings
 from abc import ABC, abstractmethod
 from typing import Tuple
 from numpy.typing import NDArray
 import os
 
-import utils
+import dcp_client.utils
 
 class Model(ABC):
     @abstractmethod
