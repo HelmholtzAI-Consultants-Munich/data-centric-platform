@@ -28,7 +28,7 @@ class TestApplication(unittest.TestCase):
                     FilesystemImageStorage(),
                     inprogr_data_path='in_prog')
         self.app.cur_selected_img = 'test_img.png'
-        self.cur_selected_path = 'in_prog'
+        self.app.cur_selected_path = 'in_prog'
 
         img_test = self.app.load_image() # if image_name is None
         self.assertEqual(img.all(), img_test.all())
