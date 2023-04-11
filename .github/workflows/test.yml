@@ -47,8 +47,7 @@ jobs:
           pip install -e ".[testing]"
           
       - name: Test with pytest
-        with:
-          run: pytest
+        run: pytest
         env:
           PLATFORM: ${{ matrix.platform }}
       
