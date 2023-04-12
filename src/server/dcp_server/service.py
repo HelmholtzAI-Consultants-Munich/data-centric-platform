@@ -6,10 +6,8 @@ from fsimagestorage import FilesystemImageStorage
 from bentomlrunners import CellposeRunnable
 from segmentationclasses import GeneralSegmentation
 from serviceclasses import OurBentoService
-from abc import ABC, abstractmethod
 
 
-#TODO: do we want to put this into settings.py so we decide everything there?
 # This is where we decide on the model type
 custom_model_runner = t.cast(
     "CellposeRunner", bentoml.Runner(CellposeRunnable, name="cellpose_runner",
