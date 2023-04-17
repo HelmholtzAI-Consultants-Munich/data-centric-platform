@@ -1,15 +1,20 @@
 from __future__ import annotations
 import bentoml
 import typing as t
-
 from fsimagestorage import FilesystemImageStorage
 from bentomlrunners import CustomRunnable
 from segmentationclasses import GeneralSegmentation
 from serviceclasses import OurBentoService
 from models import CustomCellposeModel
+from utils import read_config
 
-# This is where we decide on the model type
-model = CustomCellposeModel(model_type='cyto')
+# Import configuration
+train_config = read_config('train', config_path = 'config.cfg')
+eval_config = read_config('eval', config_path = 'config.cfg')
+
+# Initiate the model
+model = CustomCellposeModel(model_type=train_config['model_type'], train_config = train_config, eval_config = eval_config)
+
 
 custom_model_runner = t.cast(
     "CustomRunner", bentoml.Runner(CustomRunnable, name="cellpose_runner",

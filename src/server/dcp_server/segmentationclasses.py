@@ -1,9 +1,8 @@
-import utils, settings
+import utils
 import os
-import typing as t
-import bentoml
 
-settings.init()
+# Import configuration
+setup_config = utils.read_config('setup', config_path = 'config.cfg')
 
 class GeneralSegmentation():
 
@@ -28,7 +27,7 @@ class GeneralSegmentation():
             mask = self.imagestorage.resize_image(mask, height, width, order=0)
             
             # Save segmentation
-            seg_name = utils.get_path_stem(img_filepath) + settings.seg_name_string + '.tiff'
+            seg_name = utils.get_path_stem(img_filepath) + setup_config['seg_name_string'] + '.tiff'
             self.imagestorage.save_image(os.path.join(input_path, seg_name), mask)
 
 

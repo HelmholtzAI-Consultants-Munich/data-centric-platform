@@ -1,8 +1,6 @@
 from typing import List
-from cellpose import models
 import bentoml
 import numpy as np
-from models import CustomCellposeModel
 
 
 class CustomRunnable(bentoml.Runnable):
@@ -18,7 +16,6 @@ class CustomRunnable(bentoml.Runnable):
         return mask
 
     @bentoml.Runnable.method(batchable=False)
-    def train(self, imgs: List[np.ndarray], masks: List[np.ndarray], **kwargs) -> str:
-        save_model_path = 'mytrainedmodel' # if we want to replace existing model here set this to self.model_path 
-        self.model.train(train_data = imgs, train_labels = masks, n_epochs=2, channels=[0], save_path=save_model_path, **kwargs)
-        return save_model_path
+    def train(self, imgs: List[np.ndarray], masks: List[np.ndarray]) -> str:
+        self.model.train(train_data = imgs, train_labels = masks)
+        return self.model.train_config['save_model_path']

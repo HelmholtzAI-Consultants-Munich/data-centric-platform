@@ -2,10 +2,10 @@ from skimage.io import imread, imsave
 from skimage.transform import resize, rescale
 import os
 from skimage.color import rgb2gray
-
 import utils
-import settings
-settings.init()
+
+# Import configuration
+setup_config = utils.read_config('setup', config_path = 'config.cfg')
 
 class FilesystemImageStorage():
 
@@ -18,9 +18,9 @@ class FilesystemImageStorage():
     def search_images(self, directory):
         """Returns a list of full paths of the images in the directory"""
         # Take all segmentations of the image from the current directory:
-        seg_files = [file_name for file_name in os.listdir(directory) if settings.seg_name_string in file_name]
+        seg_files = [file_name for file_name in os.listdir(directory) if setup_config['seg_name_string'] in file_name]
         # Take the image files - difference between the list of all the files in the directory and the list of seg files and only file extensions currently accepted
-        image_files = [os.path.join(directory, file_name) for file_name in os.listdir(directory) if (file_name not in seg_files) and (utils.get_file_extension(file_name) in settings.accepted_types)]
+        image_files = [os.path.join(directory, file_name) for file_name in os.listdir(directory) if (file_name not in seg_files) and (utils.get_file_extension(file_name) in setup_config['accepted_types'])]
         return image_files
     
     def search_segs(self, cur_selected_img):
@@ -28,12 +28,12 @@ class FilesystemImageStorage():
         # Check the directory the image was selected from:
         img_directory = utils.get_path_parent(cur_selected_img)
         # Take all segmentations of the image from the current directory:
-        search_string = utils.get_path_stem(cur_selected_img) + '_seg'
+        search_string = utils.get_path_stem(cur_selected_img) + setup_config['seg_name_string']
         seg_files = [os.path.join(img_directory, file_name) for file_name in os.listdir(img_directory) if search_string in file_name]
         return seg_files
     
     def get_unsupported_files(self, directory):
-        return [file_name for file_name in os.listdir(directory) if utils.get_file_extension(file_name) not in settings.accepted_types]
+        return [file_name for file_name in os.listdir(directory) if utils.get_file_extension(file_name) not in setup_config['accepted_types']]
     
     def get_image_size_properties(self, img, file_extension):
     
