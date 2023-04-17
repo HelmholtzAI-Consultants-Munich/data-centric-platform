@@ -3,15 +3,17 @@ import bentoml
 import typing as t
 
 from fsimagestorage import FilesystemImageStorage
-from bentomlrunners import CellposeRunnable
+from bentomlrunners import CustomRunnable
 from segmentationclasses import GeneralSegmentation
 from serviceclasses import OurBentoService
-
+from models import CustomCellposeModel
 
 # This is where we decide on the model type
+model = CustomCellposeModel(model_type='cyto')
+
 custom_model_runner = t.cast(
-    "CellposeRunner", bentoml.Runner(CellposeRunnable, name="cellpose_runner",
-                                       runnable_init_params={"cellpose_model_type": "cyto"})
+    "CustomRunner", bentoml.Runner(CustomRunnable, name="cellpose_runner",
+                                       runnable_init_params={"model": model})
 )
 
 # This is where we decide which segmentation we use - see segmentationclasses.py
