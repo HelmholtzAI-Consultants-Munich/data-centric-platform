@@ -22,7 +22,7 @@ class GeneralSegmentation():
             img = self.imagestorage.rescale_image(img, height, width, channel_ax)
             
             # Evaluate the model
-            mask = await self.runner.evaluate.async_run(img, z_axis=channel_ax)
+            mask = await self.runner.evaluate.async_run(img = img, z_axis=channel_ax)
 
             # Resize the mask
             mask = self.imagestorage.resize_image(mask, height, width, order=0)
