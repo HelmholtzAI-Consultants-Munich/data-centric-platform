@@ -1,10 +1,9 @@
 from pathlib import Path
-import configparser
+import json
 
 def read_config(name, config_path = 'config.cfg') -> dict:    
-    config = configparser.RawConfigParser()
-    config.read(config_path)
-    return dict(config.items(name))
+    with open(config_path) as config_file:
+        return json.load(config_file)[name]
 
 def get_path_stem(filepath): return str(Path(filepath).stem)
 
