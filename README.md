@@ -32,6 +32,7 @@ All service configurations are set in the _src/server/dcp_server/config.cfg_ fil
 The config file has to have the five main parts. All the ```marked``` arguments are mandatory:
 
  - ``` setup ``` 
+    - ```segmentation ``` - segmentation type from the segmentationclasses.py. Currently, GeneralSegmentation and MitoProjectSegmentation are available. 
     - ```accepted_types``` - types of images currently accepted for the analysis
     - ```seg_name_string``` - end string for masks to run on (All the segmentations of the image should contain this string - used to save and search for segmentations of the images)
 - ```service```
