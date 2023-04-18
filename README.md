@@ -27,7 +27,7 @@ This repo includes the ```data/``` directory with some toy data which you can us
 
 ## Customization (for developers)
 
-All service configurations are set in the _config.cfg_ file. Please, obey the [formal JSON format](https://www.json.org/json-en.html).
+All service configurations are set in the _src/server/dcp_server/config.cfg_ file. Please, obey the [formal JSON format](https://www.json.org/json-en.html).
 
 The config file has to have the five main parts. All the ```marked``` arguments are mandatory:
 
