@@ -4,7 +4,7 @@ import bentoml
 from bentoml.io import Text, NumpyNdarray
 
 
-class OurBentoService():
+class CustomBentoService():
 
     def __init__(self, runner, segmentation, service_name):
         self.runner = runner

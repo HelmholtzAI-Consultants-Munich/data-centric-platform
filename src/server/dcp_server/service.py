@@ -4,7 +4,7 @@ import typing as t
 from fsimagestorage import FilesystemImageStorage
 from bentomlrunners import CustomRunnable
 from segmentationclasses import GeneralSegmentation
-from serviceclasses import OurBentoService
+from serviceclasses import CustomBentoService
 from utils import read_config
 
 module = __import__("models")
@@ -31,5 +31,5 @@ segmentation = GeneralSegmentation(imagestorage=FilesystemImageStorage(),
                                    runner = custom_model_runner )
 
 # Call the service
-service = OurBentoService(runner=segmentation.runner, segmentation=segmentation, service_name=service_config['service_name'])
+service = CustomBentoService(runner=segmentation.runner, segmentation=segmentation, service_name=service_config['service_name'])
 svc = service.start_service()
