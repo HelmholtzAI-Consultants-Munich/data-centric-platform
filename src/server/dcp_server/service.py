@@ -5,8 +5,9 @@ from fsimagestorage import FilesystemImageStorage
 from bentomlrunners import CustomRunnable
 from segmentationclasses import GeneralSegmentation
 from serviceclasses import OurBentoService
-from models import CustomCellposeModel
 from utils import read_config
+
+module = __import__("models")
 
 # Import configuration
 service_config = read_config('service', config_path = 'config.cfg')
@@ -15,11 +16,12 @@ train_config = read_config('train', config_path = 'config.cfg')
 eval_config = read_config('eval', config_path = 'config.cfg')
 
 # Initiate the model
-model = CustomCellposeModel(model_type=model_config['model_type'], train_config = train_config, eval_config = eval_config)
+model_class = getattr(module, service_config['model_to_use'])
+model = model_class(model_config = model_config, train_config = train_config, eval_config = eval_config)
 
 
 custom_model_runner = t.cast(
-    "CustomRunner", bentoml.Runner(CustomRunnable, name="cellpose_runner",
+    "CustomRunner", bentoml.Runner(CustomRunnable, name=service_config['runner_name'],
                                        runnable_init_params={"model": model, "save_model_path": service_config['save_model_path']})
 )
 
@@ -29,5 +31,5 @@ segmentation = GeneralSegmentation(imagestorage=FilesystemImageStorage(),
                                    runner = custom_model_runner )
 
 # Call the service
-service = OurBentoService(runner=segmentation.runner, segmentation=segmentation, service_name="cellpose_segm_test")
+service = OurBentoService(runner=segmentation.runner, segmentation=segmentation, service_name=service_config['service_name'])
 svc = service.start_service()

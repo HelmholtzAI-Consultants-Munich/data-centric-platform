@@ -5,10 +5,10 @@ from segment_anything.automatic_mask_generator import SamAutomaticMaskGenerator
 
 class CustomCellposeModel(models.CellposeModel):
 
-    def __init__(self, model_type, train_config, eval_config, **kwargs):
+    def __init__(self, model_config, train_config, eval_config, **kwargs):
         
         # Initialize the cellpose model
-        super().__init__(model_type=model_type, **kwargs) #TODO: add **self.model_config
+        super().__init__(**model_config)
         self.train_config = train_config
         self.eval_config = eval_config
         
