@@ -1,4 +1,4 @@
-from cellpose import models
+from cellpose import models, utils
 from segment_anything import SamPredictor, sam_model_registry
 from segment_anything.automatic_mask_generator import SamAutomaticMaskGenerator
 
@@ -19,7 +19,11 @@ class CustomCellposeModel(models.CellposeModel):
     
     def train(self, imgs, masks):
         super().train(train_data=imgs, train_labels=masks, **self.train_config)
-        
+    
+    def masks_to_outlines(self, mask):
+        return utils.masks_to_outlines(mask) #[True, False] outputs
+
+
 
 # class CustomSAMModel():
 # # https://github.com/facebookresearch/segment-anything/blob/main/notebooks/automatic_mask_generator_example.ipynb
