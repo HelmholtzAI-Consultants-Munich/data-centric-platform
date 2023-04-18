@@ -29,7 +29,7 @@ This repo includes the ```data/``` directory with some toy data which you can us
 
 All service configurations are set in the _config.cfg_ file. Please, obey the [formal JSON format](https://www.json.org/json-en.html).
 
-The config file has to have the five main parts. All the ```marked`` arguments are mandatory:
+The config file has to have the five main parts. All the ```marked``` arguments are mandatory:
 
  - ``` setup ``` 
     - ```accepted_types``` - types of images currently accepted for the analysis
