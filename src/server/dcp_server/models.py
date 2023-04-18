@@ -8,9 +8,10 @@ class CustomCellposeModel(models.CellposeModel):
     def __init__(self, model_type, train_config, eval_config, **kwargs):
         
         # Initialize the cellpose model
-        super().__init__(model_type=model_type, **kwargs)
+        super().__init__(model_type=model_type, **kwargs) #TODO: add **self.model_config
         self.train_config = train_config
         self.eval_config = eval_config
+        
 
     def eval(self, img, z_axis):
 

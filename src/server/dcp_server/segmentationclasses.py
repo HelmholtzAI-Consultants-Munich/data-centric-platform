@@ -31,7 +31,14 @@ class GeneralSegmentation():
             self.imagestorage.save_image(os.path.join(input_path, seg_name), mask)
 
 
-    async def train(self, imgs, masks):
+    async def train(self, input_path):
+        train_img_mask_pairs = self.imagestorage.get_image_seg_pairs(input_path)
+
+        if not train_img_mask_pairs:
+            return "No images and segs found"
+                
+        imgs, masks = self.imagestorage.prepare_images_and_masks_for_training(train_img_mask_pairs)
+
         return await self.runner.train.async_run(imgs, masks)
 
 
