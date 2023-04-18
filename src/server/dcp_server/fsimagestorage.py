@@ -32,6 +32,16 @@ class FilesystemImageStorage():
         seg_files = [os.path.join(img_directory, file_name) for file_name in os.listdir(img_directory) if search_string in file_name]
         return seg_files
     
+    def get_image_seg_pairs(self, directory):
+        image_files = self.search_images(directory)
+        seg_files = []
+        for image in image_files:
+            seg = self.search_segs(image)
+            #TODO - the search seg returns all the segs, but here we need only one, hence the seg[0]. Check if it is from training path? 
+            seg_files.append(seg[0])
+        return list(zip(image_files, seg_files))
+            
+
     def get_unsupported_files(self, directory):
         return [file_name for file_name in os.listdir(directory) if utils.get_file_extension(file_name) not in setup_config['accepted_types']]
     
@@ -62,10 +72,11 @@ class FilesystemImageStorage():
     def resize_image(self, img, height, width, order):
         return resize(img, (height, width), order=order)
     
-    def prepare_images_and_masks_for_training(self, train_imgs, train_masks):
+    def prepare_images_and_masks_for_training(self, train_img_mask_pairs):
         '''TODO: Better name for this function? '''
         imgs=[]
         masks=[]
-        for img_file, mask_file in zip(train_imgs, train_masks):
+        for img_file, mask_file in train_img_mask_pairs:
             imgs.append(rgb2gray(imread(img_file)))
             masks.append(imread(mask_file))
+        return imgs, masks
