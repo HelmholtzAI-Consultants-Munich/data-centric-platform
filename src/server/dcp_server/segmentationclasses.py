@@ -5,14 +5,30 @@ import os
 setup_config = utils.read_config('setup', config_path = 'config.cfg')
 
 class GeneralSegmentation():
-
+    """Segmentation class. Defining the main functions needed for this project and served by service - segment image and train on images.
+    """    
     def __init__(self, imagestorage, runner, model):
+        """Constructs all the necessary attributes for the GeneralSegmentation. 
+
+        :param imagestorage: imagestorage system used (see fsimagestorage.py)
+        :type imagestorage: FilesystemImageStorage class object
+        :param runner: runner used in the service
+        :type runner: CustomRunnable class object
+        :param model: model used for segmentation 
+        :type model: class object from the models.py
+        """        
         self.imagestorage = imagestorage
         self.runner = runner 
         self.model = model
         
-
     async def segment_image(self, input_path, list_of_images):
+        """Segments images from the given  directory
+
+        :param input_path: directory where the images are saved
+        :type input_path: str
+        :param list_of_images: list of image objects from the directory that are currently supported
+        :type list_of_images: list
+        """        
 
         for img_filepath in list_of_images:
             # Load the image
@@ -31,8 +47,15 @@ class GeneralSegmentation():
             seg_name = utils.get_path_stem(img_filepath) + setup_config['seg_name_string'] + '.tiff'
             self.imagestorage.save_image(os.path.join(input_path, seg_name), mask)
 
-
     async def train(self, input_path):
+        """train model on images and masks in the given input directory.
+        Calls the runner's train function.
+
+        :param input_path: directory where the images are saved
+        :type input_path: str
+        :return: runner's train function output - path of the saved model
+        :rtype: str
+        """        
         train_img_mask_pairs = self.imagestorage.get_image_seg_pairs(input_path)
 
         if not train_img_mask_pairs:

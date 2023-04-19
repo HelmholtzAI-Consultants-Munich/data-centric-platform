@@ -8,15 +8,37 @@ import utils
 setup_config = utils.read_config('setup', config_path = 'config.cfg')
 
 class FilesystemImageStorage():
-
+    """Class used to deal with everything related to image storing and processing - loading, saving, transforming...
+    """    
+    
     def load_image(self, cur_selected_img):
+        """Load the image (using skiimage)
+
+        :param cur_selected_img: full path of the image that needs to be loaded
+        :type cur_selected_img: str
+        :return: loaded image
+        :rtype: ndarray
+        """        
         return imread(cur_selected_img)
     
-    def save_image(self, to_directory, img):
-        imsave(to_directory, img)
+    def save_image(self, to_save_path, img):
+        """Save given image (using skiimage)
 
+        :param to_save_path: full path to the directory that the image needs to be save into (use also image name in the path, eg. '/users/new_image.png')
+        :type to_save_path: str
+        :param img: image you wish to save
+        :type img: ndarray
+        """        
+        imsave(to_save_path, img)
+    
     def search_images(self, directory):
-        """Returns a list of full paths of the images in the directory"""
+        """Get a list of full paths of the images in the directory
+
+        :param directory: path to the directory to search images in
+        :type directory: str
+        :return: list of image paths found in the directory (only image types that are supported - see config.cfg 'setup' section)
+        :rtype: list
+        """
         # Take all segmentations of the image from the current directory:
         seg_files = [file_name for file_name in os.listdir(directory) if setup_config['seg_name_string'] in file_name]
         # Take the image files - difference between the list of all the files in the directory and the list of seg files and only file extensions currently accepted
@@ -24,7 +46,13 @@ class FilesystemImageStorage():
         return image_files
     
     def search_segs(self, cur_selected_img):
-        """Returns a list of full paths of segmentations for an image"""
+        """Returns a list of full paths of segmentations for an image
+
+        :param cur_selected_img: full path of the image which segmentations we need to find
+        :type cur_selected_img: str
+        :return: list segmentation paths for the given image
+        :rtype: list
+        """        
         # Check the directory the image was selected from:
         img_directory = utils.get_path_parent(cur_selected_img)
         # Take all segmentations of the image from the current directory:
@@ -33,6 +61,14 @@ class FilesystemImageStorage():
         return seg_files
     
     def get_image_seg_pairs(self, directory):
+        """Get pairs of (image, image_seg)
+        Used, e.g., in training to create training data-training labels pairs
+
+        :param directory: path to the directory to search images and segmentations in
+        :type directory: str
+        :return: list of tuple pairs (image, image_seg)
+        :rtype: list
+        """        
         image_files = self.search_images(directory)
         seg_files = []
         for image in image_files:
@@ -41,11 +77,29 @@ class FilesystemImageStorage():
             seg_files.append(seg[0])
         return list(zip(image_files, seg_files))
             
-
     def get_unsupported_files(self, directory):
+        """Get unsupported files found in the given directory
+
+        :param directory: direcory path to search for files in
+        :type directory: str
+        :return: list of unsupported files
+        :rtype: list
+        """        
         return [file_name for file_name in os.listdir(directory) if utils.get_file_extension(file_name) not in setup_config['accepted_types']]
     
     def get_image_size_properties(self, img, file_extension):
+        """Get properties of the image size
+
+        :param img: image (numpy array)
+        :type img: ndarray
+        :param file_extension: file extension of the image as saved in the directory
+        :type file_extension: str
+        :return: size properties:
+            - height
+            - width
+            - channel_ax
+        
+        """        
     
         orig_size = img.shape
         # png and jpeg will be RGB by default and 2D
@@ -65,15 +119,47 @@ class FilesystemImageStorage():
         return height, width, channel_ax
     
     def rescale_image(self, img, height, width, channel_ax):
+        """rescale image
+
+        :param img: image
+        :type img: ndarray
+        :param height: height of the image
+        :type height: int
+        :param width: width of the image
+        :type width: int
+        :param channel_ax: channel axis 
+        :type channel_ax: int
+        :return: rescaled image
+        :rtype: ndarray
+        """        
         max_dim  = max(height, width)
         rescale_factor = max_dim/512
         return rescale(img, 1/rescale_factor, channel_axis=channel_ax)
     
     def resize_image(self, img, height, width, order):
+        """resize image
+
+        :param img: image
+        :type img: ndarray
+        :param height: height of the image
+        :type height: int
+        :param width: width of the image
+        :type width: int
+        :param order: from scikit-image - the order of the spline interpolation, default is 0 if image.dtype is bool and 1 otherwise.
+        :type order: int
+        :return: resized image
+        :rtype: ndarray
+        """        
         return resize(img, (height, width), order=order)
     
     def prepare_images_and_masks_for_training(self, train_img_mask_pairs):
-        '''TODO: Better name for this function? '''
+        """Image and mask processing for training.
+
+        :param train_img_mask_pairs: list pairs of (image, image_seg) (as returned by get_image_seg_pairs() function)
+        :type train_img_mask_pairs: list
+        :return: lists of processed images and masks 
+        :rtype: list, list
+        """        
         imgs=[]
         masks=[]
         for img_file, mask_file in train_img_mask_pairs:
