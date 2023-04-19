@@ -3,7 +3,10 @@ import json
 
 def read_config(name, config_path = 'config.cfg') -> dict:    
     with open(config_path) as config_file:
-        return json.load(config_file)[name]
+        config_dict = json.load(config_file)
+        # Check if config file has main mandatory keys
+        assert all([i in config_dict.keys() for i in ['setup', 'service', 'model', 'train', 'eval']])
+        return config_dict[name]
 
 def get_path_stem(filepath): return str(Path(filepath).stem)
 
