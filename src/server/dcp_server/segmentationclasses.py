@@ -76,11 +76,31 @@ class GFPProjectSegmentation(GeneralSegmentation):
 
 
 class MitoProjectSegmentation(GeneralSegmentation):
+    """Segmentation class inheriting the attributes and functions from the original GeneralSegmentation and implementing
+    additional attributes and methods needed for this project.
+    """    
     def __init__(self, imagestorage, runner, model):
+        """Constructs all the necessary attributes for the MitoProjectSegmentation. Inherits all from the GeneralSegmentation
+
+        :param imagestorage: imagestorage system used (see fsimagestorage.py)
+        :type imagestorage: FilesystemImageStorage class object
+        :param runner: runner used in the service
+        :type runner: CustomRunnable class object
+        :param model: model used for segmentation 
+        :type model: class object from the models.py
+        """    
         super().__init__(imagestorage, runner, model)
 
     # The only difference is in segment image
     async def segment_image(self, input_path, list_of_images):
+        """Segments images from the given  directory. 
+        The function differs from the parent class' function in obtaining the outlines of the masks.
+
+        :param input_path: directory where the images are saved
+        :type input_path: str
+        :param list_of_images: list of image objects from the directory that are currently supported
+        :type list_of_images: list
+        """ 
 
         for img_filepath in list_of_images:
             # Load the image
