@@ -48,7 +48,7 @@ class CustomBentoService():
             return np.array(list_of_files_not_suported)
 
         @svc.api(input=Text(), output=Text())
-        async def retrain(input_path):
+        async def train(input_path):
             """function served within the service, used to retrain the model
 
             :param input_path: directory where the images for training are saved

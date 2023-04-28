@@ -25,7 +25,6 @@ custom_model_runner = t.cast(
 )
 # instantiate the segmentation type
 segm_class = getattr(segmentation_module, setup_config['segmentation'])
-print(f"This is the segmentation {setup_config['segmentation']}")
 segmentation = segm_class(imagestorage=FilesystemImageStorage(), 
                                    runner = custom_model_runner,
                                    model = model)
