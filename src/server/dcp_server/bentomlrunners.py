@@ -51,7 +51,8 @@ class CustomRunnable(bentoml.Runnable):
         """        
 
         self.model.train(imgs, masks)
-        # Save the benotml model
+
+        # Save the bentoml model
         bentoml.picklable_model.save_model(self.save_model_path, self.model) 
 
         return self.save_model_path
