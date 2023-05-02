@@ -83,10 +83,10 @@ class Application:
             message_title="Success"
         return message_text, message_title
 
-    def load_image(self, image_path=None):
-        if image_path is None:
-            return self.fs_image_storage.load_image(self.cur_selected_img)
-        else: return self.fs_image_storage.load_image(image_path)
+    def load_image(self, image_name=None):
+        if image_name is None:
+            return self.fs_image_storage.load_image(self.cur_selected_path, self.cur_selected_img)
+        else: return self.fs_image_storage.load_image(self.cur_selected_path, image_name)
     
     def search_segs(self):
         return self.fs_image_storage.search_segs(self.cur_selected_img)
@@ -108,10 +108,5 @@ class Application:
         for image_name in image_names:
             if os.path.exists(os.path.join(self.cur_selected_path, image_name)):    
                 self.fs_image_storage.delete_image(self.cur_selected_path, image_name)
-
-    def search_segs(self):
-        """  Searches in cur_selected_path for all possible segmentation files associated to cur_selected_img.
-            These files should have a _seg extension to the cur_selected_img filename. """
-        self.seg_filepaths = self.fs_image_storage.search_seg(self.cur_selected_path, self.cur_selected_img)
 
 
