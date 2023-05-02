@@ -4,11 +4,11 @@ from typing import TYPE_CHECKING
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QLineEdit
 from PyQt5.QtCore import Qt
 
-from main_window import MainWindow
-from utils import create_warning_box
+from dcp_client.main_window import MainWindow
+from dcp_client.utils import create_warning_box
 
 if TYPE_CHECKING:
-    from app import Application
+    from dcp_client.app import Application
 
         
 class WelcomeWindow(QWidget):

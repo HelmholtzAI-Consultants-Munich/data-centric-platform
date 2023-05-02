@@ -5,9 +5,9 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout
 import napari
 
 if TYPE_CHECKING:
-    from app import Application
+    from dcp_client.app import Application
 
-import utils
+from dcp_client import utils
 
 class NapariWindow(QWidget):
     '''Napari Window Widget object.
@@ -23,12 +23,12 @@ class NapariWindow(QWidget):
 
         # Load image and get corresponding segmentation filenames
         img = self.app.load_image()
-        seg_filepaths = self.app.search_segs()
+        self.app.search_segs()
 
         # Set the viewer
         self.viewer = napari.Viewer(show=False)
         self.viewer.add_image(img, name=utils.get_path_stem(self.app.cur_selected_img))
-        for seg_file in seg_filepaths:
+        for seg_file in self.app.seg_filepaths:
             self.viewer.add_labels(self.app.load_image(seg_file), name=utils.get_path_stem(seg_file))
 
         main_window = self.viewer.window._qt_window
@@ -54,8 +54,7 @@ class NapariWindow(QWidget):
         '''
         Defines what happens when the button is clicked.
         '''
-        current_dir = utils.get_path_parent(self.app.cur_selected_img)
-        if  current_dir == str(self.app.train_data_path):
+        if  self.app.cur_selected_path == str(self.app.train_data_path):
             message_text = "Image is already in the \'Curated data\' folder and should not be changed again"
             utils.create_warning_box(message_text, message_title="Warning")
             return
@@ -70,13 +69,13 @@ class NapariWindow(QWidget):
         seg = self.viewer.layers[cur_seg_selected].data
 
         # Move original image
-        self.app.move_image(current_dir, self.app.train_data_path, utils.get_path_name(self.app.cur_selected_img))
+        self.app.move_images(self.app.train_data_path)
 
         # Save the (changed) seg
         self.app.save_image(self.app.train_data_path, cur_seg_selected+'.tiff', seg)
 
         # We remove seg from the current directory if it exists (both eval and inprogr allowed)
-        self.app.delete_image(current_dir, cur_seg_selected+'.tiff')
+        self.app.delete_images(self.app.seg_filepaths)
         # TODO Create the Archive folder for the rest? Or move them as well? 
 
         self.close()
@@ -86,14 +85,10 @@ class NapariWindow(QWidget):
         Defines what happens when the button is clicked.
         '''
         # TODO: Do we allow this? What if they moved it by mistake? User can always manually move from their folders?)
-        current_dir = utils.get_path_parent(self.app.cur_selected_img)
-        if current_dir == str(self.app.train_data_path):
+        if self.app.cur_selected_path == str(self.app.train_data_path):
             message_text = "Images from '\Curated data'\ folder can not be moved back to \'Curatation in progress\' folder."
             utils.create_warning_box(message_text, message_title="Warning")
             return
-        
-        # Move original image
-        self.app.move_image(current_dir, self.app.inprogr_data_path, utils.get_path_name(self.app.cur_selected_img))
         
         # take the name of the currently selected layer (by the user)
         cur_seg_selected = self.viewer.layers.selection.active.name
@@ -102,13 +97,12 @@ class NapariWindow(QWidget):
             message_text = "Please select the segmenation you wish to save from the layer list"
             utils.create_warning_box(message_text, message_title="Warning")
             return
+
+        # Move original image
+        self.app.move_images(self.app.inprogr_data_path, move_segs=True)
+
+        # Save the (changed) seg - this will overwrite existing seg if seg name hasn't been changed in viewer
         seg = self.viewer.layers[cur_seg_selected].data
-
-        # Save the (changed) seg
         self.app.save_image(self.app.inprogr_data_path, cur_seg_selected+'.tiff', seg)
-
-        # We remove seg from the eval data directory if it exists (both eval and inprogr allowed)
-        self.app.delete_image(self.app.eval_data_path, cur_seg_selected+'.tiff')
-        # TODO Create the Archive folder for the rest? Or move them as well? 
-
+        
         self.close()

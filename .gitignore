@@ -1,3 +1,11 @@
+# data dirs
+data/
+in_progress/
+curated/
+
+# model dir
+*mytrainedmodel/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
