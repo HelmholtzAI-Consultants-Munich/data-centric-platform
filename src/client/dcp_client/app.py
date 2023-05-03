@@ -89,7 +89,7 @@ class Application:
         else: return self.fs_image_storage.load_image(self.cur_selected_path, image_name)
     
     def search_segs(self):
-        return self.fs_image_storage.search_segs(self.cur_selected_img)
+        self.seg_filepaths = self.fs_image_storage.search_segs(self.cur_selected_img)
     
     def save_image(self, dst_directory, image_name, img):
         """ Saves img array image in the dst_directory with filename cur_selected_img """
