@@ -4,7 +4,7 @@ from PyQt5.QtGui import QPixmap, QIcon
 
 from pathlib import Path
 
-import settings
+from dcp_client import settings
 
 class IconProvider(QFileIconProvider):
     def __init__(self) -> None:

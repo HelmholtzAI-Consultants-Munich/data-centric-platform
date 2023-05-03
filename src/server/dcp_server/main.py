@@ -1,6 +1,6 @@
 import subprocess
 from os import path
-import sys
+#import sys
 
 def main():
     '''entry point to bentoml

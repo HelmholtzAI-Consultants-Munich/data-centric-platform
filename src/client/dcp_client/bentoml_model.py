@@ -1,7 +1,8 @@
 import asyncio
 from typing import Optional
 from bentoml.client import Client as BentoClient
-from app import Model
+
+from dcp_client.app import Model
 
 class BentomlModel(Model):
 
@@ -16,7 +17,7 @@ class BentomlModel(Model):
         try:
             self.client = BentoClient.from_url(url) 
             return True
-        except ConnectionRefusedError: return False
+        except : return False # except ConnectionRefusedError
     
     @property
     def is_connected(self):
