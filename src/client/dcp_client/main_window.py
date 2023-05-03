@@ -136,7 +136,7 @@ class MainWindow(QWidget):
 
     def on_run_inference_button_clicked(self):
         message_text, message_title = self.app.run_inference()
-        utils.create_warning_box(message_text, message_title)
+        create_warning_box(message_text, message_title)
 
     def on_launch_napari_button_clicked(self):   
         ''' 
