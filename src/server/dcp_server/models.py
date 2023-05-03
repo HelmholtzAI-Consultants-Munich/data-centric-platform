@@ -25,7 +25,7 @@ class CustomCellposeModel(models.CellposeModel):
         self.train_config = train_config
         self.eval_config = eval_config
         
-    def eval(self, img, z_axis=None):
+    def eval(self, img, **eval_config):
         """Evaluate the model - find mask of the given image
         Calls the original eval function. 
 
@@ -36,7 +36,7 @@ class CustomCellposeModel(models.CellposeModel):
         :return: mask of the image, list of 2D arrays, or single 3D array (if do_3D=True) labelled image.
         :rtype: np.ndarray
         """   
-        return super().eval(x=img, z_axis=z_axis, **self.eval_config)
+        return super().eval(x=img, **eval_config)[0] # 0 to take only mask
     
     def train(self, imgs, masks):
         """Trains the given model

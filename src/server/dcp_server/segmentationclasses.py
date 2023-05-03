@@ -36,9 +36,12 @@ class GeneralSegmentation():
             # Get size properties
             height, width, channel_ax = self.imagestorage.get_image_size_properties(img, utils.get_file_extension(img_filepath))
             img = self.imagestorage.rescale_image(img, height, width, channel_ax)
+          
+            # Add channel ax into the model's evaluation parameters dictionary
+            self.model.eval_config['z_axis'] = channel_ax
             
             # Evaluate the model
-            mask = await self.runner.evaluate.async_run(img = img, z_axis=channel_ax)
+            mask = await self.runner.evaluate.async_run(img = img, **self.model.eval_config)
 
             # Resize the mask
             mask = self.imagestorage.resize_image(mask, height, width, order=0)
@@ -63,7 +66,9 @@ class GeneralSegmentation():
                 
         imgs, masks = self.imagestorage.prepare_images_and_masks_for_training(train_img_mask_pairs)
 
-        return await self.runner.train.async_run(imgs, masks)
+        model_save_path =  await self.runner.train.async_run(imgs, masks)
+        
+        return model_save_path
 
 
 class GFPProjectSegmentation(GeneralSegmentation):
@@ -109,8 +114,11 @@ class MitoProjectSegmentation(GeneralSegmentation):
             height, width, channel_ax = self.imagestorage.get_image_size_properties(img, utils.get_file_extension(img_filepath))
             img = self.imagestorage.rescale_image(img, height, width, channel_ax)
             
+            # Add channel ax into the model's evaluation parameters dictionary
+            self.model.eval_config['z_axis'] = channel_ax
+
             # Evaluate the model
-            mask = await self.runner.evaluate.async_run(img = img, z_axis=channel_ax)
+            mask = await self.runner.evaluate.async_run(img = img, **self.model.eval_config)
 
             # Resize the mask
             mask = self.imagestorage.resize_image(mask, height, width, order=0)

@@ -23,7 +23,7 @@ class CustomRunnable(bentoml.Runnable):
         self.save_model_path = save_model_path
 
     @bentoml.Runnable.method(batchable=False)
-    def evaluate(self, img: np.ndarray, z_axis: int = None) -> np.ndarray:
+    def evaluate(self, img: np.ndarray, **eval_config) -> np.ndarray:
         """Evaluate the model - find mask of the given image
 
         :param img: image to evaluate on
@@ -34,7 +34,7 @@ class CustomRunnable(bentoml.Runnable):
         :rtype: np.ndarray
         """              
 
-        mask, _, _ = self.model.eval(img=img, z_axis=z_axis)
+        mask = self.model.eval(img=img, **eval_config)
 
         return mask
 
