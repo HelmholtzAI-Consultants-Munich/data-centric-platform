@@ -16,8 +16,11 @@ def main():
     settings.init()
     image_storage = FilesystemImageStorage()
     ml_model = BentomlModel()
+    data_sync = DataRSync()
+    '''
     data_sync = DataRSync(host_name="ubuntu",
                           host_ip="134.94.88.74")
+    '''
     welcome_app = Application(ml_model=ml_model, 
                               syncer=data_sync,
                               image_storage=image_storage,
