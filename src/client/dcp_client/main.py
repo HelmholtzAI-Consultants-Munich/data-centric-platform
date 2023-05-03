@@ -16,9 +16,8 @@ def main():
     settings.init()
     image_storage = FilesystemImageStorage()
     ml_model = BentomlModel()
-    data_sync = DataRSync(ssh_key="/Users/christina.bukas/.ssh/id_rsa_project2",
-                   host_name="ubuntu",
-                   host_ip="134.94.88.74")
+    data_sync = DataRSync(host_name="ubuntu",
+                          host_ip="134.94.88.74")
     welcome_app = Application(ml_model=ml_model, 
                               syncer=data_sync,
                               image_storage=image_storage,

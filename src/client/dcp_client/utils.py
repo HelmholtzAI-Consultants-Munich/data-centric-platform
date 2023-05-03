@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import  QFileIconProvider, QMessageBox
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap, QIcon
 
-from pathlib import Path
+from pathlib import Path, PurePath
 
 from dcp_client import settings
 
@@ -29,6 +29,8 @@ def create_warning_box(message_text, message_title="Warning"):
     msg.setWindowTitle(message_title)
     msg.setStandardButtons(QMessageBox.Ok)
     msg.exec()
+
+def get_relative_path(filepath): return PurePath(filepath).name
 
 def get_path_stem(filepath): return str(Path(filepath).stem)
 

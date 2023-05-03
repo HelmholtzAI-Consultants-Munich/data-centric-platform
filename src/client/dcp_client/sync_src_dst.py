@@ -1,38 +1,47 @@
 import subprocess
-from pathlib import PurePath
+from dcp_client.utils import get_relative_path
 from dcp_client.app import DataSync
 
 class DataRSync(DataSync):
+    '''
+    Class which uses rsync bash command to sync data between client and server
+    '''
     def __init__(self,
-                 ssh_key,
-                 host_name,
-                 host_ip,
+                 host_name=None,
+                 host_ip=None,
     ):
-        self.ssh_key = ssh_key
+        """Constructs all the necessary attributes for the CustomRunnable.
+
+        :param host_name: the host name of the server - if None, then it is assumed that local machine is used for the server
+        :type: host_name: str
+        :param host_ip: the host ip of the server - if None, then it is assumed that local machine is used for the server
+        :type host_ip: str
+        """  
         self.host_name = host_name
         self.host_ip = host_ip
 
     def sync(self, src, dst, path):
-        server = self.host_name+"@"+self.host_ip+":"+PurePath(path).name+"/"
+        rel_path = get_relative_path(path)
+        server = self.host_name+"@"+self.host_ip+":"+rel_path+"/"
         if src=='server':
             src = server
             dst = path
         else:
             src = path
             dst = server
+        
         subprocess.run(["rsync",
                         "-r" ,
                         "--delete", 
-                        "-e",
-                        "ssh -i "+self.ssh_key, 
                         src, 
                         dst])
+        return rel_path
+        
 
 if __name__=="__main__":
-    ds = DataRSync(ssh_key="/Users/christina.bukas/.ssh/id_rsa_project2",
-                   host_name="ubuntu",
+    ds = DataRSync(host_name="ubuntu",
                    host_ip="134.94.88.74")
-    dst = "client"
-    src = "server"
+    dst = "server"
+    src = "client"
     path = "data/"
     ds.sync(src, dst, path)

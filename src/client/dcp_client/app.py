@@ -32,10 +32,8 @@ class ImageStorage(ABC):
     def save_image(self, to_directory, cur_selected_img, img) -> None:
         pass
 
-    def search_segs(self, cur_selected_img):
+    def search_segs(self, img_directory, cur_selected_img):
         """Returns a list of full paths of segmentations for an image"""
-        # Check the directory the image was selected from:
-        img_directory = utils.get_path_parent(cur_selected_img)
         # Take all segmentations of the image from the current directory:
         search_string = utils.get_path_stem(cur_selected_img) + '_seg'
         seg_files = [file_name for file_name in os.listdir(img_directory) if search_string in file_name]
@@ -71,8 +69,11 @@ class Application:
         if not self.ml_model.is_connected:
             connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
             if not connection_success: return "Connection could not be established. Please check if the server is running and try again."
-        self.syncer.sync(src='client', dst='server', path=self.train_data_path)
-        return self.ml_model.run_train(self.train_data_path)
+        if not self.syncer.host_name:
+            srv_relative_path = self.syncer.sync(src='client', dst='server', path=self.train_data_path)
+            return self.ml_model.run_train(srv_relative_path)
+        else:
+            return self.ml_model.run_train(self.train_data_path)
     
     def run_inference(self):
         """ Checks if the ml model is connected to the server, connects if not (and if possible), and runs inference on all images in eval_data_path """
@@ -81,10 +82,17 @@ class Application:
             if not connection_success: 
                 message_text = "Connection could not be established. Please check if the server is running and try again."
                 return message_text, "Warning"
-        # model serving
-        list_of_files_not_suported = self.ml_model.run_inference(self.eval_data_path)
-        # sync data so that client gets new masks
-        self.syncer.sync(src='server', dst='client', path=self.eval_data_path)
+
+        if not self.syncer.host_name:
+            srv_relative_path = utils.get_relative_path(self.eval_data_path)
+            # model serving
+            list_of_files_not_suported = self.ml_model.run_inference(srv_relative_path)
+            # sync data so that client gets new masks
+            _ = self.syncer.sync(src='server', dst='client', path=self.eval_data_path)
+        else:
+            # model serving
+            list_of_files_not_suported = self.ml_model.run_inference(self.eval_data_path)
+
         # check if serving could not be performed for some files and prepare message
         list_of_files_not_suported = list(list_of_files_not_suported)
         if len(list_of_files_not_suported) > 0:
@@ -102,7 +110,7 @@ class Application:
         else: return self.fs_image_storage.load_image(self.cur_selected_path, image_name)
     
     def search_segs(self):
-        return self.fs_image_storage.search_segs(self.cur_selected_img)
+        return self.fs_image_storage.search_segs(self.cur_selected_path, self.cur_selected_img)
     
     def save_image(self, dst_directory, image_name, img):
         """ Saves img array image in the dst_directory with filename cur_selected_img """
