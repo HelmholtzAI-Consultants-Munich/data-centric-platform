@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QApplication
 from dcp_client import settings
 from dcp_client.fsimagestorage import FilesystemImageStorage
 from dcp_client.bentoml_model import BentomlModel
+from dcp_client.sync_src_dst import DataRSync
 from dcp_client.app import Application
 from dcp_client.welcome_window import WelcomeWindow
 
@@ -15,7 +16,11 @@ def main():
     settings.init()
     image_storage = FilesystemImageStorage()
     ml_model = BentomlModel()
+    data_sync = DataRSync(ssh_key="/Users/christina.bukas/.ssh/id_rsa_project2",
+                   host_name="ubuntu",
+                   host_ip="134.94.88.74")
     welcome_app = Application(ml_model=ml_model, 
+                              syncer=data_sync,
                               image_storage=image_storage,
                               server_ip='0.0.0.0',
                               server_port=7010)

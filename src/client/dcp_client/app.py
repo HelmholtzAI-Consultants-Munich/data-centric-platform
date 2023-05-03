@@ -17,6 +17,12 @@ class Model(ABC):
         pass
 
 
+class DataSync(ABC):
+    @abstractmethod
+    def sync(self, src: str, dst: str, path: str) -> None:
+        pass
+    
+
 class ImageStorage(ABC):
     @abstractmethod
     def load_image(self, from_directory, cur_selected_img) -> Tuple[NDArray, NDArray]:
@@ -40,6 +46,7 @@ class Application:
     def __init__(
         self, 
         ml_model: Model,
+        syncer: DataSync,
         image_storage: ImageStorage,
         server_ip: str = '0.0.0.0',
         server_port: int = 7010,
@@ -48,6 +55,7 @@ class Application:
         inprogr_data_path: str = '',     
     ):
         self.ml_model = ml_model
+        self.syncer = syncer
         self.fs_image_storage = image_storage
         self.server_ip = server_ip
         self.server_port = server_port
@@ -63,6 +71,7 @@ class Application:
         if not self.ml_model.is_connected:
             connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
             if not connection_success: return "Connection could not be established. Please check if the server is running and try again."
+        self.syncer.sync(src='client', dst='server', path=self.train_data_path)
         return self.ml_model.run_train(self.train_data_path)
     
     def run_inference(self):
@@ -72,7 +81,11 @@ class Application:
             if not connection_success: 
                 message_text = "Connection could not be established. Please check if the server is running and try again."
                 return message_text, "Warning"
+        # model serving
         list_of_files_not_suported = self.ml_model.run_inference(self.eval_data_path)
+        # sync data so that client gets new masks
+        self.syncer.sync(src='server', dst='client', path=self.eval_data_path)
+        # check if serving could not be performed for some files and prepare message
         list_of_files_not_suported = list(list_of_files_not_suported)
         if len(list_of_files_not_suported) > 0:
             message_text = "Image types not supported. Only 2D and 3D image shapes currently supported. 3D stacks must be of type grayscale. \
