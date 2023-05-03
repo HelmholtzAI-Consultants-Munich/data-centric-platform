@@ -34,8 +34,6 @@ class ImageStorage(ABC):
 
     def search_segs(self, img_directory, cur_selected_img):
         """Returns a list of full paths of segmentations for an image"""
-        # Check the directory the image was selected from:
-        img_directory = utils.get_path_parent(cur_selected_img)
         # Take all segmentations of the image from the current directory:
         search_string = utils.get_path_stem(cur_selected_img) + '_seg'
         seg_files = [file_name for file_name in os.listdir(img_directory) if search_string in file_name]
@@ -90,7 +88,6 @@ class Application:
             # model serving directly from local
             list_of_files_not_suported = self.ml_model.run_inference(self.eval_data_path)       
         else:
-            print('hereeee')
             srv_relative_path = utils.get_relative_path(self.eval_data_path)
             # model serving from server
             list_of_files_not_suported = self.ml_model.run_inference(srv_relative_path)
@@ -114,7 +111,7 @@ class Application:
         else: return self.fs_image_storage.load_image(self.cur_selected_path, image_name)
     
     def search_segs(self):
-        return self.fs_image_storage.search_segs(self.cur_selected_path, self.cur_selected_img)
+        self.seg_filepaths = self.fs_image_storage.search_segs(self.cur_selected_path, self.cur_selected_img)
     
     def save_image(self, dst_directory, image_name, img):
         """ Saves img array image in the dst_directory with filename cur_selected_img """
