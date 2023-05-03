@@ -26,7 +26,7 @@ class ImageStorage(ABC):
     def save_image(self, to_directory, cur_selected_img, img) -> None:
         pass
 
-    def search_seg(self, img_directory, cur_selected_img):
+    def search_segs(self, img_directory,cur_selected_img):
         """Returns a list of full paths of segmentations for an image"""
         # Take all segmentations of the image from the current directory:
         search_string = utils.get_path_stem(cur_selected_img) + '_seg'
@@ -74,7 +74,7 @@ class Application:
         list_of_files_not_suported = list(list_of_files_not_suported)
         if len(list_of_files_not_suported) > 0:
             message_text = "Image types not supported. Only 2D and 3D image shapes currently supported. 3D stacks must be of type grayscale. \
-            Currently supported image file formats are: ", settings.accepted_types, "The files that were not supported are: " + ", ".join(list_of_files_not_suported)
+            Currently supported image file formats are: " + ", ".join(settings.accepted_types)+ ". The files that were not supported are: " + ", ".join(list_of_files_not_suported)
             message_title = "Warning"
         else:
             message_text = "Success! Masks generated for all images"
@@ -82,11 +82,14 @@ class Application:
         return message_text, message_title
 
     def load_image(self, image_name=None):
-        """ Loads an image  from the cur_selected_path """
-        # if an image path is not given load the cur_selected_img
         if image_name is None:
             return self.fs_image_storage.load_image(self.cur_selected_path, self.cur_selected_img)
         else: return self.fs_image_storage.load_image(self.cur_selected_path, image_name)
+    
+    def search_segs(self):
+        """  Searches in cur_selected_path for all possible segmentation files associated to cur_selected_img.
+            These files should have a _seg extension to the cur_selected_img filename. """
+        self.seg_filepaths = self.fs_image_storage.search_segs(self.cur_selected_path, self.cur_selected_img)
     
     def save_image(self, dst_directory, image_name, img):
         """ Saves img array image in the dst_directory with filename cur_selected_img """
@@ -105,10 +108,5 @@ class Application:
         for image_name in image_names:
             if os.path.exists(os.path.join(self.cur_selected_path, image_name)):    
                 self.fs_image_storage.delete_image(self.cur_selected_path, image_name)
-
-    def search_segs(self):
-        """  Searches in cur_selected_path for all possible segmentation files associated to cur_selected_img.
-            These files should have a _seg extension to the cur_selected_img filename. """
-        self.seg_filepaths = self.fs_image_storage.search_seg(self.cur_selected_path, self.cur_selected_img)
 
 

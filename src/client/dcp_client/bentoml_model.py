@@ -24,7 +24,7 @@ class BentomlModel(Model):
         return bool(self.client)
 
     async def _run_train(self, data_path):
-        response = await self.client.async_retrain(data_path)
+        response = await self.client.async_train(data_path)
         return response
 
     def run_train(self, data_path):

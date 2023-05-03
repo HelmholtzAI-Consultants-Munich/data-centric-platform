@@ -152,3 +152,4 @@ docs/
 test-napari.pub
 data/
 BentoML/
+models/
