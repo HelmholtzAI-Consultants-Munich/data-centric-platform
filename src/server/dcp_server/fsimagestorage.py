@@ -2,7 +2,7 @@ from skimage.io import imread, imsave
 from skimage.transform import resize, rescale
 import os
 from skimage.color import rgb2gray
-import utils
+from dcp_server import utils
 
 # Import configuration
 setup_config = utils.read_config('setup', config_path = 'config.cfg')

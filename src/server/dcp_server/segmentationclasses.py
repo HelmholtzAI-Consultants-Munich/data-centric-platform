@@ -1,4 +1,4 @@
-import utils
+from dcp_server import utils
 import os
 
 # Import configuration
