@@ -18,8 +18,9 @@ def main():
     ml_model = BentomlModel()
     data_sync = DataRSync()
     '''
-    data_sync = DataRSync(host_name="ubuntu",
-                          host_ip="134.94.88.74")
+    data_sync = DataRSync(user_name="ubuntu",
+                          host_name="jusuf-vm2",
+                          server_repo_path="/home/ubuntu/data-centric-platform/data-sync/")
     '''
     welcome_app = Application(ml_model=ml_model, 
                               syncer=data_sync,
