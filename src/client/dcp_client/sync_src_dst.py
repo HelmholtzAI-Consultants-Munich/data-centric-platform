@@ -45,7 +45,7 @@ class DataRSync(DataSync):
 
 if __name__=="__main__":
     ds = DataRSync(user_name="ubuntu",
-                   user_name="jusuf-vm2", 
+                   host_name="jusuf-vm2", 
                    server_repo_path="/home/ubuntu/data-centric-platform/data-sync/") #vm2
     # These combinations work for me:
     # ubuntu@jusuf-vm2:/path...
