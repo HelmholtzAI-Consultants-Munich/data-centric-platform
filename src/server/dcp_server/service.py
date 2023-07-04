@@ -12,6 +12,7 @@ segmentation_module = __import__("segmentationclasses")
 # Import configuration
 service_config = read_config('service', config_path = 'config.cfg')
 model_config = read_config('model', config_path = 'config.cfg')
+data_config = read_config('data', config_path = 'config.cfg')
 train_config = read_config('train', config_path = 'config.cfg')
 eval_config = read_config('eval', config_path = 'config.cfg')
 setup_config = read_config('setup', config_path = 'config.cfg')
@@ -25,7 +26,7 @@ custom_model_runner = t.cast(
 )
 # instantiate the segmentation type
 segm_class = getattr(segmentation_module, setup_config['segmentation'])
-segmentation = segm_class(imagestorage=FilesystemImageStorage(), 
+segmentation = segm_class(imagestorage=FilesystemImageStorage(data_config['data_root']), 
                                    runner = custom_model_runner,
                                    model = model)
 
