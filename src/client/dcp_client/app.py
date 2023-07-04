@@ -69,6 +69,7 @@ class Application:
         if not self.ml_model.is_connected:
             connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
             if not connection_success: return "Connection could not be established. Please check if the server is running and try again."
+        # if syncer.host name is None then local machine is used to train
         if not self.syncer.host_name: 
             return self.ml_model.run_train(self.train_data_path)
         else:
@@ -91,7 +92,7 @@ class Application:
             srv_relative_path = utils.get_relative_path(self.eval_data_path)
             # model serving from server
             list_of_files_not_suported = self.ml_model.run_inference(srv_relative_path)
-            # sync data so that client gets new masks
+            # sync data so that client gets new masks          
             _ = self.syncer.sync(src='server', dst='client', path=self.eval_data_path)
 
         # check if serving could not be performed for some files and prepare message
