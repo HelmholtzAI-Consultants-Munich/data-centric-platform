@@ -1,6 +1,9 @@
 import subprocess
+import os
+
 from dcp_client.utils import get_relative_path
 from dcp_client.app import DataSync
+
 
 class DataRSync(DataSync):
     '''
@@ -24,26 +27,30 @@ class DataRSync(DataSync):
         self.host_name = host_name
         self.server_repo_path = server_repo_path
 
-        self.server = self.user_name + "@" + self.host_name + ":" + self.server_repo_path
-
     def sync(self, src, dst, path):
         """ Syncs the data between the src and the dst. Both src and dst can be one of either
         'client' or 'server', whereas path is the local path we wish to sync"""
-        print(f'server is {self.server}')
+        path += '/' # otherwise it doesn't go in the directory
+        rel_path = get_relative_path(path) # get last folder, i.e. uncurated, curated
+        server_full_path = os.path.join(self.server_repo_path, rel_path)
+        server_full_path += '/'
+        server  = self.user_name + "@" + self.host_name + ":" + server_full_path
+        print('server is: ', server)
+        
         if src=='server':
-            src = self.server
+            src = server
             dst = path
         else:
             src = path
-            dst = self.server
-        
+            dst = server
+
         subprocess.run(["rsync",
                         "-r" ,
                         "--delete", 
                         src, 
                         dst])
-        #return rel_path
-        return self.server_repo_path
+        
+        return server_full_path
         
 
 if __name__=="__main__":
