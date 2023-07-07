@@ -1,10 +1,10 @@
-from dcp_client import settings
 from abc import ABC, abstractmethod
 from typing import Tuple
 from numpy.typing import NDArray
 import os
 
-from dcp_client import utils
+from dcp_client.utils import utils
+from dcp_client.utils import settings
 
 
 class Model(ABC):
@@ -46,11 +46,11 @@ class Application:
         ml_model: Model,
         syncer: DataSync,
         image_storage: ImageStorage,
-        server_ip: str = '0.0.0.0',
-        server_port: int = 7010,
-        eval_data_path: str = '', 
-        train_data_path: str = '', 
-        inprogr_data_path: str = '',     
+        server_ip: str,
+        server_port: int,
+        eval_data_path: str, 
+        train_data_path: str, 
+        inprogr_data_path: str,     
     ):
         self.ml_model = ml_model
         self.syncer = syncer
@@ -63,6 +63,10 @@ class Application:
         self.cur_selected_img = ''
         self.cur_selected_path = ''
         self.seg_filepaths = []
+
+    def upload_data_to_server(self):
+        self.syncer.first_sync(path=self.train_data_path)
+        self.syncer.first_sync(path=self.eval_data_path)
     
     def run_train(self):
         """ Checks if the ml model is connected to the server, connects if not (and if possible), and trains the model with all data available in train_data_path """
@@ -70,7 +74,7 @@ class Application:
             connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
             if not connection_success: return "Connection could not be established. Please check if the server is running and try again."
         # if syncer.host name is None then local machine is used to train
-        if not self.syncer.host_name: 
+        if self.syncer.host_name=="local": 
             return self.ml_model.run_train(self.train_data_path)
         else:
             srv_relative_path = self.syncer.sync(src='client', dst='server', path=self.train_data_path)
@@ -85,7 +89,7 @@ class Application:
                 message_text = "Connection could not be established. Please check if the server is running and try again."
                 return message_text, "Warning"
 
-        if not self.syncer.host_name:
+        if self.syncer.host_name=="local":
             # model serving directly from local
             list_of_files_not_suported = self.ml_model.run_inference(self.eval_data_path)       
         else:
