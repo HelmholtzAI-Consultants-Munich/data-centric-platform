@@ -3,8 +3,9 @@ from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap, QIcon
 
 from pathlib import Path, PurePath
+import json
 
-from dcp_client import settings
+from dcp_client.utils import settings
 
 class IconProvider(QFileIconProvider):
     def __init__(self) -> None:
@@ -29,6 +30,22 @@ def create_warning_box(message_text, message_title="Warning"):
     msg.setWindowTitle(message_title)
     msg.setStandardButtons(QMessageBox.Ok)
     msg.exec()
+
+def read_config(name, config_path = 'config.cfg') -> dict:   
+    """Reads the configuration file
+
+    :param name: name of the section you want to read (e.g. 'setup','train')
+    :type name: string
+    :param config_path: path to the configuration file, defaults to 'config.cfg'
+    :type config_path: str, optional
+    :return: dictionary from the config section given by name
+    :rtype: dict
+    """     
+    with open(config_path) as config_file:
+        config_dict = json.load(config_file)
+        # Check if config file has main mandatory keys
+        assert all([i in config_dict.keys() for i in ['server']])
+        return config_dict[name]
 
 def get_relative_path(filepath): return PurePath(filepath).name
 

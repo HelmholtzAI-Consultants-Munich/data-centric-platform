@@ -7,7 +7,7 @@ import napari
 if TYPE_CHECKING:
     from dcp_client.app import Application
 
-from dcp_client import utils
+from dcp_client.utils import utils
 
 class NapariWindow(QWidget):
     '''Napari Window Widget object.

@@ -1,7 +1,7 @@
 import subprocess
 import os
 
-from dcp_client.utils import get_relative_path
+from dcp_client.utils.utils import get_relative_path
 from dcp_client.app import DataSync
 
 
@@ -10,15 +10,15 @@ class DataRSync(DataSync):
     Class which uses rsync bash command to sync data between client and server
     '''
     def __init__(self,
-                 user_name="ubuntu",
-                 host_name="jusuf-vm2",
-                 server_repo_path='/home/ubuntu/dcp-data'
+                 user_name: str,
+                 host_name: str,
+                 server_repo_path: str,
     ):
         """Constructs all the necessary attributes for the CustomRunnable.
 
-        :param user_name: the user name of the server - if None, then it is assumed that local machine is used for the server
+        :param user_name: the user name of the server - if "local", then it is assumed that local machine is used for the server
         :type: user_name: str
-        :param host_name: the host name of the server - if None, then it is assumed that local machine is used for the server
+        :param host_name: the host name of the server - if "local", then it is assumed that local machine is used for the server
         :type: host_name: str
         :param server_repo_path: the server path where we wish to sync data - if None, then it is assumed that local machine is used for the server
         :type server_repo_path: str
@@ -26,6 +26,17 @@ class DataRSync(DataSync):
         self.user_name = user_name
         self.host_name = host_name
         self.server_repo_path = server_repo_path
+
+    def first_sync(self, path):
+        """
+        During the first sync the folder structure should be created on the server
+        """
+        server  = self.user_name + "@" + self.host_name + ":" + self.server_repo_path
+        
+        subprocess.run(["rsync",
+                        "-azP" ,
+                        path, 
+                        server])
 
     def sync(self, src, dst, path):
         """ Syncs the data between the src and the dst. Both src and dst can be one of either
