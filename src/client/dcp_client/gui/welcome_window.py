@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QLineEdit
 from PyQt5.QtCore import Qt
 
-from dcp_client.main_window import MainWindow
-from dcp_client.utils import create_warning_box
+from dcp_client.gui.main_window import MainWindow
+from dcp_client.utils.utils import create_warning_box
 
 if TYPE_CHECKING:
     from dcp_client.app import Application
@@ -71,7 +71,11 @@ class WelcomeWindow(QWidget):
         self.start_button = QPushButton('Start', self)
         self.start_button.setFixedSize(120, 30)
         self.start_button.show()
-        self.start_button.clicked.connect(self.start_main)
+        # check if we need to upload data to server
+        if self.app.syncer.host_name == "local":
+            self.start_button.clicked.connect(self.start_main)
+        else:
+            self.start_button.clicked.connect(self.start_upload)
         self.main_layout.addWidget(self.start_button, alignment=Qt.AlignCenter)
         self.setLayout(self.main_layout)
 
@@ -126,4 +130,14 @@ class WelcomeWindow(QWidget):
         else:
             message_text = "You need to specify a folder both for your uncurated and curated dataset (even if the curated folder is currently empty). Please go back and select folders for both."
             create_warning_box(message_text, message_title="Warning")
+
+    def start_upload(self):
+        message_text = ("Your current configurations are set to run some operations on the cloud. \n"
+                        "For this we need to upload your data to our server."
+                        "We will now upload your data. Click ok to continue. \n"
+                        "If you do not agree close the application and contact your software provider.")
+        create_warning_box(message_text, message_title="Warning")
+        self.app.upload_data_to_server()
+        self.hide()
+        self.mw = MainWindow(self.app)
     

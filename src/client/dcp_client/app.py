@@ -1,10 +1,10 @@
-from dcp_client import settings
 from abc import ABC, abstractmethod
 from typing import Tuple
 from numpy.typing import NDArray
 import os
 
-from dcp_client import utils
+from dcp_client.utils import utils
+from dcp_client.utils import settings
 
 
 class Model(ABC):
@@ -17,6 +17,12 @@ class Model(ABC):
         pass
 
 
+class DataSync(ABC):
+    @abstractmethod
+    def sync(self, src: str, dst: str, path: str) -> None:
+        pass
+    
+
 class ImageStorage(ABC):
     @abstractmethod
     def load_image(self, from_directory, cur_selected_img) -> Tuple[NDArray, NDArray]:
@@ -26,7 +32,7 @@ class ImageStorage(ABC):
     def save_image(self, to_directory, cur_selected_img, img) -> None:
         pass
 
-    def search_segs(self, img_directory,cur_selected_img):
+    def search_segs(self, img_directory, cur_selected_img):
         """Returns a list of full paths of segmentations for an image"""
         # Take all segmentations of the image from the current directory:
         search_string = utils.get_path_stem(cur_selected_img) + '_seg'
@@ -38,14 +44,16 @@ class Application:
     def __init__(
         self, 
         ml_model: Model,
+        syncer: DataSync,
         image_storage: ImageStorage,
-        server_ip: str = '0.0.0.0',
-        server_port: int = 7010,
+        server_ip: str,
+        server_port: int,
         eval_data_path: str = '', 
         train_data_path: str = '', 
         inprogr_data_path: str = '',     
     ):
         self.ml_model = ml_model
+        self.syncer = syncer
         self.fs_image_storage = image_storage
         self.server_ip = server_ip
         self.server_port = server_port
@@ -55,13 +63,23 @@ class Application:
         self.cur_selected_img = ''
         self.cur_selected_path = ''
         self.seg_filepaths = []
+
+    def upload_data_to_server(self):
+        self.syncer.first_sync(path=self.train_data_path)
+        self.syncer.first_sync(path=self.eval_data_path)
     
     def run_train(self):
         """ Checks if the ml model is connected to the server, connects if not (and if possible), and trains the model with all data available in train_data_path """
         if not self.ml_model.is_connected:
             connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
             if not connection_success: return "Connection could not be established. Please check if the server is running and try again."
-        return self.ml_model.run_train(self.train_data_path)
+        # if syncer.host name is None then local machine is used to train
+        if self.syncer.host_name=="local": 
+            return self.ml_model.run_train(self.train_data_path)
+        else:
+            srv_relative_path = self.syncer.sync(src='client', dst='server', path=self.train_data_path)
+            return self.ml_model.run_train(srv_relative_path)
+            
     
     def run_inference(self):
         """ Checks if the ml model is connected to the server, connects if not (and if possible), and runs inference on all images in eval_data_path """
@@ -70,7 +88,18 @@ class Application:
             if not connection_success: 
                 message_text = "Connection could not be established. Please check if the server is running and try again."
                 return message_text, "Warning"
-        list_of_files_not_suported = self.ml_model.run_inference(self.eval_data_path)
+
+        if self.syncer.host_name=="local":
+            # model serving directly from local
+            list_of_files_not_suported = self.ml_model.run_inference(self.eval_data_path)       
+        else:
+            srv_relative_path = utils.get_relative_path(self.eval_data_path)
+            # model serving from server
+            list_of_files_not_suported = self.ml_model.run_inference(srv_relative_path)
+            # sync data so that client gets new masks          
+            _ = self.syncer.sync(src='server', dst='client', path=self.eval_data_path)
+
+        # check if serving could not be performed for some files and prepare message
         list_of_files_not_suported = list(list_of_files_not_suported)
         if len(list_of_files_not_suported) > 0:
             message_text = "Image types not supported. Only 2D and 3D image shapes currently supported. 3D stacks must be of type grayscale. \

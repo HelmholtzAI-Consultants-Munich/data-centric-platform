@@ -4,9 +4,9 @@ from typing import TYPE_CHECKING
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView
 from PyQt5.QtCore import Qt
 
-from dcp_client import settings
-from dcp_client.utils import IconProvider, create_warning_box
-from dcp_client.napari_window import NapariWindow
+from dcp_client.utils import settings
+from dcp_client.utils.utils import IconProvider, create_warning_box
+from dcp_client.gui.napari_window import NapariWindow
 
 if TYPE_CHECKING:
     from dcp_client.app import Application

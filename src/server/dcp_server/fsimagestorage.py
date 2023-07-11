@@ -10,6 +10,8 @@ setup_config = utils.read_config('setup', config_path = 'config.cfg')
 class FilesystemImageStorage():
     """Class used to deal with everything related to image storing and processing - loading, saving, transforming...
     """    
+    def __init__(self, data_root):
+        self.root_dir = data_root
     
     def load_image(self, cur_selected_img):
         """Load the image (using skiimage)
@@ -19,7 +21,7 @@ class FilesystemImageStorage():
         :return: loaded image
         :rtype: ndarray
         """        
-        return imread(cur_selected_img)
+        return imread(os.path.join(self.root_dir , cur_selected_img))
     
     def save_image(self, to_save_path, img):
         """Save given image (using skiimage)
@@ -29,7 +31,7 @@ class FilesystemImageStorage():
         :param img: image you wish to save
         :type img: ndarray
         """        
-        imsave(to_save_path, img)
+        imsave(os.path.join(self.root_dir, to_save_path), img)
     
     def search_images(self, directory):
         """Get a list of full paths of the images in the directory
@@ -40,6 +42,7 @@ class FilesystemImageStorage():
         :rtype: list
         """
         # Take all segmentations of the image from the current directory:
+        directory = os.path.join(self.root_dir, directory)
         seg_files = [file_name for file_name in os.listdir(directory) if setup_config['seg_name_string'] in file_name]
         # Take the image files - difference between the list of all the files in the directory and the list of seg files and only file extensions currently accepted
         image_files = [os.path.join(directory, file_name) for file_name in os.listdir(directory) if (file_name not in seg_files) and (utils.get_file_extension(file_name) in setup_config['accepted_types'])]
@@ -54,7 +57,7 @@ class FilesystemImageStorage():
         :rtype: list
         """        
         # Check the directory the image was selected from:
-        img_directory = utils.get_path_parent(cur_selected_img)
+        img_directory = utils.get_path_parent(os.path.join(self.root_dir, cur_selected_img))
         # Take all segmentations of the image from the current directory:
         search_string = utils.get_path_stem(cur_selected_img) + setup_config['seg_name_string']
         seg_files = [os.path.join(img_directory, file_name) for file_name in os.listdir(img_directory) if search_string in file_name]
@@ -69,7 +72,7 @@ class FilesystemImageStorage():
         :return: list of tuple pairs (image, image_seg)
         :rtype: list
         """        
-        image_files = self.search_images(directory)
+        image_files = self.search_images(os.path.join(self.root_dir, directory))
         seg_files = []
         for image in image_files:
             seg = self.search_segs(image)
@@ -85,7 +88,7 @@ class FilesystemImageStorage():
         :return: list of unsupported files
         :rtype: list
         """        
-        return [file_name for file_name in os.listdir(directory) if utils.get_file_extension(file_name) not in setup_config['accepted_types']]
+        return [file_name for file_name in os.listdir(os.path.join(self.root_dir, directory)) if utils.get_file_extension(file_name) not in setup_config['accepted_types']]
     
     def get_image_size_properties(self, img, file_extension):
         """Get properties of the image size

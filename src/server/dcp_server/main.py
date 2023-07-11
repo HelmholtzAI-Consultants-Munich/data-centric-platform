@@ -1,8 +1,9 @@
 import subprocess
 from os import path
-#import sys
+import sys
+from utils import read_config
 
-def main():
+def main(): 
     '''entry point to bentoml
     '''
     # global config_path
@@ -14,6 +15,9 @@ def main():
     #     config_path = 'config.cfg'
 
     local_path = path.join(__file__, '..')
+    dir_name = path.dirname(path.abspath(sys.argv[0]))
+    service_config = read_config('service', config_path = path.join(dir_name, 'config.cfg'))
+    port = str(service_config['port'])
 
     subprocess.run([
         "bentoml",
@@ -22,7 +26,7 @@ def main():
         local_path,
         "service:svc",
         "--reload",
-        "--port=7010",
+        "--port="+port,
     ])
     
 
