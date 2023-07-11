@@ -47,19 +47,19 @@ class Application:
         syncer: DataSync,
         image_storage: ImageStorage,
         server_ip: str,
-        server_port: int
-        #eval_data_path: str, 
-        #train_data_path: str, 
-        #inprogr_data_path: str,     
+        server_port: int,
+        eval_data_path: str = '', 
+        train_data_path: str = '', 
+        inprogr_data_path: str = '',     
     ):
         self.ml_model = ml_model
         self.syncer = syncer
         self.fs_image_storage = image_storage
         self.server_ip = server_ip
         self.server_port = server_port
-        self.eval_data_path = ''
-        self.train_data_path = ''
-        self.inprogr_data_path = ''
+        self.eval_data_path = eval_data_path
+        self.train_data_path = train_data_path
+        self.inprogr_data_path = inprogr_data_path
         self.cur_selected_img = ''
         self.cur_selected_path = ''
         self.seg_filepaths = []
