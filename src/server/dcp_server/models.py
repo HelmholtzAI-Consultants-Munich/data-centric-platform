@@ -60,12 +60,106 @@ class CustomCellposeModel(models.CellposeModel):
         """        
         return utils.masks_to_outlines(mask) #[True, False] outputs
 
+class CellFullyConvClassifier(nn.Module):
+    
+    '''
+    Fully convolutional classifier for cell images.
+
+    Args:
+        in_channels (int): Number of input channels.
+        num_classes (int): Number of output classes.
+    '''
+
+    def __init__(self, in_channels, num_classes):
+        super().__init__()
+
+        self.in_channels = in_channels
+        self.num_classes = num_classes
+
+        self.layer1 = nn.Sequential(
+            nn.Conv2d(in_channels, 16, 3, 2, 5),
+            nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.Dropout2d(p=0.2),
+        )
+
+        self.layer2 = nn.Sequential(
+            nn.Conv2d(16, 64, 3, 1, 1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.Dropout2d(p=0.2),
+        )
+
+        self.layer3 = nn.Sequential(
+            nn.Conv2d(64, 128, 3, 2, 4),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.Dropout2d(p=0.2),
+        )
+
+        self.final_conv = nn.Conv2d(128, num_classes, 1)
+
+        self.pooling = nn.AdaptiveMaxPool2d(1)
+
+    def forward(self, x):
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+
+        x = self.final_conv(x)
+        x = self.pooling(x)
+        x = x.view(x.size(0), -1)
+        
+        return x
 
 
 # class CustomSAMModel():
 # # https://github.com/facebookresearch/segment-anything/blob/main/notebooks/automatic_mask_generator_example.ipynb
 #     def __init__(self):
 #         pass
+
+class CellposePatchCNN():
+
+    """Cellpose & patches of cells and then cnn to classify each patch
+    """
+    
+    def __init__(self,  model_config, train_config, eval_config ):
+
+        # Initialize the cellpose model
+        self.train_config = train_config
+        self.eval_config = eval_config
+
+        self.classifier = CellFullyConvClassifier()
+        self.segmentation = CustomCellposeModel(model_config, train_config, eval_config)
+
+    def train(self, imgs, masks):
+
+        # masks should have first channel as a cellpose mask and
+        # all other layers corresponds to the classes
+        ## TODO: take care of the images and masks preparation
+        self.segmentation.train(imgs, masks)
+
+    def create_patch_dataset(imgs, masks, save_imgs_path, black_bg:bool, include_mask:bool):
+    '''
+    Create a folder with n subfolders corresponding to each class, each subfolder contains the patches of the corresponding celltype.
+
+    Args:
+        dataset (list): A list of tuples containing image and mask pairs.
+        save_imgs_path (str): The path to save the generated patch dataset.
+        black_bg (bool): Flag indicating whether to use a black background for patches.
+        include_mask (bool): Flag indicating whether to include the mask along with patches.
+    '''
+
+    for img, msk in zip(imgs, masks):
+        
+        for channel in range(num_of_channels):
+
+            loc = find_objects(msk[channel])
+            msk_patches = get_patches(loc, img, msk[channel], black_bg=black_bg, include_mask=include_mask)
+            save_patches(msk_patches,channel, save_imgs_path)
+
+
 
 
 
