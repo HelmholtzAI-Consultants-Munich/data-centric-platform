@@ -4,9 +4,9 @@ from skimage.io import imsave
 import unittest
 
 from dcp_client.app import Application
-from dcp_client.bentoml_model import BentomlModel
-from dcp_client.fsimagestorage import FilesystemImageStorage
-
+from dcp_client.utils.bentoml_model import BentomlModel
+from dcp_client.utils.fsimagestorage import FilesystemImageStorage
+from dcp_client.utils.sync_src_dst import DataRSync
 
 class TestApplication(unittest.TestCase):
     
@@ -23,10 +23,15 @@ class TestApplication(unittest.TestCase):
         os.mkdir('in_prog')
         imsave('in_prog/test_img.png', img)
         imsave('in_prog/test_img2.png', img2)
-
+        rsyncer = DataRSync(user_name="local",
+                          host_name="local",
+                          server_repo_path='.')
         self.app = Application(BentomlModel(),
-                    FilesystemImageStorage(),
-                    inprogr_data_path='in_prog')
+                               rsyncer,
+                               FilesystemImageStorage(),
+                               "0.0.0.0",
+                               7010)
+                        
         self.app.cur_selected_img = 'test_img.png'
         self.app.cur_selected_path = 'in_prog'
 

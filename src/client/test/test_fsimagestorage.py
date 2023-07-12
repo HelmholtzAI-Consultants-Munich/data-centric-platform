@@ -3,7 +3,7 @@ from skimage.io import imsave
 from skimage import data
 import unittest
 
-from dcp_client.fsimagestorage import FilesystemImageStorage
+from dcp_client.utils.fsimagestorage import FilesystemImageStorage
 
 
 class TestFilesystemImageStorage(unittest.TestCase):
