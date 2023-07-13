@@ -101,6 +101,12 @@ class CellFullyConvClassifier(nn.Module):
 
         self.pooling = nn.AdaptiveMaxPool2d(1)
 
+    #def train (self, x, y):
+    ## TODO should call forward repeatedly and perform the entire train loop
+    
+    #def eval(self, x):
+    ## TODO should call forward once, model is in eval mode, and return predicted masks
+
     def forward(self, x):
 
         x = self.layer1(x)
@@ -119,6 +125,7 @@ class CellFullyConvClassifier(nn.Module):
 #     def __init__(self):
 #         pass
 
+
 class CellposePatchCNN():
 
     """Cellpose & patches of cells and then cnn to classify each patch
@@ -131,33 +138,45 @@ class CellposePatchCNN():
         self.eval_config = eval_config
 
         self.classifier = CellFullyConvClassifier()
-        self.segmentation = CustomCellposeModel(model_config, train_config, eval_config)
+        self.segmentor = CustomCellposeModel(model_config, train_config, eval_config)
 
     def train(self, imgs, masks):
 
         # masks should have first channel as a cellpose mask and
         # all other layers corresponds to the classes
-        ## TODO: take care of the images and masks preparation
-        self.segmentation.train(imgs, masks)
+        ## TODO: take care of the images and masks preparation -> this step isn't for now @Mariia
+        self.segmentor.train(imgs, masks)
+        ## TODO call create_patches (adjust create_patch_dataset function)
+        ## to prepare imgs and masks for training CNN
+        ## TODO call self.classifier.train(imgs, masks)
 
-    def create_patch_dataset(imgs, masks, save_imgs_path, black_bg:bool, include_mask:bool):
-    '''
-    Create a folder with n subfolders corresponding to each class, each subfolder contains the patches of the corresponding celltype.
+    def eval(self, img, **eval_config):
+        pass
+        ## TODO implement the eval pipeline, i.e. first call self.segmentor.eval, then split again into patches
+        ## using resulting seg and then call self.classifier.eval. The final mask which is returned should have 
+        ## first channel the output of cellpose and the rest are the class channels
 
-    Args:
-        dataset (list): A list of tuples containing image and mask pairs.
-        save_imgs_path (str): The path to save the generated patch dataset.
-        black_bg (bool): Flag indicating whether to use a black background for patches.
-        include_mask (bool): Flag indicating whether to include the mask along with patches.
-    '''
+    def create_patch_dataset(self, imgs, masks, black_bg:bool, include_mask:bool):
+        '''
+        TODO: Split img and masks into patches of equal size which are centered around the cells.
+        The algorithm should first run through all images to find the max cell size, and use
+        the max cell size to define the patch size. All patches and masks should then be returned
+        in the same foramt as imgs and masks (same type, i.e. check if tensor or np.array and same 
+        convention of dims, e.g.  CxHxW)
+        Args:
+            imgs ():
+            masks ():
+            black_bg (bool): Flag indicating whether to use a black background for patches.
+            include_mask (bool): Flag indicating whether to include the mask along with patches.
+        '''
 
-    for img, msk in zip(imgs, masks):
-        
-        for channel in range(num_of_channels):
+        for img, msk in zip(imgs, masks):
+            
+            for channel in range(num_of_channels):
 
-            loc = find_objects(msk[channel])
-            msk_patches = get_patches(loc, img, msk[channel], black_bg=black_bg, include_mask=include_mask)
-            save_patches(msk_patches,channel, save_imgs_path)
+                loc = find_objects(msk[channel])
+                msk_patches = get_patches(loc, img, msk[channel], black_bg=black_bg, include_mask=include_mask)
+                save_patches(msk_patches,channel, save_imgs_path)
 
 
 
