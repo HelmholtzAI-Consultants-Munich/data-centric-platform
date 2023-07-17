@@ -86,7 +86,10 @@ class CellFullyConvClassifier(nn.Module):
         self.in_channels = in_channels
         self.num_classes = num_classes
 
-        self.hparams = kwargs
+        self.train_config = train_config
+        self.eval_config = eval_config
+
+        # self.hparams = kwargs
 
         self.layer1 = nn.Sequential(
             nn.Conv2d(in_channels, 16, 3, 2, 5),
@@ -113,6 +116,18 @@ class CellFullyConvClassifier(nn.Module):
 
         self.pooling = nn.AdaptiveMaxPool2d(1)
 
+     def forward(self, x):
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+
+        x = self.final_conv(x)
+        x = self.pooling(x)
+        x = x.view(x.size(0), -1)
+        
+        return x
+
     def train (self, imgs, labels):
     ## TODO should call forward repeatedly and perform the entire train loop
         
@@ -122,14 +137,16 @@ class CellFullyConvClassifier(nn.Module):
             2) y - List[int]
         """
 
-        lr = self.hparams.get('lr', 0.001)
-        epochs = self.hparams.get('epochs', 1)
-        batch_size = self.hparams.get('batch_size', 1)
-        optimizer_class = self.hparams.get('optimizer', 'Adam')
+        lr = self.train_config.get('lr', 0.001)
+        epochs = self.train_config.get('epochs', 1)
+        batch_size = self.train_config.get('batch_size', 1)
+        optimizer_class = self.train_config.get('optimizer', 'Adam')
 
+        # Convert input images and labels to tensors
         imgs = [ torch.from_numpy(img) for img in imgs]
         labels = torch.tensor(labels)
 
+        # Create a training dataset and dataloader
         train_dataset = TensorDataset(imgs, labels)
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size)
 
@@ -154,6 +171,7 @@ class CellFullyConvClassifier(nn.Module):
     def eval(self, imgs):
     ## TODO should call forward once, model is in eval mode, and return predicted masks
         """
+        Evaluate the model on the provided images and return predicted labels.
             input:
             1) imgs - List[np.ndarray[np.uint8]] with shape (3, dx, dy)
         """
@@ -164,20 +182,6 @@ class CellFullyConvClassifier(nn.Module):
             labels.append(self.forward(img))
 
         return labels
-
-    def forward(self, x):
-
-        x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-
-        x = self.final_conv(x)
-        x = self.pooling(x)
-        x = x.view(x.size(0), -1)
-        
-        return x
-
-
 # class CustomSAMModel():
 # # https://github.com/facebookresearch/segment-anything/blob/main/notebooks/automatic_mask_generator_example.ipynb
 #     def __init__(self):
@@ -186,15 +190,17 @@ class CellFullyConvClassifier(nn.Module):
 
 class CellposePatchCNN():
 
-    """Cellpose & patches of cells and then cnn to classify each patch
+    """
+    Cellpose & patches of cells and then cnn to classify each patch
     """
     
     def __init__(self,  model_config, train_config, eval_config ):
 
-        # Initialize the cellpose model
+        
         self.train_config = train_config
         self.eval_config = eval_config
 
+        # Initialize the classifier and the cellpose model 
         self.classifier = CellFullyConvClassifier()
         self.segmentor = CustomCellposeModel(model_config, train_config, eval_config)
 
@@ -204,16 +210,18 @@ class CellposePatchCNN():
         # all other layers corresponds to the classes
         ## TODO: take care of the images and masks preparation -> this step isn't for now @Mariia
 
+        ## TODO call create_patches (adjust create_patch_dataset function)
+        ## to prepare imgs and masks for training CNN
+        ## TODO call self.classifier.train(imgs, masks)
+
         black_bg = kwargs.get("black_bg", False)
         include_mask = kwargs.get("include_mask", False)
+        include_cellpose_mask = kwargs.get("include_cellpose_mask", True)
 
         self.segmentor.train(imgs, masks)
         patches, labels = self.create_patch_dataset(self, imgs, masks, black_bg:bool, include_mask:bool, **kwargs)
         self.classifier.train(patches, labels)
 
-        ## TODO call create_patches (adjust create_patch_dataset function)
-        ## to prepare imgs and masks for training CNN
-        ## TODO call self.classifier.train(imgs, masks)
 
     def eval(self, img, **eval_config):
         
@@ -222,13 +230,15 @@ class CellposePatchCNN():
         ## first channel the output of cellpose and the rest are the class channels
         mask = self.segmentor.eval(img)
         patches, labels = self.create_patch_dataset(self, [img], [mask], black_bg:bool, include_mask:bool, **kwargs)
-        results = self.classifier.eval(patches, labels)
+        # result is a one channel image that contains labels corresponding to the class labels
+        result = self.classifier.eval(patches, labels)
+        result_with_cellpose_mask = torch.stack((mask, result), 0)
 
-        return results
+        return result_with_cellpose_mask
 
     def find_max_patch_size(mask):
 
-        # Find objects in the binary image
+        # Find objects in the mask
         objects = ndi.find_objects(mask)
 
         # Initialize variables to store the maximum patch size
@@ -267,7 +277,6 @@ class CellposePatchCNN():
             x (np.ndarray): The input array from which the patch will be cropped.
             c (tuple): The coordinates (row, column, channel) at the center of the patch.
             p (tuple): The size of the patch to be cropped (height, width).
-            remove_other_instances (bool): Flag indicating whether to remove other instances in the patch.
 
         Returns:
             np.ndarray: The cropped patch with applied padding.
@@ -288,6 +297,7 @@ class CellposePatchCNN():
 
             mask_ = mask.max(-1) if len(mask.shape) == 3 else mask
             central_label = mask_[c[0], c[1]]
+            # Zero out values in the patch where the mask is not equal to the central label
             m = (mask_ != central_label) & (mask_ > 0)
             x[m] = 0
 
