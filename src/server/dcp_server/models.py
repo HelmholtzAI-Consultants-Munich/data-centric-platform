@@ -89,8 +89,6 @@ class CellFullyConvClassifier(nn.Module):
         self.train_config = train_config
         self.eval_config = eval_config
 
-        # self.hparams = kwargs
-
         self.layer1 = nn.Sequential(
             nn.Conv2d(in_channels, 16, 3, 2, 5),
             nn.BatchNorm2d(16),
@@ -172,8 +170,10 @@ class CellFullyConvClassifier(nn.Module):
     ## TODO should call forward once, model is in eval mode, and return predicted masks
         """
         Evaluate the model on the provided images and return predicted labels.
-            input:
-            1) imgs - List[np.ndarray[np.uint8]] with shape (3, dx, dy)
+            Input:
+            imgs: List[np.ndarray[np.uint8]] with shape (3, dx, dy)
+            Output:
+            labels: List of predicted labels.
         """
         labels = []
         for img in imgs:
@@ -204,19 +204,29 @@ class CellposePatchCNN():
         self.classifier = CellFullyConvClassifier()
         self.segmentor = CustomCellposeModel(model_config, train_config, eval_config)
 
-    def train(self, imgs, masks, **kwargs):
+    def init_from_checkpoints(self, chpt_classifier=None, chpt_segmentor=None):
+    """
+    Initialize the model from pre-trained checkpoints.
+    """
+
+        self.segmentor = CustomCellposeModel(
+            model_config={"gpu":torch.cuda.is_available(), "pretrained_model":chpt_segmentor} 
+            )
+        self.classifier.load_state_dict(torch.load(chpt_classifier)["model"])
+
+
+    def train(self, imgs, masks, **train_config):
 
         # masks should have first channel as a cellpose mask and
         # all other layers corresponds to the classes
         ## TODO: take care of the images and masks preparation -> this step isn't for now @Mariia
-
         ## TODO call create_patches (adjust create_patch_dataset function)
         ## to prepare imgs and masks for training CNN
         ## TODO call self.classifier.train(imgs, masks)
 
-        black_bg = kwargs.get("black_bg", False)
-        include_mask = kwargs.get("include_mask", False)
-        include_cellpose_mask = kwargs.get("include_cellpose_mask", True)
+        black_bg = train_config.get("black_bg", False)
+        include_mask = train_config.get("include_mask", False)
+        include_cellpose_mask = train_config.get("include_cellpose_mask", True)
 
         self.segmentor.train(imgs, masks)
         patches, labels = self.create_patch_dataset(self, imgs, masks, black_bg:bool, include_mask:bool, **kwargs)
@@ -229,14 +239,59 @@ class CellposePatchCNN():
         ## using resulting seg and then call self.classifier.eval. The final mask which is returned should have 
         ## first channel the output of cellpose and the rest are the class channels
         mask = self.segmentor.eval(img)
-        patches, labels = self.create_patch_dataset(self, [img], [mask], black_bg:bool, include_mask:bool, **kwargs)
-        # result is a one channel image that contains labels corresponding to the class labels
-        result = self.classifier.eval(patches, labels)
-        result_with_cellpose_mask = torch.stack((mask, result), 0)
+        result = self.get_prediction(img, mask)
 
-        return result_with_cellpose_mask
+        return result
 
-    def find_max_patch_size(mask):
+    def get_prediction(self, input_image, cellpose_mask, model_classifier):
+    """
+        Performs object segmentation and classification on an input image using the Cellpose model and a classifier model.
+
+        Args:
+            image_path (str): The file path of the input image.
+            model (CellposeModel): The Cellpose model used for object segmentation.
+            model_classifier: The classifier model used for object classification.
+
+        Returns:
+            tuple: A tuple containing the cellpose_mask and final_mask, representing the segmentation masks obtained from
+                the Cellpose model and the combined segmentation and classification mask, respectively.
+    """
+
+        # Obtain segmentation mask using Cellpose model
+
+        # Find objects in the cellpose_mask
+        locs = find_objects(cellpose_mask)
+
+        # Get patches and labels based on object centroids
+        patches, labels = get_centered_patches(input_image, cellpose_mask, int(1.5 * input_image.shape[0] // 5), noise_intensity=5)
+        
+        labels = torch.tensor(labels)
+        labels_fit = []
+        
+        final_mask = torch.zeros(cellpose_mask.shape)
+
+        with torch.no_grad():
+            for i, patch in enumerate(patches):
+                loc = locs[i]
+
+                # Prepare image patch for classification
+                img = torch.tensor(patch.astype(np.float32)).unsqueeze(0).repeat(3, 1, 1).unsqueeze(0) / 255
+                
+                # Perform inference using model_classifier
+                logits = self.classifier(img) 
+        
+                _, predicted = torch.max(logits, 1)
+                labels_fit.append(predicted)
+
+                # Assign predicted class to corresponding location in final_mask
+                final_mask[loc] = predicted + 1
+
+        # Apply mask to final_mask, retaining only regions where cellpose_mask is greater than 0
+        final_mask = final_mask * ((cellpose_mask > 0).astype(np.uint8))
+        
+        return final_mask
+
+    def find_max_patch_size(self, mask):
 
         # Find objects in the mask
         objects = ndi.find_objects(mask)
@@ -269,7 +324,7 @@ class CellposePatchCNN():
 
             return max_patch_size_edge
 
-    def pad_centered_padded_patch(x: np.ndarray, c, p, mask: np.ndarray=None, noise_intensity=None) -> np.ndarray:
+    def pad_centered_padded_patch(self, x: np.ndarray, c, p, mask: np.ndarray=None, noise_intensity=None) -> np.ndarray:
         """
         Crop a patch from an array `x` centered at coordinates `c` with size `p`, and apply padding if necessary.
 
@@ -295,7 +350,7 @@ class CellposePatchCNN():
 
         if mask is not None:
 
-            mask_ = mask.max(-1) if len(mask.shape) == 3 else mask
+            mask_ = mask.max(-1) if len(mask.shape) >= 3 else mask
             central_label = mask_[c[0], c[1]]
             # Zero out values in the patch where the mask is not equal to the central label
             m = (mask_ != central_label) & (mask_ > 0)
@@ -340,7 +395,7 @@ class CellposePatchCNN():
         return patch 
 
 
-    def get_center_of_mass(mask: np.ndarray) -> np.ndarray:
+    def get_center_of_mass(self, mask: np.ndarray) -> np.ndarray:
         """
         Compute the centers of mass for each object in a mask.
 
@@ -351,17 +406,15 @@ class CellposePatchCNN():
             np.ndarray: An array of coordinates (row, column, channel) representing the centers of mass for each object.
         """
         # Compute the centers of mass for each labeled object in the mask
-        centers_of_mass = np.array(
-            list(map(
-                lambda x: (int(x[0]), int(x[1]), int(x[2])) if len(mask.shape) == 3 else (int(x[0]), int(x[1]), -1),
-                ndi.center_of_mass(mask, mask, np.arange(1, mask.max() + 1))
-            ))
-        )
+        centers_of_mass = [
+        (int(x[0]), int(x[1]), int(x[2])) if mask.ndim >= 3 else (int(x[0]), int(x[1]), -1)
+        for x in ndi.center_of_mass(mask, mask, np.arange(1, mask.max() + 1))
+        ]
 
         return centers_of_mass
 
 
-    def get_centered_patches(img, mask, p_size: int, noise_intensity=5):
+    def get_centered_patches(self, img, mask, p_size: int, noise_intensity=5):
 
         ''' 
         Extracts centered patches from the input image based on the centers of objects identified in the mask.
@@ -393,7 +446,7 @@ class CellposePatchCNN():
         TODO: Split img and masks into patches of equal size which are centered around the cells.
         The algorithm should first run through all images to find the max cell size, and use
         the max cell size to define the patch size. All patches and masks should then be returned
-        in the same foramt as imgs and masks (same type, i.e. check if tensor or np.array and same 
+        in the same format as imgs and masks (same type, i.e. check if tensor or np.array and same 
         convention of dims, e.g.  CxHxW)
         Args:
             imgs ():
@@ -402,22 +455,37 @@ class CellposePatchCNN():
             include_mask (bool): Flag indicating whether to include the mask along with patches.
         '''
 
-        noise_intensity = kwargs.get("noise_intensity", 5)
+        noise_intensity = kwargs.get("data", {}).get("noise_intensity", 5)
 
-        max_patch_size = np.max([self.find_max_patch_size(mask) in masks])
+        #max_patch_size = np.max([self.find_max_patch_size(mask) in masks])
+        max_patch_size = kwargs.get("data", {}).get("patch_size", 64)
+        num_of_channels = kwargs.get("data", {}).get("num_classes", 3)
 
         patches, labels = [], []
+        is_train = masks[0].ndim == 3
 
         for img, msk in zip(imgs, masks):
             
-            for channel in range(num_of_channels):
+            # training dataset
+            if is_train:
+                # mask has dimension WxHxNum_of_channels
+                for channel in range(num_of_channels):
 
-                loc = find_objects(msk[channel])
-                patch, label = get_centered_patches(img, msk, int(1.5 * img.shape[0] // 5), noise_intensity=noise_intensity)
-                
+                    patch, label = get_centered_patches(img, msk, int(1.5 * img.shape[0] // 5), 
+                                                            noise_intensity=noise_intensity)
+                    
+                    patches.append(patch)
+                    labels.append(label)
+
+            # test dataset
+            # mask has dimention WxH 
+            else:
+                patch, _ = get_centered_patches(img, msk, int(1.5 * img.shape[0] // 5), 
+                                                            noise_intensity=noise_intensity)
                 patches.append(patch)
-                labels.append(label)
-                # msk_patches = get_patches(loc, img, msk[channel], black_bg=black_bg, include_mask=include_mask)
-                # save_patches(msk_patches,channel, save_imgs_path)
 
-        return patches, labels
+        if is_train:
+            return patches, labels
+
+        else:
+            return patches
