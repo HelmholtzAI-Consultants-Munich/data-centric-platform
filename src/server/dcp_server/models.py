@@ -1,5 +1,6 @@
-#models
-
+import numpy as np
+from scipy.ndimage import find_objects, center_of_mass
+from torchmetrics import JaccardIndex
 
 from cellpose import models, utils
 
@@ -8,6 +9,10 @@ from torch import nn
 
 from torch.optim import Adam
 from torch.utils.data import TensorDataset, DataLoader
+
+from copy import deepcopy
+
+from tqdm import tqdm
 
 #from segment_anything import SamPredictor, sam_model_registry
 #from segment_anything.automatic_mask_generator import SamAutomaticMaskGenerator
@@ -57,7 +62,7 @@ class CustomCellposeModel(models.CellposeModel):
         :param masks: masks of the given images (training labels)
         :type masks: List[np.ndarray]
         """  
-        super().train(train_data=imgs, train_labels=masks, **self.train_config)
+        super().train(train_data=deepcopy(imgs), train_labels=masks, **self.train_config)
     
     def masks_to_outlines(self, mask):
         """ get outlines of masks as a 0-1 array
@@ -80,17 +85,17 @@ class CellFullyConvClassifier(nn.Module):
         num_classes (int): Number of output classes.
     '''
 
-    def __init__(self, in_channels, num_classes, **kwargs):
+    def __init__(self, model_config, train_config, eval_config):
         super().__init__()
 
-        self.in_channels = in_channels
-        self.num_classes = num_classes
+        self.in_channels = model_config.get("in_channels", 1)
+        self.num_classes = model_config.get("num_classes", 3)
 
         self.train_config = train_config
         self.eval_config = eval_config
 
         self.layer1 = nn.Sequential(
-            nn.Conv2d(in_channels, 16, 3, 2, 5),
+            nn.Conv2d(self.in_channels, 16, 3, 2, 5),
             nn.BatchNorm2d(16),
             nn.ReLU(),
             nn.Dropout2d(p=0.2),
@@ -110,11 +115,11 @@ class CellFullyConvClassifier(nn.Module):
             nn.Dropout2d(p=0.2),
         )
 
-        self.final_conv = nn.Conv2d(128, num_classes, 1)
+        self.final_conv = nn.Conv2d(128, self.num_classes, 1)
 
         self.pooling = nn.AdaptiveMaxPool2d(1)
 
-     def forward(self, x):
+    def forward(self, x):
 
         x = self.layer1(x)
         x = self.layer2(x)
@@ -141,7 +146,7 @@ class CellFullyConvClassifier(nn.Module):
         optimizer_class = self.train_config.get('optimizer', 'Adam')
 
         # Convert input images and labels to tensors
-        imgs = [ torch.from_numpy(img) for img in imgs]
+        imgs = torch.stack([ torch.from_numpy(img) for img in imgs])
         labels = torch.tensor(labels)
 
         # Create a training dataset and dataloader
@@ -151,20 +156,25 @@ class CellFullyConvClassifier(nn.Module):
         # eval method evaluates a python string and returns an object, e.g. eval('print(1)') = 1
         # or eval('[1, 2, 3]') = [1, 2, 3]
         loss_fn = nn.CrossEntropyLoss()
-        optimizer = eval(f'{optimizer_class}(lr={lr})')
+        optimizer = Adam(params=self.parameters(), lr=lr) #eval(f'{optimizer_class}(params={self.parameters()}, lr={lr})')
 
-        for _ in epochs:
+        for _ in tqdm(range(epochs), desc="Running training"):
             for i, data in enumerate(train_dataloader):
 
                 imgs, labels = data
+                imgs, labels = imgs.float() / 255, labels.long()
+                imgs = imgs.unsqueeze(1)
+
                 optimizer.zero_grad()
                 preds = self.forward(imgs)
 
                 y_hats = torch.argmax(preds, 1)
-                loss = loss_fn(y_hats, labels)
+                loss = loss_fn(preds, labels)
                 loss.backward()
 
                 optimizer.step()
+
+        return loss
     
     def eval(self, imgs):
     ## TODO should call forward once, model is in eval mode, and return predicted masks
@@ -194,20 +204,29 @@ class CellposePatchCNN():
     Cellpose & patches of cells and then cnn to classify each patch
     """
     
-    def __init__(self,  model_config, train_config, eval_config ):
+    def __init__(self,  
+    segmentor_model_config, segmentor_train_config, segmentor_eval_config,
+    classifier_model_config, classifier_train_config, classifier_eval_config ):
 
         
-        self.train_config = train_config
-        self.eval_config = eval_config
+        self.segmentor_model_config = segmentor_model_config
+        self.segmentor_train_config = segmentor_train_config
+        self.segmentor_eval_config = segmentor_eval_config
+
+        self.classifier_model_config = classifier_model_config
+        self.classifier_train_config = classifier_train_config
+        self.classifier_eval_config = classifier_eval_config
 
         # Initialize the classifier and the cellpose model 
-        self.classifier = CellFullyConvClassifier()
-        self.segmentor = CustomCellposeModel(model_config, train_config, eval_config)
+        self.classifier = CellFullyConvClassifier(
+            classifier_model_config, classifier_train_config,  classifier_eval_config)
+        self.segmentor = CustomCellposeModel(
+            segmentor_model_config, segmentor_train_config, segmentor_eval_config)
 
     def init_from_checkpoints(self, chpt_classifier=None, chpt_segmentor=None):
-    """
-    Initialize the model from pre-trained checkpoints.
-    """
+        """
+        Initialize the model from pre-trained checkpoints.
+        """
 
         self.segmentor = CustomCellposeModel(
             model_config={"gpu":torch.cuda.is_available(), "pretrained_model":chpt_segmentor} 
@@ -215,7 +234,7 @@ class CellposePatchCNN():
         self.classifier.load_state_dict(torch.load(chpt_classifier)["model"])
 
 
-    def train(self, imgs, masks, **train_config):
+    def train(self, imgs, masks):
 
         # masks should have first channel as a cellpose mask and
         # all other layers corresponds to the classes
@@ -224,38 +243,63 @@ class CellposePatchCNN():
         ## to prepare imgs and masks for training CNN
         ## TODO call self.classifier.train(imgs, masks)
 
-        black_bg = train_config.get("black_bg", False)
-        include_mask = train_config.get("include_mask", False)
-        include_cellpose_mask = train_config.get("include_cellpose_mask", True)
+        num_classes = self.classifier_model_config.get("num_classes", 3)
 
-        self.segmentor.train(imgs, masks)
-        patches, labels = self.create_patch_dataset(self, imgs, masks, black_bg:bool, include_mask:bool, **kwargs)
-        self.classifier.train(patches, labels)
+        black_bg = self.classifier_model_config.get("black_bg", False)
+        include_mask = self.classifier_model_config.get("include_mask", False)
+        include_cellpose_mask = self.classifier_model_config.get("include_cellpose_mask", True)
+
+        masks_1channel = [mask.sum(0) for mask in masks]
+        masks_classifier = [mask if mask.shape[-1] == num_classes else
+                                 mask.transpose(1, 2, 0) for mask in masks]
+
+        self.segmentor.train(imgs, masks_1channel)
+        patches, labels = self.create_patch_dataset(
+            imgs, masks_classifier, black_bg, include_mask, **self.classifier_train_config
+            )
+
+        train_loss = self.classifier.train(patches, labels)
+        return train_loss
 
 
-    def eval(self, img, **eval_config):
+    def eval(self, img, instance_mask, **eval_config):
         
         ## TODO implement the eval pipeline, i.e. first call self.segmentor.eval, then split again into patches
         ## using resulting seg and then call self.classifier.eval. The final mask which is returned should have 
         ## first channel the output of cellpose and the rest are the class channels
-        mask = self.segmentor.eval(img)
-        result = self.get_prediction(img, mask)
+       
 
-        return result
+        final_mask = self.get_prediction(img, instance_mask)
+        # instance segmentation mask (C, W, H) --> semantic multiclass segmentation mask (W, H)
+        for i in range(instance_mask.shape[0]):
+            instance_mask[i, ...][instance_mask[i, ...] > 0] = i + 1
 
-    def get_prediction(self, input_image, cellpose_mask, model_classifier):
-    """
+        seg_mask = instance_mask.sum(0)
+
+        final_mask = torch.tensor(final_mask).to(int)
+        seg_mask = torch.tensor(seg_mask)
+        
+
+        jaccard_score = JaccardIndex(task="multiclass", num_classes=4, ignore_index=0)
+
+        jaccard_index = jaccard_score(final_mask.sum(0), seg_mask)
+        
+
+        return final_mask, jaccard_index
+
+    def get_prediction(self, input_image, cellpose_mask):
+        """
         Performs object segmentation and classification on an input image using the Cellpose model and a classifier model.
 
         Args:
             image_path (str): The file path of the input image.
-            model (CellposeModel): The Cellpose model used for object segmentation.
-            model_classifier: The classifier model used for object classification.
+            model (CellposeModel): The Cellpose model used for object segmentation, instance segmenation mask.
+         
 
         Returns:
             tuple: A tuple containing the cellpose_mask and final_mask, representing the segmentation masks obtained from
                 the Cellpose model and the combined segmentation and classification mask, respectively.
-    """
+        """
 
         # Obtain segmentation mask using Cellpose model
 
@@ -263,7 +307,7 @@ class CellposePatchCNN():
         locs = find_objects(cellpose_mask)
 
         # Get patches and labels based on object centroids
-        patches, labels = get_centered_patches(input_image, cellpose_mask, int(1.5 * input_image.shape[0] // 5), noise_intensity=5)
+        patches, labels = self.get_centered_patches(input_image, cellpose_mask, int(1.5 * input_image.shape[0] // 5), noise_intensity=5)
         
         labels = torch.tensor(labels)
         labels_fit = []
@@ -275,8 +319,9 @@ class CellposePatchCNN():
                 loc = locs[i]
 
                 # Prepare image patch for classification
-                img = torch.tensor(patch.astype(np.float32)).unsqueeze(0).repeat(3, 1, 1).unsqueeze(0) / 255
-                
+                img = torch.tensor(patch.astype(np.float32)).unsqueeze(0).unsqueeze(0) / 255
+                # img = img.mean(dim=1, keepdim=True)
+              
                 # Perform inference using model_classifier
                 logits = self.classifier(img) 
         
@@ -287,14 +332,14 @@ class CellposePatchCNN():
                 final_mask[loc] = predicted + 1
 
         # Apply mask to final_mask, retaining only regions where cellpose_mask is greater than 0
-        final_mask = final_mask * ((cellpose_mask > 0).astype(np.uint8))
+        final_mask = final_mask * ((cellpose_mask > 0).long())
         
         return final_mask
 
     def find_max_patch_size(self, mask):
 
         # Find objects in the mask
-        objects = ndi.find_objects(mask)
+        objects = find_objects(mask)
 
         # Initialize variables to store the maximum patch size
         max_patch_size = 0
@@ -336,6 +381,11 @@ class CellposePatchCNN():
         Returns:
             np.ndarray: The cropped patch with applied padding.
         """
+        if mask.shape[0] < mask.shape[-1]:
+            if isinstance(mask,torch.Tensor):
+                mask = mask.permute(1,2,0).numpy()
+            else:
+                mask = mask.transpose(1, 2, 0)
 
         height, width = p  # Size of the patch
 
@@ -351,8 +401,11 @@ class CellposePatchCNN():
         if mask is not None:
 
             mask_ = mask.max(-1) if len(mask.shape) >= 3 else mask
-            central_label = mask_[c[0], c[1]]
+            # central_label = mask_[c[0], c[1]]
+            central_label = mask_[c[0]][c[1]]
             # Zero out values in the patch where the mask is not equal to the central label
+       
+            # m = (mask_ != central_label) & (mask_ > 0)
             m = (mask_ != central_label) & (mask_ > 0)
             x[m] = 0
 
@@ -405,10 +458,11 @@ class CellposePatchCNN():
         Returns:
             np.ndarray: An array of coordinates (row, column, channel) representing the centers of mass for each object.
         """
+
         # Compute the centers of mass for each labeled object in the mask
         centers_of_mass = [
         (int(x[0]), int(x[1]), int(x[2])) if mask.ndim >= 3 else (int(x[0]), int(x[1]), -1)
-        for x in ndi.center_of_mass(mask, mask, np.arange(1, mask.max() + 1))
+        for x in center_of_mass(mask, mask, np.arange(1, mask.max() + 1))
         ]
 
         return centers_of_mass
@@ -428,14 +482,19 @@ class CellposePatchCNN():
         '''
 
         patches, labels = [], []
+        # is_train = mask.ndim == 3
 
-        centers_of_mass = get_center_of_mass(mask)
+        centers_of_mass = self.get_center_of_mass(mask)
             # Crop patches around each center of mass and save them
         for i, c in enumerate(centers_of_mass):
             c_x, c_y, label = c
-            
-            patch = pad_centered_padded_patch(img.copy(), (c_x, c_y), (p_size, p_size), mask=mask, noise_intensity=noise_intensity)
 
+            
+            # if is_train:
+            patch = self.pad_centered_padded_patch(img.copy(), (c_x, c_y), (p_size, p_size), mask=mask, noise_intensity=noise_intensity)
+            # else:
+            #     patch = self.pad_centered_padded_patch(img.copy(), (c_x, c_y), (p_size, p_size), mask=mask, noise_intensity=noise_intensity)
+            
             patches.append(patch)
             labels.append(label)
 
@@ -459,7 +518,7 @@ class CellposePatchCNN():
 
         #max_patch_size = np.max([self.find_max_patch_size(mask) in masks])
         max_patch_size = kwargs.get("data", {}).get("patch_size", 64)
-        num_of_channels = kwargs.get("data", {}).get("num_classes", 3)
+        num_of_channels = kwargs.get("num_classes", 3)
 
         patches, labels = [], []
         is_train = masks[0].ndim == 3
@@ -470,19 +529,18 @@ class CellposePatchCNN():
             if is_train:
                 # mask has dimension WxHxNum_of_channels
                 for channel in range(num_of_channels):
-
-                    patch, label = get_centered_patches(img, msk, int(1.5 * img.shape[0] // 5), 
+                    patches, labels = self.get_centered_patches(img, msk, int(1.5 * img.shape[0] // 5), 
                                                             noise_intensity=noise_intensity)
                     
-                    patches.append(patch)
-                    labels.append(label)
+                    patches.extend(patches)
+                    labels.extend(labels)
 
             # test dataset
             # mask has dimention WxH 
             else:
-                patch, _ = get_centered_patches(img, msk, int(1.5 * img.shape[0] // 5), 
+                patches, _ = self.get_centered_patches(img, msk, int(1.5 * img.shape[0] // 5), 
                                                             noise_intensity=noise_intensity)
-                patches.append(patch)
+                patches.extend(patches)
 
         if is_train:
             return patches, labels

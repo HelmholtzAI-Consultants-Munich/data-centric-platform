@@ -47,9 +47,9 @@ if __name__=='__main__':
     msk = np.load("/home/ubuntu/data-centric-platform/src/server/dcp_server/data/mask.npy")
     classifier_model_config, classifier_train_config, classifier_eval_config = {}, {}, {}
 
-    segmentor_model_config = read_config('model', config_path = 'config.cfg')
-    segmentor_train_config = read_config('train', config_path = 'config.cfg')
-    segmentor_eval_config = read_config('eval', config_path = 'config.cfg')
+    segmentor_model_config = read_config("model", config_path = "config.cfg")
+    segmentor_train_config = read_config("train", config_path = "config.cfg")
+    segmentor_eval_config = read_config("eval", config_path = "config.cfg")
 
     patch_model = CellposePatchCNN(
         segmentor_model_config, segmentor_train_config, segmentor_eval_config,
@@ -57,17 +57,19 @@ if __name__=='__main__':
     
     images, masks = get_dataset("/home/ubuntu/data-centric-platform/src/server/dcp_server/data")
 
-    for i in tqdm(range(1)):
-        loss_train = patch_model.train(deepcopy(images), deepcopy(masks))
-    assert(loss_train>1e-2)
+    # for i in tqdm(range(1)):
+    #     loss_train = patch_model.train(deepcopy(images), deepcopy(masks))
+    # assert(loss_train>1e-2)
 
     # instance segmentation mask (C, W, H) --> semantic multiclass segmentation mask (W, H)
-    for i in range(msk.shape[0]):
-        msk[i, ...][msk[i, ...] > 0] = i + 1
+    # for i in range(msk.shape[0]):
+    #     msk[i, ...][msk[i, ...] > 0] = i + 1
 
-    msk = msk.sum(0)
+    # msk = msk.sum(0)
 
-    final_mask, jaccard_index = patch_model.eval(img, mask_test=torch.tensor(msk))
+    # img = img.mean(axis=1, keepdims=True)
+
+    final_mask, jaccard_index = patch_model.eval(img, instance_mask=msk)
     final_mask = final_mask.numpy()
 
     cv2.imwrite("/home/ubuntu/data-centric-platform/src/server/dcp_server/data/final_mask.jpg", 255*label2rgb(final_mask))

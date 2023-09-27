@@ -78,12 +78,12 @@ def test_eval_run(data_eval, patch_model):
 
     img, msk = data_eval
     # instance segmentation mask (C, W, H) --> semantic multiclass segmentation mask (W, H)
-    for i in range(msk.shape[0]):
-        msk[i, ...][msk[i, ...] > 0] = i + 1
+    # for i in range(msk.shape[0]):
+    #     msk[i, ...][msk[i, ...] > 0] = i + 1
 
-    msk = msk.sum(0)
+    # msk = msk.sum(0)
 
-    final_mask, jaccard_index = patch_model.eval(img, mask_test=torch.tensor(msk))
+    final_mask, jaccard_index = patch_model.eval(img, instance_mask=torch.tensor(msk))
     final_mask = final_mask.numpy()
 
     cv2.imwrite("/home/ubuntu/data-centric-platform/src/server/dcp_server/data/final_mask.jpg", 255*label2rgb(final_mask))
