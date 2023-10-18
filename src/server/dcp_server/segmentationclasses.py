@@ -35,17 +35,14 @@ class GeneralSegmentation():
             img = self.imagestorage.load_image(img_filepath)
             # Get size properties
             height, width, channel_ax = self.imagestorage.get_image_size_properties(img, utils.get_file_extension(img_filepath))
-            img = self.imagestorage.rescale_image(img, height, width, channel_ax)
-          
+            img = self.imagestorage.rescale_image(img, height, width, channel_ax, order=None)
             # Add channel ax into the model's evaluation parameters dictionary
             self.model.eval_config['z_axis'] = channel_ax
-            
             # Evaluate the model
             mask = await self.runner.evaluate.async_run(img = img, **self.model.eval_config)
-
             # Resize the mask
-            mask = self.imagestorage.resize_image(mask, height, width, order=0)
-            
+            channel_ax = self.model.eval_config['z_axis']
+            mask = self.imagestorage.rescale_image(mask, height, width, channel_ax, order=0)
             # Save segmentation
             seg_name = utils.get_path_stem(img_filepath) + setup_config['seg_name_string'] + '.tiff'
             self.imagestorage.save_image(os.path.join(input_path, seg_name), mask)
@@ -65,7 +62,6 @@ class GeneralSegmentation():
             return "No images and segs found"
                 
         imgs, masks = self.imagestorage.prepare_images_and_masks_for_training(train_img_mask_pairs)
-
         model_save_path =  await self.runner.train.async_run(imgs, masks)
         
         return model_save_path
