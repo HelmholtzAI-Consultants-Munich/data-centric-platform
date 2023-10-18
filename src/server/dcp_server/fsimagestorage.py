@@ -109,7 +109,7 @@ class FilesystemImageStorage():
         # tif can be grayscale 2D or 2D RGB and RGBA
         if file_extension in (".jpg", ".jpeg", ".png") or (file_extension in (".tiff", ".tif") and len(orig_size)==2 or (len(orig_size)==3 and (orig_size[-1]==3 or orig_size[-1]==4))):
             height, width = orig_size[0], orig_size[1]
-            channel_ax = None
+            channel_ax = 2
         # or 3D tiff grayscale 
         elif file_extension in (".tiff", ".tif") and len(orig_size)==3:
             print('Warning: 3D image stack found. We are assuming your first dimension is your stack dimension. Please cross check this.')
@@ -121,7 +121,7 @@ class FilesystemImageStorage():
 
         return height, width, channel_ax
     
-    def rescale_image(self, img, height, width, channel_ax):
+    def rescale_image(self, img, height, width, channel_ax, order):
         """rescale image
 
         :param img: image
@@ -137,7 +137,7 @@ class FilesystemImageStorage():
         """        
         max_dim  = max(height, width)
         rescale_factor = max_dim/512
-        return rescale(img, 1/rescale_factor, channel_axis=channel_ax)
+        return rescale(img, 1/rescale_factor, order=order, channel_axis=channel_ax)
     
     def resize_image(self, img, height, width, order):
         """resize image
@@ -166,6 +166,6 @@ class FilesystemImageStorage():
         imgs=[]
         masks=[]
         for img_file, mask_file in train_img_mask_pairs:
-            imgs.append(rgb2gray(imread(img_file)))
+            imgs.append(imread(img_file))
             masks.append(imread(mask_file))
         return imgs, masks
