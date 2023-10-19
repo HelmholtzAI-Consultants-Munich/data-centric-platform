@@ -2,6 +2,8 @@ import os
 import cv2 
 import sys
 import torch 
+from torchmetrics import JaccardIndex
+
 
 import numpy as np
 from tqdm import tqdm
@@ -41,19 +43,12 @@ def get_dataset(dataset_path):
 
 @pytest.fixture
 def patch_model():
-    classifier_model_config = {
-        "chpt_path":
-        "/home/ubuntu/data-centric-platform/src/server/dcp_server/data/classifier_checkpoint.pth"
-        }
-    classifier_train_config, classifier_eval_config = {}, {}
 
-    segmentor_model_config = read_config('model', config_path='config.cfg')
-    segmentor_train_config = read_config('train', config_path='config.cfg')
-    segmentor_eval_config = read_config('eval', config_path='config.cfg')
+    model_config = read_config('model', config_path='config.cfg')
+    train_config = read_config('train', config_path='config.cfg')
+    eval_config = read_config('eval', config_path='config.cfg')
 
-    patch_model = CellposePatchCNN(
-        segmentor_model_config, segmentor_train_config, segmentor_eval_config,
-        classifier_model_config, classifier_train_config, classifier_eval_config)
+    patch_model = CellposePatchCNN(model_config, train_config, eval_config)
     return patch_model
 
 @pytest.fixture
@@ -70,24 +65,25 @@ def data_eval():
 def test_train_run(data_train, patch_model):
 
     images, masks = data_train
-    for _ in tqdm(range(1)):
-        loss_train = patch_model.train(deepcopy(images), deepcopy(masks))
-    assert(loss_train>1e-2)
+    patch_model.train(images, masks)
+    assert(patch_model.segmentor.loss>1e-2) #TODO figure out appropriate value
+    assert(patch_model.classifier.loss>1e-2)
     
 def test_eval_run(data_eval, patch_model):
 
-    img, msk = data_eval
-    # instance segmentation mask (C, W, H) --> semantic multiclass segmentation mask (W, H)
-    # for i in range(msk.shape[0]):
-    #     msk[i, ...][msk[i, ...] > 0] = i + 1
-
-    # msk = msk.sum(0)
-
-    final_mask, jaccard_index = patch_model.eval(img, instance_mask=torch.tensor(msk))
-    final_mask = final_mask.numpy()
-
-    cv2.imwrite("/home/ubuntu/data-centric-platform/src/server/dcp_server/data/final_mask.jpg", 255*label2rgb(final_mask))
-    assert(jaccard_index<0.6)
+    imgs, masks = data_eval
+    jaccard_index_instances = 0
+    jaccard_index_classes = 0
+    for img, mask in zip(imgs, masks):
+        pred_mask = patch_model.eval(img)
+        jaccard_index_instances += JaccardIndex(pred_mask[0], mask[0])
+        jaccard_index_classes += JaccardIndex(pred_mask[1], mask[1])
+    
+    jaccard_index_instances /= len(imgs)
+    assert(jaccard_index_instances<0.6)
+    jaccard_index_classes /= len(imgs)
+    assert(jaccard_index_instances<0.6)
+    
 
 
 

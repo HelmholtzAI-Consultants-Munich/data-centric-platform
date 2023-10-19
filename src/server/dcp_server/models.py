@@ -57,6 +57,7 @@ class CustomCellposeModel(models.CellposeModel):
         :type masks: List[np.ndarray]
         """  
         super().train(train_data=deepcopy(imgs), train_labels=masks, **self.train_config)
+        self.loss = self.loss_fn(masks, super().eval(imgs, self.eval_config)[0])
     
     def masks_to_outlines(self, mask):
         """ get outlines of masks as a 0-1 array
@@ -153,17 +154,17 @@ class CellClassifierFCNN(nn.Module):
         # TODO check if we should replace self.parameters with super.parameters()
         
         for _ in tqdm(range(epochs), desc="Running CellClassifierFCNN training"):
-            self.epoch_loss = 0
+            self.loss = 0
             for data in train_dataloader:
                 imgs, labels = data
                 optimizer.zero_grad()
                 preds = self.forward(imgs)
-                loss = loss_fn(preds, labels)
-                loss.backward()
+                l = loss_fn(preds, labels)
+                l.backward()
                 optimizer.step()
-                self.epoch_loss += loss.item()
+                self.loss += l.item()
 
-            self.epoch_loss /= len(train_dataloader) 
+            self.loss /= len(train_dataloader) 
     
     def eval(self, img):
         """
@@ -236,7 +237,7 @@ class CellposePatchCNN():
 
     def eval(self, img, **eval_config):
 
-        # TBD we assume image is either 2D [H, W] or 3D [H, W, C]
+        # TBD we assume image is either 2D [H, W] or 3D [H, W, C] (see fsimage storage)
     
         # The final mask which is returned should have 
         # first channel the output of cellpose and the rest are the class channels
