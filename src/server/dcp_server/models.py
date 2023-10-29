@@ -30,6 +30,7 @@ class CustomCellposeModel(models.CellposeModel):
         """
         
         # Initialize the cellpose model
+
         super().__init__(**model_config)
         self.train_config = train_config
         self.eval_config = eval_config
@@ -55,9 +56,15 @@ class CustomCellposeModel(models.CellposeModel):
         :type imgs: List[np.ndarray]
         :param masks: masks of the given images (training labels)
         :type masks: List[np.ndarray]
-        """  
-        super().train(train_data=deepcopy(imgs), train_labels=masks, **self.train_config)
-        self.loss = self.loss_fn(masks, super().eval(imgs, self.eval_config)[0])
+        """ 
+        super().train(
+            train_data=deepcopy(imgs), 
+            train_labels=masks, 
+            min_train_masks=0, 
+            **self.train_config
+        )
+
+        #self.loss = self.loss_fn(masks[0], super().eval(imgs[0], **self.eval_config)[0])
     
     def masks_to_outlines(self, mask):
         """ get outlines of masks as a 0-1 array
@@ -121,6 +128,7 @@ class CellClassifierFCNN(nn.Module):
         x = self.final_conv(x)
         x = self.pooling(x)
         x = x.view(x.size(0), -1)
+
         return x
 
     def train (self, imgs, labels):        
@@ -159,6 +167,7 @@ class CellClassifierFCNN(nn.Module):
                 imgs, labels = data
                 optimizer.zero_grad()
                 preds = self.forward(imgs)
+
                 l = loss_fn(preds, labels)
                 l.backward()
                 optimizer.step()
@@ -194,23 +203,17 @@ class CellposePatchCNN():
         self.eval_config = eval_config
 
         # Initialize the cellpose model and the classifier
-        self.segmentor = CustomCellposeModel(self.model_config["segmentor"], 
-                                             self.train_config["segmentor"],
-                                             self.eval_config["segmentor"])
-        self.classifier = CellClassifierFCNN(self.model_config["classifier"],
-                                             self.train_config["classifier"],
-                                             self.eval_config["classifier"])
-
-    def init_from_checkpoints(self, chpt_classifier=None, chpt_segmentor=None):
-        """
-        Initialize the model from pre-trained checkpoints.
-        """
 
         self.segmentor = CustomCellposeModel(
-            model_config={"gpu":torch.cuda.is_available(), "pretrained_model":chpt_segmentor} 
-            )
-        self.classifier.load_state_dict(torch.load(chpt_classifier)["model"])
-
+            self.model_config.get("segmentor", {}), 
+            self.train_config.get("segmentor", {}),
+            self.eval_config.get("segmentor", {})
+        )
+        self.classifier = CellClassifierFCNN(
+            self.model_config.get("classifier", {}), 
+            self.train_config.get("classifier", {}),
+            self.eval_config.get("classifier", {})
+        )
 
     def train(self, imgs, masks):
         # masks should have first channel as a cellpose mask and all other layers
@@ -226,10 +229,11 @@ class CellposePatchCNN():
         
         # train cellpose
         masks = np.array(masks)
-        masks_instances = list(masks[:,0, ...])
+        masks_instances = [mask.sum(-1) for mask in masks] if masks[0].ndim == 3 else masks
+        masks_classes = [((mask > 0) * np.arange(1, 4)).sum(-1) for mask in masks]
+
         self.segmentor.train(imgs, masks_instances)
         # create patch dataset to train classifier
-        masks_classes = list(masks[:,1, ...])
         patches, labels = self.create_patch_dataset(imgs, masks_classes, masks_instances)
         # train classifier
         self.classifier.train(patches, labels)
@@ -266,89 +270,6 @@ class CellposePatchCNN():
         self.eval_config['z_axis'] = 0
 
         return final_mask
-
-    # REMOVE? replaced by code in eval
-    '''
-    def get_prediction(self, input_image, cellpose_mask):
-        """
-        Performs object segmentation and classification on an input image using the Cellpose model and a classifier model.
-
-        Args:
-            image_path (str): The file path of the input image.
-            model (CellposeModel): The Cellpose model used for object segmentation, instance segmenation mask.
-         
-        Returns:
-            tuple: A tuple containing the cellpose_mask and final_mask, representing the segmentation masks obtained from
-                the Cellpose model and the combined segmentation and classification mask, respectively.
-        """
-
-        # Obtain segmentation mask using Cellpose model
-
-        # Find objects in the cellpose_mask
-        locs = find_objects(cellpose_mask)
-
-        # Get patches and labels based on object centroids
-        patches, labels = self.get_centered_patches(input_image, cellpose_mask, int(1.5 * input_image.shape[0] // 5), noise_intensity=5)
-        
-        labels = torch.tensor(labels)
-        labels_fit = []
-        
-        final_mask = torch.zeros(cellpose_mask.shape)
-
-        with torch.no_grad():
-            for i, patch in enumerate(patches):
-                loc = locs[i]
-
-                # Prepare image patch for classification
-                img = torch.tensor(patch.astype(np.float32)).unsqueeze(0).unsqueeze(0) / 255
-                # img = img.mean(dim=1, keepdim=True)
-              
-                # Perform inference using model_classifier
-                logits = self.classifier(img) 
-        
-                _, predicted = torch.max(logits, 1)
-                labels_fit.append(predicted)
-
-                # Assign predicted class to corresponding location in final_mask
-                final_mask[loc] = predicted + 1
-
-        # Apply mask to final_mask, retaining only regions where cellpose_mask is greater than 0
-        final_mask = final_mask * ((cellpose_mask > 0).long())
-        
-        return final_mask
-    '''
-    def find_max_patch_size(self, mask):
-
-        # Find objects in the mask
-        objects = find_objects(mask)
-
-        # Initialize variables to store the maximum patch size
-        max_patch_size = 0
-        max_patch_indices = None
-
-        # Iterate over the found objects
-        for obj in objects:
-            # Extract start and stop values from the slice object
-            slices = [s for s in obj]
-            start = [s.start for s in slices]
-            stop = [s.stop for s in slices]
-
-            # Calculate the size of the patch along each axis
-            patch_size = tuple(stop[i] - start[i] for i in range(len(start)))
-
-            # Calculate the total size (area) of the patch
-            total_size = 1
-            for size in patch_size:
-                total_size *= size
-
-            # Check if the current patch size is larger than the maximum
-            if total_size > max_patch_size:
-                max_patch_size = total_size
-                max_patch_indices = obj
-            
-            max_patch_size_edge = np.ceil(np.sqrt(max_patch_size))
-
-            return max_patch_size_edge
 
     def crop_centered_padded_patch(self, 
                                    x: np.ndarray, 
@@ -394,6 +315,7 @@ class CellposePatchCNN():
 
         patch = x[max(top, 0):min(bottom, x.shape[0]), max(left, 0):min(right, x.shape[1]), :]
 
+        # used during the training phase only
         if len(c) == 3:
             patch = patch[...,c[2]]
 
@@ -483,21 +405,16 @@ class CellposePatchCNN():
         the max cell size to define the patch size. All patches and masks should then be returned
         in the same format as imgs and masks (same type, i.e. check if tensor or np.array and same 
         convention of dims, e.g.  CxHxW)
-        Args:
-            imgs ():
-            masks ():
-            black_bg (bool): Flag indicating whether to use a black background for patches.
-            include_mask (bool): Flag indicating whether to include the mask along with patches.
         '''
 
         noise_intensity = self.train_config["classifier"]["train_data"]["noise_intensity"]
-        max_patch_size = self.train_config["classifier"]["train_data"]["patch_size"]
-        num_classes = self.train_config["classifier"]["train_data"]["num_classes"]
 
         patches, labels = [], []
         for img, mask_class, mask_instance in zip(imgs,  masks_classes, masks_instances):
             # Convert to one-hot encoding
-            # mask has dimension WxHxNum_of_channels
+            # mask_instance has dimension WxH
+            # mask_class has dimension WxH
+            
             patch, label = self.get_centered_patches(img, 
                                                         mask_instance,
                                                         self.train_config["classifier"]["train_data"]["patch_size"], 

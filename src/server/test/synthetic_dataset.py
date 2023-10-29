@@ -1,14 +1,8 @@
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
 import random
-import os
-import math
 
-from skimage.transform import rotate
 import skimage.color as color
-from skimage.util import random_noise
-from skimage import io 
 import scipy.ndimage as ndi
 
 # set seed for reproducibility
