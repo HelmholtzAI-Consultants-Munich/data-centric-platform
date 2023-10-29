@@ -7,6 +7,7 @@ from copy import deepcopy
 from tqdm import tqdm
 import numpy as np
 from scipy.ndimage import find_objects, center_of_mass
+import cv2
 
 #from segment_anything import SamPredictor, sam_model_registry
 #from segment_anything.automatic_mask_generator import SamAutomaticMaskGenerator
@@ -83,8 +84,10 @@ class CellClassifierFCNN(nn.Module):
     Fully convolutional classifier for cell images.
 
     Args:
-        in_channels (int): Number of input channels.
-        num_classes (int): Number of output classes.
+        model_config (dict): Model configuration.
+        train_config (dict): Training configuration.
+        eval_config (dict): Evaluation configuration.
+        
     '''
 
     def __init__(self, model_config, train_config, eval_config):
@@ -228,6 +231,10 @@ class CellposePatchCNN():
                                  # mask.transpose(1, 2, 0) for mask in masks]
         
         # train cellpose
+
+        if imgs[0].ndim == 3:
+            imgs = [cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) for img in imgs]
+
         masks = np.array(masks)
         masks_instances = [mask.sum(-1) for mask in masks] if masks[0].ndim == 3 else masks
         masks_classes = [((mask > 0) * np.arange(1, 4)).sum(-1) for mask in masks]
@@ -237,7 +244,6 @@ class CellposePatchCNN():
         patches, labels = self.create_patch_dataset(imgs, masks_classes, masks_instances)
         # train classifier
         self.classifier.train(patches, labels)
-        #return # TODO - define if we need to return something
 
     def eval(self, img, **eval_config):
 
@@ -252,11 +258,19 @@ class CellposePatchCNN():
             # find coordinates of detected objects
             locs = find_objects(instance_mask) 
             class_mask = np.zeros(instance_mask.shape)
+            
+            
+            max_patch_size = self.eval_config["classifier"]["data"]["patch_size"]
+            noise_intensity = self.eval_config["classifier"]["data"]["noise_intensity"]
+            
+            if max_patch_size is None:
+                max_patch_size = self.find_max_patch_size(instance_mask)
+            
             # get patches centered around detected objects
             patches, _ = self.get_centered_patches(img, 
                                                    instance_mask, 
-                                                   self.eval_config["classifier"]["data"]["patch_size"], 
-                                                   noise_intensity=5)
+                                                   max_patch_size, 
+                                                   noise_intensity=noise_intensity)
             # loop over patches and create classification mask
             for idx, patch in enumerate(patches):
                 patch_class = self.classifier.eval(patch)
@@ -316,6 +330,7 @@ class CellposePatchCNN():
         patch = x[max(top, 0):min(bottom, x.shape[0]), max(left, 0):min(right, x.shape[1]), :]
 
         # used during the training phase only
+        # c is (cx, cy, celltype = {0, 1, 2}) during training or (cx, cy) during inference
         if len(c) == 3:
             patch = patch[...,c[2]]
 
@@ -397,17 +412,53 @@ class CellposePatchCNN():
             if mask_class is not None: labels.append(mask_class[c[0]][c[1]])
 
         return patches, labels
+    
+    def find_max_patch_size(self, mask):
+
+        # Find objects in the mask
+        objects = find_objects(mask)
+
+        # Initialize variables to store the maximum patch size
+        max_patch_size = 0
+
+        # Iterate over the found objects
+        for obj in objects:
+            # Extract start and stop values from the slice object
+            slices = [s for s in obj]
+            start = [s.start for s in slices]
+            stop = [s.stop for s in slices]
+
+            # Calculate the size of the patch along each axis
+            patch_size = tuple(stop[i] - start[i] for i in range(len(start)))
+
+            # Calculate the total size (area) of the patch
+            total_size = 1
+            for size in patch_size:
+                total_size *= size
+
+            # Check if the current patch size is larger than the maximum
+            if total_size > max_patch_size:
+                max_patch_size = total_size
+            
+            max_patch_size_edge = np.ceil(np.sqrt(max_patch_size))
+
+            return max_patch_size_edge
 
     def create_patch_dataset(self, imgs, masks_classes, masks_instances):
         '''
         Splits img and masks into patches of equal size which are centered around the cells.
-        The algorithm should first run through all images to find the max cell size, and use
+        If patch_size is not given, the algorithm should first run through all images to find the max cell size, and use
         the max cell size to define the patch size. All patches and masks should then be returned
         in the same format as imgs and masks (same type, i.e. check if tensor or np.array and same 
         convention of dims, e.g.  CxHxW)
         '''
 
         noise_intensity = self.train_config["classifier"]["train_data"]["noise_intensity"]
+        max_patch_size = self.train_config["classifier"]["train_data"]["patch_size"]
+
+        if max_patch_size is None:
+            max_patch_size = np.max([self.find_max_patch_size(mask) for mask in masks_instances])
+           
 
         patches, labels = [], []
         for img, mask_class, mask_instance in zip(imgs,  masks_classes, masks_instances):
@@ -417,7 +468,7 @@ class CellposePatchCNN():
             
             patch, label = self.get_centered_patches(img, 
                                                         mask_instance,
-                                                        self.train_config["classifier"]["train_data"]["patch_size"], 
+                                                        max_patch_size, 
                                                         noise_intensity=noise_intensity,
                                                         mask_class=mask_class)
             patches.extend(patch)

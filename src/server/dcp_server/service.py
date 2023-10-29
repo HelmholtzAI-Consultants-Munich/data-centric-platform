@@ -5,6 +5,8 @@ from dcp_server.fsimagestorage import FilesystemImageStorage
 from dcp_server.serviceclasses import CustomBentoService, CustomRunnable
 from dcp_server.utils import read_config
 
+import sys, inspect
+
 models_module = __import__("models")
 segmentation_module = __import__("segmentationclasses")
 
@@ -17,6 +19,7 @@ eval_config = read_config('eval', config_path = 'config.cfg')
 setup_config = read_config('setup', config_path = 'config.cfg')
 
 # instantiate the model
+
 model_class = getattr(models_module, service_config['model_to_use'])
 model = model_class(model_config = model_config, train_config = train_config, eval_config = eval_config)
 custom_model_runner = t.cast(
