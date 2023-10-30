@@ -30,11 +30,11 @@ class CustomCellposeModel(models.CellposeModel):
         """
         
         # Initialize the cellpose model
-        super().__init__(**model_config)
-        self.train_config = train_config
-        self.eval_config = eval_config
+        super().__init__(**model_config["segmentor"])
+        self.train_config = train_config["segmentor"]
+        self.eval_config = eval_config["segmentor"]
         
-    def eval(self, img, **eval_config):
+    def eval(self, img):
         """Evaluate the model - find mask of the given image
         Calls the original eval function. 
 
@@ -44,9 +44,9 @@ class CustomCellposeModel(models.CellposeModel):
         :type z_axis: int
         :return: mask of the image, list of 2D arrays, or single 3D array (if do_3D=True) labelled image.
         :rtype: np.ndarray
-        """   
-        return super().eval(x=img, **eval_config)[0] # 0 to take only mask
-    
+        """  
+        return super().eval(x=img, **self.eval_config)[0] # 0 to take only mask
+
     def train(self, imgs, masks):
         """Trains the given model
         Calls the original train function.
@@ -57,7 +57,9 @@ class CustomCellposeModel(models.CellposeModel):
         :type masks: List[np.ndarray]
         """  
         super().train(train_data=deepcopy(imgs), train_labels=masks, **self.train_config)
-        self.loss = self.loss_fn(masks, super().eval(imgs, self.eval_config)[0])
+
+        #pred_masks = [self.eval(img, **self.eval_config) for img in masks]
+        #self.loss = self.loss_fn(masks, pred_masks)
     
     def masks_to_outlines(self, mask):
         """ get outlines of masks as a 0-1 array
@@ -83,11 +85,11 @@ class CellClassifierFCNN(nn.Module):
     def __init__(self, model_config, train_config, eval_config):
         super().__init__()
 
-        self.in_channels = model_config["in_channels"]
-        self.num_classes = model_config["num_classes"] + 1
+        self.in_channels = model_config["classifier"]["in_channels"]
+        self.num_classes = model_config["classifier"]["num_classes"] + 1
 
-        self.train_config = train_config
-        self.eval_config = eval_config
+        self.train_config = train_config["classifier"]
+        self.eval_config = eval_config["classifier"]
         
         self.layer1 = nn.Sequential(
             nn.Conv2d(self.in_channels, 16, 3, 2, 5),
@@ -194,12 +196,12 @@ class CellposePatchCNN():
         self.eval_config = eval_config
 
         # Initialize the cellpose model and the classifier
-        self.segmentor = CustomCellposeModel(self.model_config["segmentor"], 
-                                             self.train_config["segmentor"],
-                                             self.eval_config["segmentor"])
-        self.classifier = CellClassifierFCNN(self.model_config["classifier"],
-                                             self.train_config["classifier"],
-                                             self.eval_config["classifier"])
+        self.segmentor = CustomCellposeModel(self.model_config, 
+                                             self.train_config,
+                                             self.eval_config)
+        self.classifier = CellClassifierFCNN(self.model_config,
+                                             self.train_config,
+                                             self.eval_config)
 
     def init_from_checkpoints(self, chpt_classifier=None, chpt_segmentor=None):
         """
