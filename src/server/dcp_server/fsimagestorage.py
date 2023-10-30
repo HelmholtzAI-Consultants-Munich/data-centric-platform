@@ -105,21 +105,30 @@ class FilesystemImageStorage():
         """        
     
         orig_size = img.shape
-        # png and jpeg will be RGB by default and 2D
+        # png and jpeg will be RGB by default and 2D 
         # tif can be grayscale 2D or 2D RGB and RGBA
-        if file_extension in (".jpg", ".jpeg", ".png") or (file_extension in (".tiff", ".tif") and len(orig_size)==2 or (len(orig_size)==3 and (orig_size[-1]==3 or orig_size[-1]==4))):
+        #  RGB can be [C, H, W] or [H, W, C]
+        if file_extension in (".jpg", ".jpeg", ".png"):
             height, width = orig_size[0], orig_size[1]
             channel_ax = 2
+            z_axis = None
+        elif file_extension in (".tiff", ".tif") and len(orig_size)==2:
+            channel_ax = None
+            z_axis = None
+        elif (len(orig_size)==3 and (orig_size[-1]==3 or orig_size[-1]==4)):
+            channel_ax = 2
+            z_axis = None
         # or 3D tiff grayscale 
         elif file_extension in (".tiff", ".tif") and len(orig_size)==3:
             print('Warning: 3D image stack found. We are assuming your first dimension is your stack dimension. Please cross check this.')
             height, width = orig_size[1], orig_size[2]
-            channel_ax = 0                
+            channel_ax = None
+            z_axis = 0                
         
         else:
             pass
 
-        return height, width, channel_ax
+        return height, width, channel_ax, z_axis
     
     def rescale_image(self, img, height, width, channel_ax, order):
         """rescale image
