@@ -25,7 +25,7 @@ class CustomRunnable(bentoml.Runnable):
         self.save_model_path = save_model_path
 
     @bentoml.Runnable.method(batchable=False)
-    def evaluate(self, img: np.ndarray, **eval_config) -> np.ndarray:
+    def evaluate(self, img: np.ndarray) -> np.ndarray:
         """Evaluate the model - find mask of the given image
 
         :param img: image to evaluate on
@@ -36,7 +36,7 @@ class CustomRunnable(bentoml.Runnable):
         :rtype: np.ndarray
         """              
 
-        mask = self.model.eval(img=img, **eval_config)
+        mask = self.model.eval(img=img)
 
         return mask
 
@@ -51,9 +51,17 @@ class CustomRunnable(bentoml.Runnable):
         :return: path of the saved model
         :rtype: str
         """        
-
+        s1 = self.model.segmentor.net.state_dict()
+        c1 = self.model.classifier.parameters()
         self.model.train(imgs, masks)
-
+        s2 = self.model.segmentor.net.state_dict()
+        c2 = self.model.classifier.parameters()
+        if s1 == s2: print('S1 and S2 COMP: THEY ARE THE SAME!!!!!')
+        else: print('S1 and S2 COMP: THEY ARE NOOOT THE SAME!!!!!')
+        for p1, p2 in zip(c1, c2):
+            if p1.data.ne(p2.data).sum() > 0:
+                print("C1 and C2 NOT THE SAME")
+                break
         # Save the bentoml model
         bentoml.picklable_model.save_model(self.save_model_path, self.model) 
 
