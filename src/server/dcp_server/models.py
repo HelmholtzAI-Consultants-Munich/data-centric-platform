@@ -31,8 +31,7 @@ class CustomCellposeModel(models.CellposeModel):
         """
         
         # Initialize the cellpose model
-
-        super().__init__(**model_config)
+        super().__init__(**model_config['segmentor'])
         self.train_config = train_config
         self.eval_config = eval_config
         
