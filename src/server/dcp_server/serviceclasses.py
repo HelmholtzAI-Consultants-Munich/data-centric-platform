@@ -51,9 +51,10 @@ class CustomRunnable(bentoml.Runnable):
         :return: path of the saved model
         :rtype: str
         """        
-        s1 = self.model.segmentor.net.state_dict()
-        c1 = self.model.classifier.parameters()
+        #s1 = self.model.segmentor.net.state_dict()
+        #c1 = self.model.classifier.parameters()
         self.model.train(imgs, masks)
+        '''
         s2 = self.model.segmentor.net.state_dict()
         c2 = self.model.classifier.parameters()
         if s1 == s2: print('S1 and S2 COMP: THEY ARE THE SAME!!!!!')
@@ -62,6 +63,7 @@ class CustomRunnable(bentoml.Runnable):
             if p1.data.ne(p2.data).sum() > 0:
                 print("C1 and C2 NOT THE SAME")
                 break
+        '''
         # Save the bentoml model
         bentoml.picklable_model.save_model(self.save_model_path, self.model) 
 
