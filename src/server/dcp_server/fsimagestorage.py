@@ -115,6 +115,7 @@ class FilesystemImageStorage():
         elif file_extension in (".tiff", ".tif") and len(orig_size)==2:
             channel_ax = None
             z_axis = None
+        # if we have 3 dimensions and the third is size 3 or 4, then we assume it is the channel axis
         elif (len(orig_size)==3 and (orig_size[-1]==3 or orig_size[-1]==4)):
             channel_ax = 2
             z_axis = None
