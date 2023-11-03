@@ -60,7 +60,11 @@ class FilesystemImageStorage():
         img_directory = utils.get_path_parent(os.path.join(self.root_dir, cur_selected_img))
         # Take all segmentations of the image from the current directory:
         search_string = utils.get_path_stem(cur_selected_img) + setup_config['seg_name_string']
-        seg_files = [os.path.join(img_directory, file_name) for file_name in os.listdir(img_directory) if search_string in file_name]
+        #seg_files = [os.path.join(img_directory, file_name) for file_name in os.listdir(img_directory) if search_string in file_name]
+        # TODO: check where this is used - copied the command from app's search_segs function (to fix the 1_seg and 11_seg bug)
+        seg_files = [file_name for file_name in os.listdir(img_directory) if (search_string == utils.get_path_stem(file_name) or str(file_name).startswith(search_string))]
+
+
         return seg_files
     
     def get_image_seg_pairs(self, directory):
