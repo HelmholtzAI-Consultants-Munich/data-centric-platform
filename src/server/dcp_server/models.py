@@ -241,10 +241,10 @@ class CellposePatchCNN():
 
         masks = np.array(masks)
 
-        masks_instances = [mask.sum(-1) for mask in masks] if masks[0].ndim == 3 else masks
+        masks_instances = list(masks[:,0, ...]) #[mask.sum(-1) for mask in masks] if masks[0].ndim == 3 else masks
         self.segmentor.train(imgs, masks_instances)
         # create patch dataset to train classifier
-        masks_classes = [((mask > 0) * np.arange(1, 4)).sum(-1) for mask in masks]
+        masks_classes = list(masks[:,1, ...]) #[((mask > 0) * np.arange(1, 4)).sum(-1) for mask in masks]
         patches, labels = create_patch_dataset(imgs,
                                                masks_classes,
                                                masks_instances,

@@ -63,7 +63,8 @@ class GeneralSegmentation():
         :type input_path: str
         :return: runner's train function output - path of the saved model
         :rtype: str
-        """        
+        """       
+
         train_img_mask_pairs = self.imagestorage.get_image_seg_pairs(input_path)
 
         if not train_img_mask_pairs:
@@ -71,7 +72,7 @@ class GeneralSegmentation():
                 
         imgs, masks = self.imagestorage.prepare_images_and_masks_for_training(train_img_mask_pairs)
         model_save_path =  await self.runner.train.async_run(imgs, masks)
-        
+
         return model_save_path
 
 
