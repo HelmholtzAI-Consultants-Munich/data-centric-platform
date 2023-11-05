@@ -147,6 +147,8 @@ class CellClassifierFCNN(nn.Module):
         # optimizer_class = self.train_config['optimizer']
 
         # Convert input images and labels to tensors
+
+        # normalize images 
         imgs = [(img-np.min(img))/(np.max(img)-np.min(img)) for img in imgs]
         # convert to tensor
         imgs = torch.stack([torch.from_numpy(img.astype(np.float32)) for img in imgs])
@@ -168,6 +170,7 @@ class CellClassifierFCNN(nn.Module):
             self.loss = 0
             for data in train_dataloader:
                 imgs, labels = data
+
                 optimizer.zero_grad()
                 preds = self.forward(imgs)
 
@@ -232,10 +235,10 @@ class CellposePatchCNN():
         
         # train cellpose
 
-        if imgs[0].ndim == 3:
-            imgs = [cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) for img in imgs]
+        imgs = [cv2.merge((img, img, img)) for img in imgs]
 
         masks = np.array(masks)
+
         masks_instances = [mask.sum(-1) for mask in masks] if masks[0].ndim == 3 else masks
         masks_classes = [((mask > 0) * np.arange(1, 4)).sum(-1) for mask in masks]
 
@@ -258,7 +261,6 @@ class CellposePatchCNN():
             # find coordinates of detected objects
             locs = find_objects(instance_mask) 
             class_mask = np.zeros(instance_mask.shape)
-            
             
             max_patch_size = self.eval_config["classifier"]["data"]["patch_size"]
             noise_intensity = self.eval_config["classifier"]["data"]["noise_intensity"]
@@ -331,8 +333,8 @@ class CellposePatchCNN():
 
         # used during the training phase only
         # c is (cx, cy, celltype = {0, 1, 2}) during training or (cx, cy) during inference
-        if len(c) == 3:
-            patch = patch[...,c[2]]
+        # if len(c) == 3:
+        #     patch = patch[...,c[2]]
 
         # Calculate the required padding amounts
         size_x, size_y = x.shape[1], x.shape[0]
@@ -409,6 +411,7 @@ class CellposePatchCNN():
                                                    mask=mask,
                                                    noise_intensity=noise_intensity)
             patches.append(patch)
+            # during the training step we store the true labels of the patch
             if mask_class is not None: labels.append(mask_class[c[0]][c[1]])
 
         return patches, labels
@@ -458,9 +461,9 @@ class CellposePatchCNN():
 
         if max_patch_size is None:
             max_patch_size = np.max([self.find_max_patch_size(mask) for mask in masks_instances])
-           
 
         patches, labels = [], []
+
         for img, mask_class, mask_instance in zip(imgs,  masks_classes, masks_instances):
             # Convert to one-hot encoding
             # mask_instance has dimension WxH

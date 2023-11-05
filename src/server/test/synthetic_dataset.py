@@ -117,7 +117,6 @@ def generate_dataset(num_samples, objects, canvas_size, max_object_counts=None, 
     object_images = get_object_images(objects)
     class_intensities = [ (obj['intensity'][0], obj['intensity'][1])   for obj in objects]
 
-
     if len(object_images[0].shape) == 3:
         num_of_img_channels = object_images[0].shape[-1]
     else:
