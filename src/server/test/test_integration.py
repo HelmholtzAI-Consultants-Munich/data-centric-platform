@@ -15,9 +15,9 @@ import pytest
 @pytest.fixture
 def patch_model():
     
-    model_config = read_config('model', config_path='../dcp_server/config.cfg')
-    train_config = read_config('train', config_path='../dcp_server/config.cfg')
-    eval_config = read_config('eval', config_path='../dcp_server/config.cfg')
+    model_config = read_config('model', config_path='dcp_server/config.cfg')
+    train_config = read_config('train', config_path='dcp_server/config.cfg')
+    eval_config = read_config('eval', config_path='dcp_server/config.cfg')
 
     patch_model = CellposePatchCNN(model_config, train_config, eval_config)
     return patch_model

@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 import random
+import os
+import sys
 
 import skimage.color as color
 import scipy.ndimage as ndi
@@ -217,21 +219,23 @@ def generate_dataset(num_samples, objects, canvas_size, max_object_counts=None, 
 
 def get_synthetic_dataset(num_samples, canvas_size=512, max_object_counts=[15, 15, 15]):
    
+    print(os.getcwd())
+    assert 0 ==1
     objects = [
     {
         
         'name': 'triangle',
-        'path': 'shapes/triangle.png',
+        'path': 'dcp_server/shapes/triangle.png',
         'intensity' : [0, 0.33]
     },
     {
         'name': 'circle',
-        'path': 'shapes/circle.png',
+        'path': 'dcp_server/shapes/circle.png',
         'intensity' : [0.34, 0.66]
     },
     {
         'name': 'square',
-        'path': 'shapes/square.png',
+        'path': 'dcp_server/shapes/square.png',
         'intensity' : [0.67, 1.0]
     },
     ]
