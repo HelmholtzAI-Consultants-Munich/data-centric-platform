@@ -223,17 +223,17 @@ def get_synthetic_dataset(num_samples, canvas_size=512, max_object_counts=[15, 1
     {
         
         'name': 'triangle',
-        'path': 'dcp_server/shapes/triangle.png',
+        'path': 'test/shapes/triangle.png',
         'intensity' : [0, 0.33]
     },
     {
         'name': 'circle',
-        'path': 'dcp_server/shapes/circle.png',
+        'path': 'test/shapes/circle.png',
         'intensity' : [0.34, 0.66]
     },
     {
         'name': 'square',
-        'path': 'dcp_server/shapes/square.png',
+        'path': 'test/shapes/square.png',
         'intensity' : [0.67, 1.0]
     },
     ]
