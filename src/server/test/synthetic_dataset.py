@@ -219,8 +219,6 @@ def generate_dataset(num_samples, objects, canvas_size, max_object_counts=None, 
 
 def get_synthetic_dataset(num_samples, canvas_size=512, max_object_counts=[15, 15, 15]):
    
-    print(os.getcwd())
-    assert 0 ==1
     objects = [
     {
         
