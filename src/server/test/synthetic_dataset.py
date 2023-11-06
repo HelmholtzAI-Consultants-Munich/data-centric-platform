@@ -216,8 +216,10 @@ def generate_dataset(num_samples, objects, canvas_size, max_object_counts=None, 
     return dataset_images, dataset_masks
 
 def get_synthetic_dataset(num_samples, canvas_size=512, max_object_counts=[15, 15, 15]):
+   
     objects = [
     {
+        
         'name': 'triangle',
         'path': 'shapes/triangle.png',
         'intensity' : [0, 0.33]

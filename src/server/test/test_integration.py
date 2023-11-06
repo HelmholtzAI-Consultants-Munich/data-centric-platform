@@ -15,7 +15,6 @@ import pytest
 @pytest.fixture
 def patch_model():
     
-    print(os.getcwd())
     model_config = read_config('model', config_path='../dcp_server/config.cfg')
     train_config = read_config('train', config_path='../dcp_server/config.cfg')
     eval_config = read_config('eval', config_path='../dcp_server/config.cfg')
@@ -25,7 +24,8 @@ def patch_model():
 
 @pytest.fixture
 def data_train():
-    images, masks = get_synthetic_dataset(num_samples=2)
+    images, masks = get_synthetic_dataset(num_samples=3)
+    masks = [np.array(mask) for mask in masks]
     masks_instances = [mask.sum(-1) for mask in masks]
     masks_classes = [((mask > 0) * np.arange(1, 4)).sum(-1) for mask in masks]
     masks_ = [np.stack((instances, classes)) for instances, classes in zip(masks_instances, masks_classes)]
@@ -41,7 +41,6 @@ def data_eval():
 def test_train_run(data_train, patch_model):
 
     images, masks = data_train
-
     patch_model.train(images, masks)
     # assert(patch_model.segmentor.loss>1e-2) #TODO figure out appropriate value
     assert(patch_model.classifier.loss>1e-2)
