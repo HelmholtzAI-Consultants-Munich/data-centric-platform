@@ -6,7 +6,6 @@ from torch.utils.data import TensorDataset, DataLoader
 from copy import deepcopy
 from tqdm import tqdm
 import numpy as np
-import cv2
 
 #from segment_anything import SamPredictor, sam_model_registry
 #from segment_anything.automatic_mask_generator import SamAutomaticMaskGenerator
@@ -88,7 +87,7 @@ class CellClassifierFCNN(nn.Module):
         super().__init__()
 
         self.in_channels = model_config["classifier"]["in_channels"]
-        self.num_classes = model_config["classifier"]["num_classes"] + 1
+        self.num_classes = model_config["classifier"]["num_classes"]
 
         self.train_config = train_config["classifier"]
         self.eval_config = eval_config["classifier"]
@@ -125,7 +124,6 @@ class CellClassifierFCNN(nn.Module):
         x = self.final_conv(x)
         x = self.pooling(x)
         x = x.view(x.size(0), -1)
-
         return x
 
     def train (self, imgs, labels):        
@@ -165,7 +163,7 @@ class CellClassifierFCNN(nn.Module):
 
                 optimizer.zero_grad()
                 preds = self.forward(imgs)
-
+            
                 l = loss_fn(preds, labels)
                 l.backward()
                 optimizer.step()
@@ -234,11 +232,7 @@ class CellposePatchCNN():
         :type masks: List[np.ndarray] of same shape as output of eval, i.e. one channel instances, 
         second channel classes, so [2, H, W] or [2, 3, H, W] for 3D
         """  
-        
         # train cellpose
-
-        imgs = [cv2.merge((img, img, img)) for img in imgs]
-
         masks = np.array(masks) 
         masks_instances = list(masks[:,0,...]) #[mask.sum(-1) for mask in masks] if masks[0].ndim == 3 else masks
         self.segmentor.train(imgs, masks_instances)
@@ -253,36 +247,31 @@ class CellposePatchCNN():
         self.classifier.train(patches, labels)
 
     def eval(self, img):
-        # TBD we assume image is either 2D [H, W] or [H, W, C] (see fsimage storage)
+        # TBD we assume image is either 2D [H, W] (see fsimage storage)
         # The final mask which is returned should have 
         # first channel the output of cellpose and the rest are the class channels
-        # TODO test case produces img with size HxW for eval and HxWx3 for train
         with torch.no_grad():
             # get instance mask from segmentor
             instance_mask = self.segmentor.eval(img)
             # find coordinates of detected objects
-            locs = get_objects(instance_mask) 
             class_mask = np.zeros(instance_mask.shape)
             
             max_patch_size = self.eval_config["classifier"]["data"]["patch_size"]
+            if max_patch_size is None: max_patch_size = find_max_patch_size(instance_mask)
             noise_intensity = self.eval_config["classifier"]["data"]["noise_intensity"]
             
-            if max_patch_size is None:
-                max_patch_size = find_max_patch_size(instance_mask)
-            
             # get patches centered around detected objects
-            patches, _ = get_centered_patches(img,
-                                              instance_mask,
-                                              max_patch_size,
-                                              noise_intensity=noise_intensity)
+            patches, instance_labels, _ = get_centered_patches(img,
+                                                               instance_mask,
+                                                               max_patch_size,
+                                                               noise_intensity=noise_intensity)
             # loop over patches and create classification mask
             for idx, patch in enumerate(patches):
                 patch_class = self.classifier.eval(patch) # patch size should be HxWxC, e.g. 64,64,3
-                loc = locs[idx]
                 # Assign predicted class to corresponding location in final_mask
-                class_mask[loc] = patch_class.item() + 1
+                class_mask[instance_mask==instance_labels[idx]] = patch_class.item() + 1
             # Apply mask to final_mask, retaining only regions where cellpose_mask is greater than 0
-            class_mask = class_mask * (instance_mask > 0)#.long())
+            #class_mask = class_mask * (instance_mask > 0)#.long())
             final_mask = np.stack((instance_mask, class_mask), axis=self.eval_config['mask_channel_axis']).astype(np.uint16) # size 2xHxW
         
         return final_mask
