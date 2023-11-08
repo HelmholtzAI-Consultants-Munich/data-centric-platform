@@ -34,15 +34,13 @@ class GeneralSegmentation():
             # Load the image
             img = self.imagestorage.load_image(img_filepath)
             # Get size properties
-            height, width, channel_ax, z_axis = self.imagestorage.get_image_size_properties(img, utils.get_file_extension(img_filepath))
+            height, width, z_axis = self.imagestorage.get_image_size_properties(img, utils.get_file_extension(img_filepath))
             img = self.imagestorage.rescale_image(img,
                                                   height,
                                                   width,
-                                                  channel_ax,
                                                   order=None)
             # Add channel ax into the model's evaluation parameters dictionary
             self.model.eval_config['segmentor']['z_axis'] = z_axis
-            self.model.eval_config['segmentor']['channel_axis'] = channel_ax
             # Evaluate the model
             mask = await self.runner.evaluate.async_run(img = img)
             # Resize the mask
