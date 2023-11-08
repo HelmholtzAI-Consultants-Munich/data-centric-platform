@@ -118,11 +118,13 @@ class FilesystemImageStorage():
             height, width = orig_size[0], orig_size[1]
             z_axis = None
         elif file_extension in (".tiff", ".tif") and len(orig_size)==2:
+            height, width = orig_size[0], orig_size[1]
             z_axis = None
         # if we have 3 dimensions the [Z, H, W]
         elif file_extension in (".tiff", ".tif") and len(orig_size)==3:
-            print('Warning: 3D image stack found. We are assuming your first dimension is your stack dimension. Please cross check this.')
-            z_axis = 0       
+            print('Warning: 3D image stack found. We are assuming your first dimension is your stack dimension. Please cross check this.') 
+            height, width = orig_size[1], orig_size[2]   
+            z_axis = 0   
         else:
             print('File not currently supported. See documentation for accepted types')
 
