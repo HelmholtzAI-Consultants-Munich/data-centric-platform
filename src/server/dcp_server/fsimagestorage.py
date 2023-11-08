@@ -106,7 +106,7 @@ class FilesystemImageStorage():
         :return: size properties:
             - height
             - width
-            - channel_ax
+            - z_axis
         
         """        
     
