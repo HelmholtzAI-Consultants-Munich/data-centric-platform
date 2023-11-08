@@ -13,15 +13,17 @@ class FilesystemImageStorage():
     def __init__(self, data_root):
         self.root_dir = data_root
     
-    def load_image(self, cur_selected_img):
+    def load_image(self, cur_selected_img, is_gray=True):
         """Load the image (using skiimage)
 
         :param cur_selected_img: full path of the image that needs to be loaded
         :type cur_selected_img: str
         :return: loaded image
         :rtype: ndarray
-        """        
-        return imread(os.path.join(self.root_dir , cur_selected_img))
+        """      
+        try:
+            return imread(os.path.join(self.root_dir , cur_selected_img), as_gray=is_gray)
+        except ValueError: return None
     
     def save_image(self, to_save_path, img):
         """Save given image (using skiimage)
@@ -110,32 +112,23 @@ class FilesystemImageStorage():
     
         orig_size = img.shape
         # png and jpeg will be RGB by default and 2D 
-        # tif can be grayscale 2D or 2D RGB and RGBA
-        #  RGB can be [C, H, W] or [H, W, C]
+        # tif can be grayscale 2D or 3D [Z, H, W]
+        # image channels have already been removed in imread with is_gray=True
         if file_extension in (".jpg", ".jpeg", ".png"):
             height, width = orig_size[0], orig_size[1]
-            channel_ax = 2
             z_axis = None
         elif file_extension in (".tiff", ".tif") and len(orig_size)==2:
-            channel_ax = None
             z_axis = None
-        # if we have 3 dimensions and the third is size 3 or 4, then we assume it is the channel axis
-        elif (len(orig_size)==3 and (orig_size[-1]==3 or orig_size[-1]==4)):
-            channel_ax = 2
-            z_axis = None
-        # or 3D tiff grayscale 
+        # if we have 3 dimensions the [Z, H, W]
         elif file_extension in (".tiff", ".tif") and len(orig_size)==3:
             print('Warning: 3D image stack found. We are assuming your first dimension is your stack dimension. Please cross check this.')
-            height, width = orig_size[1], orig_size[2]
-            channel_ax = None
-            z_axis = 0                
-        
+            z_axis = 0       
         else:
-            pass
+            print('File not currently supported. See documentation for accepted types')
 
-        return height, width, channel_ax, z_axis
+        return height, width, z_axis
     
-    def rescale_image(self, img, height, width, channel_ax, order):
+    def rescale_image(self, img, height, width, channel_ax=None, order=2):
         """rescale image
 
         :param img: image
@@ -180,6 +173,6 @@ class FilesystemImageStorage():
         imgs=[]
         masks=[]
         for img_file, mask_file in train_img_mask_pairs:
-            imgs.append(imread(img_file))
+            imgs.append(self.load_image(img_file))
             masks.append(imread(mask_file))
         return imgs, masks
