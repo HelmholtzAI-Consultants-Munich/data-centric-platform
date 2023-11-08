@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 import numpy as np
 from scipy.ndimage import find_objects, center_of_mass
+from skimage import measure
 
 def read_config(name, config_path = 'config.cfg') -> dict:   
     """Reads the configuration file
@@ -37,6 +38,7 @@ def get_file_extension(file): return str(Path(file).suffix)
 def crop_centered_padded_patch(x: np.ndarray, 
                                c, 
                                p, 
+                               l,
                                mask: np.ndarray=None,
                                noise_intensity=None) -> np.ndarray:
     """
@@ -44,8 +46,9 @@ def crop_centered_padded_patch(x: np.ndarray,
 
     Args:
         x (np.ndarray): The input array from which the patch will be cropped.
-        c (tuple): The coordinates (row, column, channel) at the center of the patch.
+        c (tuple): The coordinates (row, column) at the center of the patch.
         p (tuple): The size of the patch to be cropped (height, width).
+        l (int): The instance label of the mask at the patch
 
     Returns:
         np.ndarray: The cropped patch with applied padding.
@@ -63,11 +66,9 @@ def crop_centered_padded_patch(x: np.ndarray,
     # Crop the patch from the input array
     if mask is not None:
         mask_ = mask.max(-1) if len(mask.shape) >= 3 else mask
-        # central_label = mask_[c[0], c[1]]
-        central_label = mask_[c[0]][c[1]]
         # Zero out values in the patch where the mask is not equal to the central label
         # m = (mask_ != central_label) & (mask_ > 0)
-        m = (mask_ != central_label) & (mask_ > 0)
+        m = (mask_ != l) & (mask_ > 0)
         x[m] = 0
         if noise_intensity is not None:
             x[m] = np.random.normal(scale=noise_intensity, size=x[m].shape)
@@ -101,7 +102,7 @@ def crop_centered_padded_patch(x: np.ndarray,
     return patch 
 
 
-def get_center_of_mass(mask: np.ndarray) -> np.ndarray:
+def get_center_of_mass_and_label(mask: np.ndarray) -> np.ndarray:
     """
     Compute the centers of mass for each object in a mask.
 
@@ -109,12 +110,24 @@ def get_center_of_mass(mask: np.ndarray) -> np.ndarray:
         mask (np.ndarray): The input mask containing labeled objects.
 
     Returns:
-        np.ndarray: An array of coordinates (row, column, channel) representing the centers of mass for each object.
+        list of tuples: A list of coordinates (row, column) representing the centers of mass for each object.
+        list of ints: Holds the label for each object in the mask
     """
 
     # Compute the centers of mass for each labeled object in the mask
+    '''
     return [(int(x[0]), int(x[1])) 
             for x in center_of_mass(mask, mask, np.arange(1, mask.max() + 1))]
+    '''
+    centers = []
+    labels = []
+    for region in measure.regionprops(mask):
+        center = region.centroid
+        centers.append((int(center[0]), int(center[1])))
+        labels.append(region.label)
+    return centers, labels
+         
+
     
 def get_centered_patches(img,
                          mask,
@@ -133,24 +146,30 @@ def get_centered_patches(img,
 
     '''
 
-    patches, labels = [], []
+    patches, instance_labels, class_labels  = [], [], []
     # if image is 2D add an additional dim for channels
     if img.ndim<3: img = img[:, :, np.newaxis]
     if mask.ndim<3: mask = mask[:, :, np.newaxis]
     # compute center of mass of objects
-    centers_of_mass = get_center_of_mass(mask)
+    centers_of_mass, instance_labels = get_center_of_mass_and_label(mask)
     # Crop patches around each center of mass
-    for c in centers_of_mass:
+    for c, l in zip(centers_of_mass, instance_labels):
         c_x, c_y = c
         patch = crop_centered_padded_patch(img.copy(),
                                             (c_x, c_y),
                                             (p_size, p_size),
+                                            l,
                                             mask=mask,
                                             noise_intensity=noise_intensity)
         patches.append(patch)
-        if mask_class is not None: labels.append(mask_class[c[0]][c[1]])
-
-    return patches, labels
+        if mask_class is not None:
+            # get the class instance for the specific object
+            instance_labels.append(l)
+            class_l = int(np.unique(mask_class[mask[:,:,0]==l]))
+            #-1 because labels from mask start from 1, we want classes to start from 0
+            class_labels.append(class_l-1)
+        
+    return patches, instance_labels, class_labels
 
 def get_objects(mask):
     return find_objects(mask)
@@ -203,11 +222,11 @@ def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, 
     for img, mask_class, mask_instance in zip(imgs,  masks_classes, masks_instances):
         # mask_instance has dimension WxH
         # mask_class has dimension WxH
-        patch, label = get_centered_patches(img,
+        patch, _, label = get_centered_patches(img,
                                             mask_instance,
                                             max_patch_size, 
                                             noise_intensity=noise_intensity,
                                             mask_class=mask_class)
         patches.extend(patch)
-        labels.extend(label)
+        labels.extend(label) 
     return patches, labels
