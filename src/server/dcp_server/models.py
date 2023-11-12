@@ -7,6 +7,8 @@ from copy import deepcopy
 from tqdm import tqdm
 import numpy as np
 
+from cellpose.metrics import aggregated_jaccard_index
+
 #from segment_anything import SamPredictor, sam_model_registry
 #from segment_anything.automatic_mask_generator import SamAutomaticMaskGenerator
 
@@ -54,10 +56,20 @@ class CustomCellposeModel(models.CellposeModel):
         :param masks: masks of the given images (training labels)
         :type masks: List[np.ndarray]
         """  
-        super().train(train_data=deepcopy(imgs), train_labels=masks, **self.train_config["segmentor"])
 
-        #pred_masks = [self.eval(img, **self.eval_config) for img in masks]
-        #self.loss = self.loss_fn(masks, pred_masks)
+        if not isinstance(masks, np.ndarray):
+            masks = np.array(masks) 
+            
+        if masks[0].shape[0] == 2:
+            masks = list(masks[:,0,...]) 
+
+        super().train(train_data=deepcopy(imgs), train_labels=masks, **self.train_config["segmentor"])
+        
+        pred_masks = [self.eval(img) for img in masks]
+        self.metric = aggregated_jaccard_index(masks, pred_masks)
+        # pred_masks = [self.eval(img) for img in masks]
+
+        # self.loss = self.loss_fn(masks, pred_masks)
     
     def masks_to_outlines(self, mask):
         """ get outlines of masks as a 0-1 array
