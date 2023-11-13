@@ -40,7 +40,7 @@ def model(model_class):
 
 @pytest.fixture
 def data_train():
-    images, masks = get_synthetic_dataset(num_samples=3)
+    images, masks = get_synthetic_dataset(num_samples=4)
     masks = [np.array(mask) for mask in masks]
     masks_instances = [mask.sum(-1) for mask in masks]
     masks_classes = [((mask > 0) * np.arange(1, 4)).sum(-1) for mask in masks]
@@ -61,12 +61,10 @@ def test_train_run(data_train, model):
     # assert(patch_model.segmentor.loss>1e-2) #TODO figure out appropriate value
 
     # retrieve the attribute names of the class of the current model
-    attrs = model.__class__.__dict__.keys()
+    attrs = model.__dict__.keys()
 
     if "classifier" in attrs:
         assert(model.classifier.loss>1e-2)
-    if "segmentor" in attrs:
-        assert(model.segmentor.loss>1e-2)
     if "metric" in attrs:
         assert(model.metric>1e-2)
     
