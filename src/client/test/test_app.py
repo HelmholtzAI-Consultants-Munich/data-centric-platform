@@ -1,62 +1,69 @@
 import os
+import sys
 from skimage import data
 from skimage.io import imsave
-import unittest
+import pytest
+
+sys.path.append("../")
 
 from dcp_client.app import Application
 from dcp_client.utils.bentoml_model import BentomlModel
 from dcp_client.utils.fsimagestorage import FilesystemImageStorage
 from dcp_client.utils.sync_src_dst import DataRSync
 
-class TestApplication(unittest.TestCase):
-    
-    def test_run_train(self):
-        pass
-    
-    def test_run_inference(self):
-        pass
-    
-    def test_load_image(self):
 
-        img = data.astronaut()
-        img2 = data.cat()
-        os.mkdir('in_prog')
-        imsave('in_prog/test_img.png', img)
-        imsave('in_prog/test_img2.png', img2)
-        rsyncer = DataRSync(user_name="local",
-                          host_name="local",
-                          server_repo_path='.')
-        self.app = Application(BentomlModel(),
-                               rsyncer,
-                               FilesystemImageStorage(),
-                               "0.0.0.0",
-                               7010)
-                        
-        self.app.cur_selected_img = 'test_img.png'
-        self.app.cur_selected_path = 'in_prog'
+@pytest.fixture
+def app():
+    img = data.astronaut()
+    img2 = data.cat()
+    os.mkdir('in_prog')
 
-        img_test = self.app.load_image() # if image_name is None
-        self.assertEqual(img.all(), img_test.all())
-        img_test2 = self.app.load_image('test_img2.png') # if a filename is given
-        self.assertEqual(img2.all(), img_test2.all())
+    imsave('in_prog/test_img.png', img)
+    imsave('in_prog/test_img2.png', img2)
 
-        # delete everyting we created
-        os.remove('in_prog/test_img.png')
-        os.remove('in_prog/test_img2.png')
-        os.rmdir('in_prog')
+    rsyncer = DataRSync(user_name="local", host_name="local", server_repo_path='.')
+    app = Application(BentomlModel(), rsyncer, FilesystemImageStorage(), "0.0.0.0", 7010)
 
-    def test_save_image(self):
-         pass
-    
-    def test_move_images(self):
-         pass
-    
-    def test_delete_images(self):
-         pass
-    
-    def test_search_segs(self):
-         pass
+    app.cur_selected_img = 'test_img.png'
+    app.cur_selected_path = 'in_prog'
+
+    return app, img, img2
+
+def test_load_image(app):
+    app, img, img2 = app  # Unpack the app, img, and img2 from the fixture
+
+    img_test = app.load_image()  # if image_name is None
+    assert img.all() == img_test.all()
+
+    img_test2 = app.load_image('test_img2.png')  # if a filename is given
+    assert img2.all() == img_test2.all()
+
+    # delete everything we created
+    os.remove('in_prog/test_img.png')
+    os.remove('in_prog/test_img2.png')
+    os.rmdir('in_prog')
+
+def test_run_train():
+    pass
+
+def test_run_inference():
+    pass
+
+def test_save_image():
+    pass
+
+def test_move_images():
+    pass
+
+def test_delete_images():
+    pass
+
+def test_search_segs():
+    pass
+
+
+
+
+
          
          
-if __name__=='__main__':
-	unittest.main()

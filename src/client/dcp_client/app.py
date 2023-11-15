@@ -36,7 +36,7 @@ class ImageStorage(ABC):
         """Returns a list of full paths of segmentations for an image"""
         # Take all segmentations of the image from the current directory:
         search_string = utils.get_path_stem(cur_selected_img) + '_seg'
-        seg_files = [file_name for file_name in os.listdir(img_directory) if search_string in file_name]
+        seg_files = [file_name for file_name in os.listdir(img_directory) if (search_string == utils.get_path_stem(file_name) or str(file_name).startswith(search_string))]
         return seg_files
 
 

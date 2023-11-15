@@ -34,18 +34,21 @@ class GeneralSegmentation():
             # Load the image
             img = self.imagestorage.load_image(img_filepath)
             # Get size properties
-            height, width, channel_ax = self.imagestorage.get_image_size_properties(img, utils.get_file_extension(img_filepath))
-            img = self.imagestorage.rescale_image(img, height, width, channel_ax)
-          
+            height, width, z_axis = self.imagestorage.get_image_size_properties(img, utils.get_file_extension(img_filepath))
+            img = self.imagestorage.rescale_image(img,
+                                                  height,
+                                                  width,
+                                                  order=None)
             # Add channel ax into the model's evaluation parameters dictionary
-            self.model.eval_config['z_axis'] = channel_ax
-            
+            self.model.eval_config['segmentor']['z_axis'] = z_axis
             # Evaluate the model
-            mask = await self.runner.evaluate.async_run(img = img, **self.model.eval_config)
-
+            mask = await self.runner.evaluate.async_run(img = img)
             # Resize the mask
-            mask = self.imagestorage.resize_image(mask, height, width, order=0)
-            
+            mask = self.imagestorage.rescale_image(mask, 
+                                                   height, 
+                                                   width,
+                                                   self.model.eval_config['mask_channel_axis'],
+                                                   order=0)
             # Save segmentation
             seg_name = utils.get_path_stem(img_filepath) + setup_config['seg_name_string'] + '.tiff'
             self.imagestorage.save_image(os.path.join(input_path, seg_name), mask)
@@ -58,16 +61,16 @@ class GeneralSegmentation():
         :type input_path: str
         :return: runner's train function output - path of the saved model
         :rtype: str
-        """        
+        """       
+
         train_img_mask_pairs = self.imagestorage.get_image_seg_pairs(input_path)
 
         if not train_img_mask_pairs:
             return "No images and segs found"
                 
         imgs, masks = self.imagestorage.prepare_images_and_masks_for_training(train_img_mask_pairs)
-
         model_save_path =  await self.runner.train.async_run(imgs, masks)
-        
+
         return model_save_path
 
 
