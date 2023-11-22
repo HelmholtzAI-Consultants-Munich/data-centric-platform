@@ -37,6 +37,10 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         models.CellposeModel.__init__(self, **model_config["segmentor"])
         self.train_config = train_config
         self.eval_config = eval_config
+
+    def update_configs(self, train_config, eval_config):
+        self.train_config = train_config
+        self.eval_config = eval_config
         
     def eval(self, img):
         """Evaluate the model - find mask of the given image
@@ -89,7 +93,7 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
 class CellClassifierFCNN(nn.Module):
     
     '''
-    Fully convolutional classifier for cell images.
+    Fully convolutional classifier for cell images. NOTE -> This model cannot be used as a standalone model in DCP
 
     Args:
         model_config (dict): Model configuration.
@@ -129,6 +133,10 @@ class CellClassifierFCNN(nn.Module):
         )
         self.final_conv = nn.Conv2d(128, self.num_classes, 1)
         self.pooling = nn.AdaptiveMaxPool2d(1)
+
+    def update_configs(self, train_config, eval_config):
+        self.train_config = train_config
+        self.eval_config = eval_config
 
     def forward(self, x):
 
@@ -223,22 +231,10 @@ class CellposePatchCNN(nn.Module):
                                              self.train_config,
                                              self.eval_config)
 
-    def init_from_checkpoints(self, chpt_classifier=None, chpt_segmentor=None):
-        """
-        Initialize the model from pre-trained checkpoints.
-        """
-
-        self.segmentor = CustomCellposeModel(
-            self.model_config.get("segmentor", {}), 
-            self.train_config.get("segmentor", {}),
-            self.eval_config.get("segmentor", {})
-        )
-        self.classifier = CellClassifierFCNN(
-            self.model_config.get("classifier", {}), 
-            self.train_config.get("classifier", {}),
-            self.eval_config.get("classifier", {})
-        )
-
+    def update_configs(self, train_config, eval_config):
+        self.train_config = train_config
+        self.eval_config = eval_config
+        
     def train(self, imgs, masks):
         """Trains the given model. First trains the segmentor and then the clasiffier.
 
