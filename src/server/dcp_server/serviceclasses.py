@@ -51,8 +51,6 @@ class CustomRunnable(bentoml.Runnable):
         :return: path of the saved model
         :rtype: str
         """        
-        #s1 = self.model.segmentor.net.state_dict()
-        #c1 = self.model.classifier.parameters()
         self.model.train(imgs, masks)
         # Save the bentoml model
         #bentoml.picklable_model.save_model(self.save_model_path, self.model) 
@@ -120,12 +118,9 @@ class CustomBentoService():
             :rtype: str
             """            
             print("Calling retrain from server.")
-
             # Train the model
             model_path = await self.segmentation.train(input_path)
-
             msg = "Success! Trained model saved in: " + model_path
-
             return msg
         
         return svc
