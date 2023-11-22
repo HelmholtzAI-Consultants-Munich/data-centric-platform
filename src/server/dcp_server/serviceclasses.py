@@ -16,7 +16,7 @@ class CustomRunnable(bentoml.Runnable):
     def __init__(self, model, save_model_path):
         """Constructs all the necessary attributes for the CustomRunnable.
 
-        :param model: model to be trained or evaluated
+        :param model: model to be trained or evaluated - will be one of classes in models.py
         :param save_model_path: full path of the model object that it will be saved into
         :type save_model_path: str
         """        
@@ -54,18 +54,15 @@ class CustomRunnable(bentoml.Runnable):
         #s1 = self.model.segmentor.net.state_dict()
         #c1 = self.model.classifier.parameters()
         self.model.train(imgs, masks)
-        '''
-        s2 = self.model.segmentor.net.state_dict()
-        c2 = self.model.classifier.parameters()
-        if s1 == s2: print('S1 and S2 COMP: THEY ARE THE SAME!!!!!')
-        else: print('S1 and S2 COMP: THEY ARE NOOOT THE SAME!!!!!')
-        for p1, p2 in zip(c1, c2):
-            if p1.data.ne(p2.data).sum() > 0:
-                print("C1 and C2 NOT THE SAME")
-                break
-        '''
         # Save the bentoml model
-        bentoml.picklable_model.save_model(self.save_model_path, self.model) 
+        #bentoml.picklable_model.save_model(self.save_model_path, self.model) 
+        bentoml.pytorch.save_model(self.save_model_path,   # Model name in the local Model Store
+                                   self.model,  # Model instance being saved
+                                   labels={    # User-defined labels for managing models in BentoCloud
+                                        "owner": "ai-consultants",
+                                        "stage": "dev",
+                                    },
+                                )
 
         return self.save_model_path
     
