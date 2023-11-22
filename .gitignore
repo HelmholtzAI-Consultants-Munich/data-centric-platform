@@ -6,6 +6,9 @@ curated/
 # model dir
 *mytrainedmodel/
 
+#configs
+src/client/dcp_client/config.cfg
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
