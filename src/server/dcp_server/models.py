@@ -12,9 +12,9 @@ from cellpose.metrics import aggregated_jaccard_index
 #from segment_anything import SamPredictor, sam_model_registry
 #from segment_anything.automatic_mask_generator import SamAutomaticMaskGenerator
 
-from dcp_server.utils import get_centered_patches, find_max_patch_size, create_patch_dataset, get_objects
+from dcp_server.utils import get_centered_patches, find_max_patch_size, create_patch_dataset
 
-class CustomCellposeModel(models.CellposeModel):
+class CustomCellposeModel(models.CellposeModel, nn.Module):
     """Custom cellpose model inheriting the attributes and functions from the original CellposeModel and implementing
     additional attributes and methods needed for this project.
     """    
@@ -32,7 +32,9 @@ class CustomCellposeModel(models.CellposeModel):
         """
         
         # Initialize the cellpose model
-        super().__init__(**model_config["segmentor"])
+        #super().__init__(**model_config["segmentor"])
+        nn.Module.__init__(self)
+        models.CellposeModel.__init__(self, **model_config["segmentor"])
         self.train_config = train_config
         self.eval_config = eval_config
         
@@ -200,14 +202,15 @@ class CellClassifierFCNN(nn.Module):
         return y_hat
 
 
-class CellposePatchCNN():
+class CellposePatchCNN(nn.Module):
 
     """
     Cellpose & patches of cells and then cnn to classify each patch
     """
     
     def __init__(self, model_config, train_config, eval_config):
-        
+        super().__init__()
+
         self.model_config = model_config
         self.train_config = train_config
         self.eval_config = eval_config
