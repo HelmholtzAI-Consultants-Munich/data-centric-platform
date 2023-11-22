@@ -148,7 +148,7 @@ class FilesystemImageStorage():
         rescale_factor = max_dim/512
         return rescale(img, 1/rescale_factor, order=order, channel_axis=channel_ax)
     
-    def resize_image(self, img, height, width, order):
+    def resize_image(self, img, height, width, channel_ax=None, order=2):
         """resize image
 
         :param img: image
@@ -161,8 +161,13 @@ class FilesystemImageStorage():
         :type order: int
         :return: resized image
         :rtype: ndarray
-        """        
-        return resize(img, (height, width), order=order)
+        """ 
+        if channel_ax is not None:
+            n_channel_dim = img.shape[channel_ax]
+            output_size = [height, width]
+            output_size.insert(channel_ax, n_channel_dim)
+        else: output_size = [height, width]
+        return resize(img, output_size, order=order)
     
     def prepare_images_and_masks_for_training(self, train_img_mask_pairs):
         """Image and mask processing for training.
