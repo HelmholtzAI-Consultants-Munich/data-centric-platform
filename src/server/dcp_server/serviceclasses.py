@@ -4,6 +4,8 @@ import bentoml
 from bentoml.io import Text, NumpyNdarray
 from typing import List
 
+from dcp_server import models as DCPModels
+
 
 class CustomRunnable(bentoml.Runnable):
     '''
@@ -23,6 +25,9 @@ class CustomRunnable(bentoml.Runnable):
         
         self.model = model
         self.save_model_path = save_model_path
+        # load model if it already exists to continue training from there?
+        if self.save_model_path in [model.tag.name for model in bentoml.models.list()]:  
+            self.model = bentoml.pytorch.load_model(self.save_model_path+":latest")
 
     @bentoml.Runnable.method(batchable=False)
     def evaluate(self, img: np.ndarray) -> np.ndarray:
@@ -34,8 +39,10 @@ class CustomRunnable(bentoml.Runnable):
         :type z_axis: int
         :return: mask of the image, list of 2D arrays, or single 3D array (if do_3D=True) labelled image.
         :rtype: np.ndarray
-        """              
-
+        """
+        # load the latest model if it is available (in case train has already occured)
+        if self.save_model_path in [model.tag.name for model in bentoml.models.list()]:  
+            self.model = bentoml.pytorch.load_model(self.save_model_path+":latest")
         mask = self.model.eval(img=img)
 
         return mask
@@ -56,14 +63,10 @@ class CustomRunnable(bentoml.Runnable):
         #bentoml.picklable_model.save_model(self.save_model_path, self.model) 
         bentoml.pytorch.save_model(self.save_model_path,   # Model name in the local Model Store
                                    self.model,  # Model instance being saved
-                                   labels={    # User-defined labels for managing models in BentoCloud
-                                        "owner": "ai-consultants",
-                                        "stage": "dev",
-                                    },
-                                )
+                                   external_modules=[DCPModels]
+                                   )
 
         return self.save_model_path
-    
 
 class CustomBentoService():
     """BentoML Service class. Contains all the functions necessary to serve the service with BentoML
