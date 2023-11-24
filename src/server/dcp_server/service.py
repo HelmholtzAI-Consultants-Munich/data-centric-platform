@@ -21,13 +21,7 @@ setup_config = read_config('setup', config_path = 'config.cfg')
 # instantiate the model
 
 model_class = getattr(models_module, service_config['model_to_use'])
-# load latest model if specified in config
-if service_config['load_latest_model']:
-    model = bentoml.pytorch.load_model(service_config['save_model_path']+':latest')
-    model.update_configs(train_config = train_config, eval_config = eval_config)
-# else initialise with random weights
-else:
-    model = model_class(model_config = model_config, train_config = train_config, eval_config = eval_config)
+model = model_class(model_config = model_config, train_config = train_config, eval_config = eval_config)
 custom_model_runner = t.cast(
     "CustomRunner", bentoml.Runner(CustomRunnable, name=service_config['runner_name'],
                                        runnable_init_params={"model": model, "save_model_path": service_config['save_model_path']})
