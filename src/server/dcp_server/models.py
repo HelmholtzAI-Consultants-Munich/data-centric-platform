@@ -35,6 +35,7 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         #super().__init__(**model_config["segmentor"])
         nn.Module.__init__(self)
         models.CellposeModel.__init__(self, **model_config["segmentor"])
+        self.mkldnn = False # otherwise we get error with saving model
         self.train_config = train_config
         self.eval_config = eval_config
 
@@ -72,10 +73,7 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         super().train(train_data=deepcopy(imgs), train_labels=masks, **self.train_config["segmentor"])
         
         pred_masks = [self.eval(img) for img in masks]
-        print(len(pred_masks))
         self.metric = np.mean(aggregated_jaccard_index(masks, pred_masks))
-        # pred_masks = [self.eval(img) for img in masks]
-
         # self.loss = self.loss_fn(masks, pred_masks)
     
     def masks_to_outlines(self, mask):
