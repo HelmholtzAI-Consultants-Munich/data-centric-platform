@@ -66,6 +66,7 @@ class NapariWindow(QWidget):
         self.setLayout(layout)
         # self.show()
 
+    
 
     def copy_mask_callback(self, layer, event):
 
@@ -84,20 +85,15 @@ class NapariWindow(QWidget):
 
                 if c == 0:
 
-                    # idx = np.ix_((range(event_x - 1, event_x + 2), range(event_y - 1, event_y + 2)))
                     labels, counts = np.unique(source_mask[0,event_x - 1: event_x + 2, event_y - 1: event_y + 2], return_counts=True)
-                    labels = labels[labels > 0]
 
-                    idx = np.argmax(counts[labels > 0])
+                    if labels.size > 0:
+                     
+                        idx = np.argmax(counts)
+                        label = labels[idx]
 
-                    label = labels[idx]
-
-                    mask_fill = source_mask[0] == label
-                    source_mask[1][mask_fill] = label
-                
-                # self.event_coords = None
-            else:
-                pass
+                        mask_fill = source_mask[0] == label
+                        source_mask[1][mask_fill] = label
 
 
     def on_add_to_curated_button_clicked(self):
