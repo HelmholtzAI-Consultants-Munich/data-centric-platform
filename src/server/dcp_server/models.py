@@ -68,8 +68,6 @@ class CustomCellposeModel(models.CellposeModel):
         pred_masks = [self.eval(img) for img in masks]
         print(len(pred_masks))
         self.metric = np.mean(aggregated_jaccard_index(masks, pred_masks))
-        # pred_masks = [self.eval(img) for img in masks]
-
         # self.loss = self.loss_fn(masks, pred_masks)
     
     def masks_to_outlines(self, mask):

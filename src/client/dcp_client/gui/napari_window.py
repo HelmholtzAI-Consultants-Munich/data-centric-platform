@@ -1,13 +1,17 @@
 from __future__ import annotations
 from typing import List, TYPE_CHECKING
 
+import numpy as np
+
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout
 import napari
+from napari.qt import thread_worker
 
 if TYPE_CHECKING:
     from dcp_client.app import Application
 
 from dcp_client.utils import utils
+
 
 class NapariWindow(QWidget):
     '''Napari Window Widget object.
@@ -26,12 +30,24 @@ class NapariWindow(QWidget):
         self.app.search_segs()
 
         # Set the viewer
+
+        # with thread_worker():
         self.viewer = napari.Viewer(show=False)
+
         self.viewer.add_image(img, name=utils.get_path_stem(self.app.cur_selected_img))
+        # print(self.app.seg_filepaths)
         for seg_file in self.app.seg_filepaths:
             self.viewer.add_labels(self.app.load_image(seg_file), name=utils.get_path_stem(seg_file))
 
+        layer = self.viewer.layers[utils.get_path_stem(self.app.seg_filepaths[0])]
+
+        layer.mouse_drag_callbacks.append(self.copy_mask_callback)
+        layer.events.set_data.connect(lambda event: self.copy_mask_callback(layer, event))
+
+    # @layer.mouse_drag_callbacks.appen
+
         main_window = self.viewer.window._qt_window
+        
         layout = QVBoxLayout()
         layout.addWidget(main_window)
 
@@ -48,7 +64,41 @@ class NapariWindow(QWidget):
         layout.addLayout(buttons_layout)
 
         self.setLayout(layout)
-        self.show()
+        # self.show()
+
+
+    def copy_mask_callback(self, layer, event):
+
+        source_mask = layer.data
+
+        if event.type == "mouse_press":
+
+            c, event_x, event_y = event.position
+            c, event_x, event_y = int(c), int(np.round(event_x)), int(np.round(event_y))
+            self.event_coords = (c, event_x, event_y)
+
+        elif event.type == "set_data":
+            
+            if self.event_coords is not None:
+                c, event_x, event_y = self.event_coords
+
+                if c == 0:
+
+                    # idx = np.ix_((range(event_x - 1, event_x + 2), range(event_y - 1, event_y + 2)))
+                    labels, counts = np.unique(source_mask[0,event_x - 1: event_x + 2, event_y - 1: event_y + 2], return_counts=True)
+                    labels = labels[labels > 0]
+
+                    idx = np.argmax(counts[labels > 0])
+
+                    label = labels[idx]
+
+                    mask_fill = source_mask[0] == label
+                    source_mask[1][mask_fill] = label
+                
+                # self.event_coords = None
+            else:
+                pass
+
 
     def on_add_to_curated_button_clicked(self):
         '''
@@ -66,10 +116,15 @@ class NapariWindow(QWidget):
             message_text = "Please select the segmenation you wish to save from the layer list"
             utils.create_warning_box(message_text, message_title="Warning")
             return
+        
         seg = self.viewer.layers[cur_seg_selected].data
 
         # Move original image
         self.app.move_images(self.app.train_data_path)
+
+        # print("seg")
+        # print(seg)
+        # print(seg.shape, np.unique(seg))
 
         # Save the (changed) seg
         self.app.save_image(self.app.train_data_path, cur_seg_selected+'.tiff', seg)
@@ -78,6 +133,7 @@ class NapariWindow(QWidget):
         self.app.delete_images(self.app.seg_filepaths)
         # TODO Create the Archive folder for the rest? Or move them as well? 
 
+        self.viewer.close()
         self.close()
 
     def on_add_to_inprogress_button_clicked(self):
@@ -105,4 +161,5 @@ class NapariWindow(QWidget):
         seg = self.viewer.layers[cur_seg_selected].data
         self.app.save_image(self.app.inprogr_data_path, cur_seg_selected+'.tiff', seg)
         
+        self.viewer.close()
         self.close()

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class MainWindow(QWidget):
     '''Main Window Widget object.
     Opens the main window of the app where selected images in both directories are listed. 
-    User can view the images, train the mdoel to get the labels, and visualise the result.
+    User can view the images, train the model to get the labels, and visualise the result.
     :param eval_data_path: Chosen path to images without labeles, selected by the user in the WelcomeWindow
     :type eval_data_path: string
     :param train_data_path: Chosen path to images with labeles, selected by the user in the WelcomeWindow
