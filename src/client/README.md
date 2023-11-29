@@ -44,7 +44,7 @@ pip install -e .
    <img src="https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/documentation/src/client/readme_figs/client_welcome_window.png"  width="400" height="200">
   Here you will need to select the directories which we will be using throughout the data centric workflow. The following directories need to be defined:
   * **Uncurated dataset path:** This folder should initially contain all images of your dataset. They may or may not be accompanied by corresponding segmentations, but if they do, the segmentations should have the same filename as the image followed by the ending defined in ```setup/seg_name_string```, deifned in ```server/dcp_server/config.cfg``` (default extension is _seg)
-  * **Curation in progress path:(Optional)** Images for which the segmentation is a work in progress should be moved here. Each image in this folder can have one or multiple segmentations corresponding to it (by changing the filename of the segmentation in the napari layer list after editing it, see ...). If you do not want to use an intermediate working dir, you can skip setting a path to this directory (it is not required).
+  * **Curation in progress path:(Optional)** Images for which the segmentation is a work in progress should be moved here. Each image in this folder can have one or multiple segmentations corresponding to it (by changing the filename of the segmentation in the napari layer list after editing it, see ...). If you do not want to use an intermediate working dir, you can skip setting a path to this directory (it is not required). No future functions affect this directory, it is only used to move to and from the uncurated and curated directories.
   * **Curated dataset path:** This folder should contain images along with their final segmentations. **Only** move images here when the segmentation is complete and finalised, you won't be able to change them after they have been moved here. These are then used for training your model.
 
 4. After setting the paths for these three folders, you can click the **Start** button. If you have set the server configuration to the cloud, you will receive a message notifying you that your data will be uploaded to the cloud. Clik **Ok** to continue.
@@ -53,7 +53,8 @@ pip install -e .
    ![Alt Text](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/documentation/src/client/readme_figs/client_data_overview_window.png)
    * **Generate Labels:** Click this button to generate labels for all images in the "Uncurated dataset" directory. This will call the ```segment_image``` service from the server.
    * **View image and fix label:** Click this button to launch your viewer. The napari software is used for visualising, and editing the images segmentations. See ...
-   * **Train Model:** Click this model to train your model on the images in the "Curated dataset" directory. This will call the ```train``` service from the server.
-6. The viewer.
-7. Data centric workflow [intended usage]:
+   * **Train Model:** Click this button to train your model on the images in the "Curated dataset" directory. This will call the ```train``` service from the server.
+6. **The viewer.**
+   In DCP, we use [napari](https://napari.org/stable) for viewing our images and makss, adding, editing or removing labels. An example of the viewer can be seen below.    
+8. Data centric workflow [intended usage]: The standard usage 
    
