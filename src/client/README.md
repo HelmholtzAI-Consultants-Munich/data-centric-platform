@@ -55,5 +55,13 @@ pip install -e .
    * **View image and fix label:** Click this button to launch your viewer. The napari software is used for visualising, and editing the images segmentations. See ...
    * **Train Model:** Click this model to train your model on the images in the "Curated dataset" directory. This will call the ```train``` service from the server.
 6. The viewer.
-7. Data centric workflow [intended usage]:
+
+### Data centric workflow [intended usage summary]
+The intended usage of DCP would include the following:
+1. Setting up configuration, run client (with server already running) and select data directories
+2. Generate labels for data in *Uncurated data folder*
+3. Visualise the resulting labels with the viewer and correct labels wherever necessary - once done move the image *Curated data folder*. Repeat this step for a couple of images until a few are placed into the *Curated data folder*. Depending on the qualitative evaluation of the label generation you might want to include fewer or more images, i.e. if the resulting masks require few edits, then few images will most likely be sufficient, whereas if many edits to the mask are required it is likely that more images are needed in the *Curated data folder*. You can always start with a small number and adjust later
+4. Train the model with the images in the *Curated data folder*
+6. Repeat steps 2-4 until you are satisfied with the masks generated for the remaining images in the *Uncurated data folder*. Every time the model is trained in step 4, the masks generated in step 2 should be of higher quality, until the model need not be trained any more 
+![Alt Text](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/documentation/src/client/readme_figs/dcp_pipeline.png)
    
