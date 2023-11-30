@@ -16,4 +16,4 @@ This repo includes a client and server side for using our data centric platform.
 To run the client GUI follow the instructions described in [DCP Client Installation & Launch](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/client/README.md).
 
 ### Toy data
-This repo includes the ```data/``` directory with some toy data which you can use as the 'uncurated dataset' folder. You can create (empty) folders for the other two directories required in the welcome window.
+This repo includes the ```data/``` directory with some toy data which you can use as the *Uncurated dataset* folder. You can create (empty) folders for the other two directories required in the welcome window and start playing around.
