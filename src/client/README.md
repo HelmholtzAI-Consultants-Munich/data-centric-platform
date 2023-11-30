@@ -12,6 +12,7 @@ pip install -e .
 
 ### Running the client: A step to step guide!
 1. **Configurations**
+   
 Before launching the GUI you will need to set up your client configuration file, _dcp_client/config.cfg_. Please, obey the [formal JSON format](https://www.json.org/json-en.html). Here, we will define how the client will interact with the server. There are currently two options available: running the server locally, or connecting to the running instance on the FZJ jusuf-cloud. To connect to a locally running server, set:
   ```
      "user": "local", 
@@ -35,12 +36,14 @@ Before launching the GUI you will need to set up your client configuration file,
 
 
 2. **Launching the client**
+   
 After setting your config simply run:
   ```
   python dcp_client/main.py
   ```
 
 3. **Welcome window**
+   
 The welcome window should have now popped up.
    
    <img src="https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/documentation/src/client/readme_figs/client_welcome_window.png"  width="400" height="200">
@@ -50,16 +53,18 @@ The welcome window should have now popped up.
   * **Curated dataset path:** This folder should contain images along with their final segmentations. **Only** move images here when the segmentation is complete and finalised, you won't be able to change them after they have been moved here. These are then used for training your model.
 
 4.**Setting paths**
+
 After setting the paths for these three folders, you can click the **Start** button. If you have set the server configuration to the cloud, you will receive a message notifying you that your data will be uploaded to the cloud. Clik **Ok** to continue.
 
 5. **Data Overview**
+   
 The main working window will appear next. This gives you an overview of the directories selected in the previous step along with three options:
    ![Alt Text](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/documentation/src/client/readme_figs/client_data_overview_window.png)
    * **Generate Labels:** Click this button to generate labels for all images in the "Uncurated dataset" directory. This will call the ```segment_image``` service from the server.
    * **View image and fix label:** Click this button to launch your viewer. The napari software is used for visualising, and editing the images segmentations. See ...
    * **Train Model:** Click this model to train your model on the images in the "Curated dataset" directory. This will call the ```train``` service from the server.
    
-6. **The viewer**
+7. **The viewer**
 
 In DCP, we use [napari](https://napari.org/stable) for viewing our images and makss, adding, editing or removing labels. An example of the viewer can be seen below. After adding or removing any objects and editing existing objects wherever necessary, there are two options available:
 - Click the **Move to Curation in progress folder** if you are not 100% certain about the labels you have created. You can also click on the label in the labels layer and change the name. This will result in several label files being created in the *in progress folder*, which can be examined later on.
