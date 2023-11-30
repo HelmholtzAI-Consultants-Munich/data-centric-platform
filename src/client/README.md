@@ -1,5 +1,5 @@
 # DCP Client
-A data centric platform for microscopy imaging
+The client of our data centric platform for microscopy imaging.
 
 ![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
 
