@@ -1,8 +1,6 @@
 # Data Centric Platform
 *A data centric platform for mutli-class segmentation in microscopy imaging*
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/HelmholtzAI-Consultants-Munich/active-learning-platform)
-
 ![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
 [![tests](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/workflows/tests/badge.svg)](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/actions)
 [![codecov](https://codecov.io/gh/HelmholtzAI-Consultants-Munich/data-centric-platform/branch/main/graph/badge.svg)](https://codecov.io/gh/HelmholtzAI-Consultants-Munich/data-centric-platform)
