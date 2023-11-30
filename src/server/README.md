@@ -1,5 +1,9 @@
 # DCP Server
 
+The server of our data centric platform for microscopy imaging.
+
+![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
+
 The client and server communicate via the [bentoml](https://www.bentoml.com/?gclid=Cj0KCQiApKagBhC1ARIsAFc7Mc6iqOLi2OcLtqMbGx1KrFjtLUEZ-bhnqlT2zWREE0x7JImhtNmKlFEaAvSSEALw_wcB) library. The client interacts with the server every time we run model inference or training, so the server should be running before starting the client.
 
 ## How to use?
