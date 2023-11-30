@@ -46,7 +46,7 @@ After setting your config simply run:
    
 The welcome window should have now popped up.
    
-   <img src="https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/documentation/src/client/readme_figs/client_welcome_window.png"  width="400" height="200">
+   <img src="https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/client/readme_figs/client_welcome_window.png"  width="400" height="200">
    
   Here you will need to select the directories which we will be using throughout the data centric workflow. The following directories need to be defined:
   
@@ -65,7 +65,7 @@ The main working window will appear next. This gives you an overview of the dire
    * **Generate Labels:** Click this button to generate labels for all images in the "Uncurated dataset" directory. This will call the ```segment_image``` service from the server
    * **View image and fix label:** Click this button to launch your viewer. The napari software is used for visualising, and editing the images segmentations. See **Viewer**
    * **Train Model:** Click this model to train your model on the images in the "Curated dataset" directory. This will call the ```train``` service from the server
-   ![Alt Text](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/documentation/src/client/readme_figs/client_data_overview_window.png)
+   ![Alt Text](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/client/readme_figs/client_data_overview_window.png)
    
 6. **The viewer**
 
@@ -73,7 +73,7 @@ In DCP, we use [napari](https://napari.org/stable) for viewing our images and ma
 - Click the **Move to Curation in progress folder** if you are not 100% certain about the labels you have created. You can also click on the label in the labels layer and change the name. This will result in several label files being created in the *In progress folder*, which can be examined later on.
 - Click the **Move to Curated dataset folder** if you are certain that the labels you are now viewing are final and require no more curation. These images and labels will later be used for training the machine learning model, so make sure that you select this option only if you are certain about the labels. If several labels are displayed (opened from the 'Curation in progress' step), make sure to **click** on the single label in the labels layer list you wish to be moved to the *Curated data folder*. The other images will then be automatically deleted from this folder.
 
-![Alt Text](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/documentation/src/client/readme_figs/client_napari_viewer.png)
+![Alt Text](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/client/readme_figs/client_napari_viewer.png)
 
 ### Data centric workflow [intended usage summary]
 The intended usage of DCP would include the following:
@@ -82,6 +82,6 @@ The intended usage of DCP would include the following:
 3. Visualise the resulting labels with the viewer and correct labels wherever necessary - once done move the image *Curated data folder*. Repeat this step for a couple of images until a few are placed into the *Curated data folder*. Depending on the qualitative evaluation of the label generation you might want to include fewer or more images, i.e. if the resulting masks require few edits, then few images will most likely be sufficient, whereas if many edits to the mask are required it is likely that more images are needed in the *Curated data folder*. You can always start with a small number and adjust later
 4. Train the model with the images in the *Curated data folder*
 6. Repeat steps 2-4 until you are satisfied with the masks generated for the remaining images in the *Uncurated data folder*. Every time the model is trained in step 4, the masks generated in step 2 should be of higher quality, until the model need not be trained any more 
-<img src="https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/documentation/src/client/readme_figs/dcp_pipeline.png"  width="200" height="200">
+<img src="https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/client/readme_figs/dcp_pipeline.png"  width="200" height="200">
 
    
