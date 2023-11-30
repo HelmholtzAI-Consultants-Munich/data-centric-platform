@@ -53,7 +53,7 @@ jobs:
         env:
           PLATFORM: ${{ matrix.platform }}
       
-      - name: Coverage
+      - name: Coverage client tests
         uses: codecov/codecov-action@v2
 
   test_server:
@@ -87,5 +87,6 @@ jobs:
         env:
           PLATFORM: ${{ matrix.platform }}
       
-      - name: Coverage
+      - name: Coverage server tests
         uses: codecov/codecov-action@v2
+        
