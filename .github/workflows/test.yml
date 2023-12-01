@@ -56,7 +56,7 @@ jobs:
       - name: Coverage client tests
         uses: codecov/codecov-action@v3
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   test_server:
     name: server ${{ matrix.platform }} py${{ matrix.python-version }}
@@ -92,5 +92,5 @@ jobs:
       - name: Coverage server tests
         uses: codecov/codecov-action@v3
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         
