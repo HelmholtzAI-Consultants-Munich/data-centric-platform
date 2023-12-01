@@ -53,8 +53,10 @@ jobs:
         env:
           PLATFORM: ${{ matrix.platform }}
       
-      - name: Coverage
-        uses: codecov/codecov-action@v2
+      - name: Coverage client tests
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   test_server:
     name: server ${{ matrix.platform }} py${{ matrix.python-version }}
@@ -87,5 +89,8 @@ jobs:
         env:
           PLATFORM: ${{ matrix.platform }}
       
-      - name: Coverage
-        uses: codecov/codecov-action@v2
+      - name: Coverage server tests
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+        
