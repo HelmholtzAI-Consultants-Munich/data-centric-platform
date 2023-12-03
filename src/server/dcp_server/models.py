@@ -7,6 +7,8 @@ from copy import deepcopy
 from tqdm import tqdm
 import numpy as np
 
+from scipy.ndimage import label
+
 from cellpose.metrics import aggregated_jaccard_index
 
 #from segment_anything import SamPredictor, sam_model_registry
@@ -299,3 +301,166 @@ class CellposePatchCNN():
 # # https://github.com/facebookresearch/segment-anything/blob/main/notebooks/automatic_mask_generator_example.ipynb
 #     def __init__(self):
 #         pass
+class DoubleConv(nn.Module):
+    """
+    DoubleConv module consists of two consecutive convolutional layers with
+    batch normalization and ReLU activation functions.
+
+    Args:
+        in_channels (int): Number of input channels.
+        out_channels (int): Number of output channels.
+    """
+
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, 3, 1, 1, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(),
+            nn.Conv2d(out_channels, out_channels, 3, 1, 1, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(),
+        )
+
+    def forward(self, x):
+        return self.conv(x)
+    
+class UNet(nn.Module):
+
+    """
+    Unet is a convolutional neural network architecture for semantic segmentation.
+    
+    Args:
+        in_channels (int): Number of input channels (default: 3).
+        out_channels (int): Number of output channels (default: 4).
+        features (list): List of feature channels for each encoder level (default: [64,128,256,512]).
+    """
+    
+    def __init__(self, model_config, train_config, eval_config):
+        
+        super().__init__()
+        self.model_config = model_config
+        self.train_config = train_config
+        self.eval_config = eval_config
+
+        print(self.model_config)
+
+        self.in_channels = self.model_config["in_channels"]
+        self.out_channels = self.model_config["out_channels"]
+        self.features = self.model_config["features"]
+        
+        self.encoder = nn.ModuleList()
+        self.decoder = nn.ModuleList()
+
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+       
+        # Encoder
+        for feature in self.features:
+            self.encoder.append(
+                DoubleConv(self.in_channels, feature)
+            )
+            self.in_channels = feature
+
+        # Decoder
+        for feature in self.features[::-1]:
+            self.decoder.append(
+                nn.ConvTranspose2d(
+                    feature*2, feature, kernel_size=2, stride=2
+                )
+            )
+            self.decoder.append(
+                DoubleConv(feature*2, feature)
+            )
+
+        self.bottle_neck = DoubleConv(self.features[-1], self.features[-1]*2)
+        self.output_conv = nn.Conv2d(self.features[0], self.out_channels, kernel_size=1)
+    
+    def forward(self, x):
+        skip_connections = []
+        for encoder in self.encoder:
+            x = encoder(x)
+            skip_connections.append(x)
+            x = self.pool(x)
+
+        x = self.bottle_neck(x)
+        skip_connections = skip_connections[::-1]
+
+        for i in np.arange(len(self.decoder), step=2):
+            x = self.decoder[i](x)
+            skip_connection = skip_connections[i//2]
+            concatenate_skip = torch.cat((skip_connection, x), dim=1)
+            x = self.decoder[i+1](concatenate_skip)
+
+        return self.output_conv(x)
+
+    def train(self, imgs, masks):
+       
+        lr = self.train_config['lr']
+        epochs = self.train_config['n_epochs']
+        batch_size = self.train_config['batch_size']
+        # optimizer_class = self.train_config['optimizer']
+
+        # Convert input images and labels to tensors
+
+        # normalize images 
+        imgs = [(img-np.min(img))/(np.max(img)-np.min(img)) for img in imgs]
+        # convert to tensor
+        imgs = torch.stack([torch.from_numpy(img.astype(np.float32)) for img in imgs])
+        imgs = imgs.unsqueeze(1) if imgs.ndim == 3 else imgs
+        # print(f"Imgs shapes: {imgs.shape}")
+        # imgs = torch.permute(imgs, (0, 3, 1, 2)) 
+        # Your classification label mask
+        masks = np.array(masks)
+        masks = torch.stack([torch.from_numpy(mask[1]) for mask in masks])
+
+        # Create a training dataset and dataloader
+        train_dataset = TensorDataset(imgs, masks)
+        train_dataloader = DataLoader(train_dataset, batch_size=batch_size)
+
+        loss_fn = nn.CrossEntropyLoss()
+        optimizer = Adam(params=self.parameters(), lr=lr)
+
+        for _ in tqdm(range(epochs), desc="Running UNet training"):
+
+            self.loss = 0
+
+            for _, (imgs, masks) in enumerate(train_dataloader):
+                imgs = imgs.float()
+                masks = masks.long()
+                
+                #forward path
+                preds = self.forward(imgs)
+                print(preds.shape, masks.shape)
+                loss = loss_fn(preds, masks)
+                
+                #backward path
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+            
+            self.loss /= len(train_dataloader) 
+
+    def eval(self, img):
+        """
+        Evaluate the model on the provided image and return the predicted label.
+            Input:
+            img: np.ndarray[np.uint8]
+            Output: y_hat - The predicted label
+        """ 
+        # normalise
+        img = (img-np.min(img))/(np.max(img)-np.min(img))
+        img = torch.from_numpy(img).float().unsqueeze(0)
+
+        img = img.unsqueeze(1) if img.ndim == 3 else img
+        # convert to tensor
+        # img = torch.permute(torch.tensor(img.astype(np.float32)), (2, 0, 1)).unsqueeze(0) 
+
+        preds = self.forward(img)
+        y_labels = torch.argmax(preds, 1).numpy()
+
+        y_instances = label((y_labels > 0).astype(int))[0]
+
+        y_hat = np.stack((y_instances, y_labels))
+
+        return y_hat
