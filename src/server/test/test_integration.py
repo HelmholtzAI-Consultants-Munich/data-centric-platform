@@ -21,7 +21,10 @@ model_classes = [
                if inspect.isclass(cls_obj) \
                 and cls_obj.__module__ == models.__name__ \
                 and not cls_name.startswith("CellClassifier")
-    ] 
+    ]
+# 0 - CellposePatchCNN
+# 1 - CustomCellposeModel
+# model_class = model_classes[1]
 
 @pytest.fixture(params=model_classes)
 def model_class(request):
@@ -30,9 +33,9 @@ def model_class(request):
 @pytest.fixture()
 def model(model_class):
 
-    model_config = read_config('model', config_path='dcp_server/config.cfg')
-    train_config = read_config('train', config_path='dcp_server/config.cfg')
-    eval_config = read_config('eval', config_path='dcp_server/config.cfg')
+    model_config = read_config('model', config_path='dcp_server/test_config.cfg')
+    train_config = read_config('train', config_path='dcp_server/test_config.cfg')
+    eval_config = read_config('eval', config_path='dcp_server/test_config.cfg')
 
     model = model_class(model_config, train_config, eval_config)
 
@@ -64,13 +67,16 @@ def test_train_run(data_train, model):
     attrs = model.__dict__.keys()
 
     if "classifier" in attrs:
-        assert(model.classifier.loss>1e-2)
+        assert(model.classifier.loss<0.2)
     if "metric" in attrs:
-        assert(model.metric>1e-2)
+        assert(model.metric>0.1)
     
-def test_eval_run(data_eval, model):
+def test_eval_run(data_train, data_eval, model):
 
-    imgs, masks = data_eval
+    images, masks = data_train
+    model.train(images, masks)
+   
+    imgs_test, masks_test = data_eval
 
     jaccard_index_instances = 0
     jaccard_index_classes = 0
@@ -78,7 +84,7 @@ def test_eval_run(data_eval, model):
     jaccard_metric_binary = JaccardIndex(task="multiclass", num_classes=2, average="macro", ignore_index=0)
     jaccard_metric_multi = JaccardIndex(task="multiclass", num_classes=4, average="macro", ignore_index=0)
 
-    for img, mask in zip(imgs, masks):
+    for img, mask in zip(imgs_test, masks_test):
 
         #mask - instance segmentation mask + classes (2, 512, 512)
         #pred_mask - tuple of cellpose (512, 512), patch net multiclass segmentation (512, 512, 2)
@@ -104,19 +110,11 @@ def test_eval_run(data_eval, model):
                 torch.tensor(mask[1].astype(int))
             )
     
-    jaccard_index_instances /= len(imgs)
-    assert(jaccard_index_instances<0.6)
+    jaccard_index_instances /= len(imgs_test)
+    assert(jaccard_index_instances>0.5)
 
     # for PatchCNN model 
     if pred_mask.ndim > 2:
 
-        jaccard_index_classes /= len(imgs)
-        assert(jaccard_index_classes<0.6)
-    
-
-
-
-
-    
-
-    
+        jaccard_index_classes /= len(imgs_test)
+        assert(jaccard_index_classes>0.2)

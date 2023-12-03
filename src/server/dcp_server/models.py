@@ -35,6 +35,7 @@ class CustomCellposeModel(models.CellposeModel):
         super().__init__(**model_config["segmentor"])
         self.train_config = train_config
         self.eval_config = eval_config
+        self.mkldnn = False
         
     def eval(self, img):
         """Evaluate the model - find mask of the given image
@@ -45,8 +46,10 @@ class CustomCellposeModel(models.CellposeModel):
         :return: mask of the image, list of 2D arrays, or single 3D array (if do_3D=True) labelled image.
         :rtype: np.ndarray
         """  
-        return super().eval(x=img, **self.eval_config["segmentor"])[0] # 0 to take only mask
-
+        
+        return super().eval(x=img)[0] # 0 to take only mask
+        # return super().eval(x=img, **self.eval_config["segmentor"])[0]
+    
     def train(self, imgs, masks):
         """Trains the given model
         Calls the original train function.
@@ -63,11 +66,14 @@ class CustomCellposeModel(models.CellposeModel):
         if masks[0].shape[0] == 2:
             masks = list(masks[:,0,...]) 
 
+        print(masks[0].shape)
+
         super().train(train_data=deepcopy(imgs), train_labels=masks, **self.train_config["segmentor"])
         
-        pred_masks = [self.eval(img) for img in masks]
-        print(len(pred_masks))
+        pred_masks = [self.eval(img) for img in imgs]
+        print(np.unique(pred_masks[0]))
         self.metric = np.mean(aggregated_jaccard_index(masks, pred_masks))
+        print(self.metric)
         # self.loss = self.loss_fn(masks, pred_masks)
     
     def masks_to_outlines(self, mask):

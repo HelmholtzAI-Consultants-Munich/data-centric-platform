@@ -36,7 +36,7 @@ class CustomRunnable(bentoml.Runnable):
         :rtype: np.ndarray
         """              
 
-        mask = self.model.eval(img=img)
+        mask = self.model.eval(img=img)# [[0]] check for instance segmentation
 
         return mask
 
