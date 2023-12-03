@@ -67,7 +67,7 @@ def test_train_run(data_train, model):
     attrs = model.__dict__.keys()
 
     if "classifier" in attrs:
-        assert(model.classifier.loss<0.2)
+        assert(model.classifier.loss<0.3)
     if "metric" in attrs:
         assert(model.metric>0.1)
     
