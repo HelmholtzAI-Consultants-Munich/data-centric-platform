@@ -68,14 +68,10 @@ class CustomCellposeModel(models.CellposeModel):
         if masks[0].shape[0] == 2:
             masks = list(masks[:,0,...]) 
 
-        print(masks[0].shape)
-
         super().train(train_data=deepcopy(imgs), train_labels=masks, **self.train_config["segmentor"])
         
         pred_masks = [self.eval(img) for img in imgs]
-        print(np.unique(pred_masks[0]))
         self.metric = np.mean(aggregated_jaccard_index(masks, pred_masks))
-        print(self.metric)
         # self.loss = self.loss_fn(masks, pred_masks)
     
     def masks_to_outlines(self, mask):
@@ -347,8 +343,6 @@ class UNet(nn.Module):
         self.train_config = train_config["unet"]
         self.eval_config = eval_config["unet"]
 
-        print(self.model_config)
-
         self.in_channels = self.model_config["in_channels"]
         self.out_channels = self.model_config["out_channels"]
         self.features = self.model_config["features"]
@@ -411,8 +405,6 @@ class UNet(nn.Module):
         # convert to tensor
         imgs = torch.stack([torch.from_numpy(img.astype(np.float32)) for img in imgs])
         imgs = imgs.unsqueeze(1) if imgs.ndim == 3 else imgs
-        # print(f"Imgs shapes: {imgs.shape}")
-        # imgs = torch.permute(imgs, (0, 3, 1, 2)) 
         # Your classification label mask
         masks = np.array(masks)
         masks = torch.stack([torch.from_numpy(mask[1]) for mask in masks])
@@ -434,7 +426,6 @@ class UNet(nn.Module):
                 
                 #forward path
                 preds = self.forward(imgs)
-                print(preds.shape, masks.shape)
                 loss = loss_fn(preds, masks)
                 
                 #backward path

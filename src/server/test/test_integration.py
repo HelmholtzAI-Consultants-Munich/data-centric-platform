@@ -43,7 +43,7 @@ def model(model_class):
 
 @pytest.fixture
 def data_train():
-    print(model_classes)
+   
     images, masks = get_synthetic_dataset(num_samples=4)
     masks = [np.array(mask) for mask in masks]
     masks_instances = [mask.sum(-1) for mask in masks]
