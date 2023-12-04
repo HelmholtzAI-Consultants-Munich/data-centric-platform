@@ -43,6 +43,7 @@ def model(model_class):
 
 @pytest.fixture
 def data_train():
+    print(model_classes)
     images, masks = get_synthetic_dataset(num_samples=4)
     masks = [np.array(mask) for mask in masks]
     masks_instances = [mask.sum(-1) for mask in masks]
@@ -70,6 +71,8 @@ def test_train_run(data_train, model):
         assert(model.classifier.loss<0.3)
     if "metric" in attrs:
         assert(model.metric>0.1)
+    if "loss" in attrs:
+        assert(model.loss<0.3)
     
 def test_eval_run(data_train, data_eval, model):
 

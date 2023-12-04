@@ -301,30 +301,7 @@ class CellposePatchCNN():
 # # https://github.com/facebookresearch/segment-anything/blob/main/notebooks/automatic_mask_generator_example.ipynb
 #     def __init__(self):
 #         pass
-class DoubleConv(nn.Module):
-    """
-    DoubleConv module consists of two consecutive convolutional layers with
-    batch normalization and ReLU activation functions.
 
-    Args:
-        in_channels (int): Number of input channels.
-        out_channels (int): Number of output channels.
-    """
-
-    def __init__(self, in_channels, out_channels):
-        super().__init__()
-
-        self.conv = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, 3, 1, 1, bias=False),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(),
-            nn.Conv2d(out_channels, out_channels, 3, 1, 1, bias=False),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(),
-        )
-
-    def forward(self, x):
-        return self.conv(x)
     
 class UNet(nn.Module):
 
@@ -336,13 +313,39 @@ class UNet(nn.Module):
         out_channels (int): Number of output channels (default: 4).
         features (list): List of feature channels for each encoder level (default: [64,128,256,512]).
     """
-    
+    class DoubleConv(nn.Module):
+        """
+        DoubleConv module consists of two consecutive convolutional layers with
+        batch normalization and ReLU activation functions.
+
+        Args:
+            in_channels (int): Number of input channels.
+            out_channels (int): Number of output channels.
+        """
+
+        def __init__(self, in_channels, out_channels):
+            super().__init__()
+
+            self.conv = nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, 3, 1, 1, bias=False),
+                nn.BatchNorm2d(out_channels),
+                nn.ReLU(),
+                nn.Conv2d(out_channels, out_channels, 3, 1, 1, bias=False),
+                nn.BatchNorm2d(out_channels),
+                nn.ReLU(),
+            )
+
+        def forward(self, x):
+            return self.conv(x)
+
+
+
     def __init__(self, model_config, train_config, eval_config):
         
         super().__init__()
-        self.model_config = model_config
-        self.train_config = train_config
-        self.eval_config = eval_config
+        self.model_config = model_config["unet"]
+        self.train_config = train_config["unet"]
+        self.eval_config = eval_config["unet"]
 
         print(self.model_config)
 
@@ -358,7 +361,7 @@ class UNet(nn.Module):
         # Encoder
         for feature in self.features:
             self.encoder.append(
-                DoubleConv(self.in_channels, feature)
+                UNet.DoubleConv(self.in_channels, feature)
             )
             self.in_channels = feature
 
@@ -370,10 +373,10 @@ class UNet(nn.Module):
                 )
             )
             self.decoder.append(
-                DoubleConv(feature*2, feature)
+                UNet.DoubleConv(feature*2, feature)
             )
 
-        self.bottle_neck = DoubleConv(self.features[-1], self.features[-1]*2)
+        self.bottle_neck = UNet.DoubleConv(self.features[-1], self.features[-1]*2)
         self.output_conv = nn.Conv2d(self.features[0], self.out_channels, kernel_size=1)
     
     def forward(self, x):
@@ -457,7 +460,7 @@ class UNet(nn.Module):
         # img = torch.permute(torch.tensor(img.astype(np.float32)), (2, 0, 1)).unsqueeze(0) 
 
         preds = self.forward(img)
-        y_labels = torch.argmax(preds, 1).numpy()
+        y_labels = torch.argmax(preds, 1).numpy()[0]
 
         y_instances = label((y_labels > 0).astype(int))[0]
 
