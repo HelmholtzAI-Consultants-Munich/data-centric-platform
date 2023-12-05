@@ -44,11 +44,13 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install setuptools  
           pip install pytest
+          pip install coverage
           pip install -e ".[testing]"
         working-directory: src/client
           
       - name: Test with pytest
-        run: pytest
+        run: |
+          coverage run -m pytest
         working-directory: src/client
         env:
           PLATFORM: ${{ matrix.platform }}
@@ -80,11 +82,13 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install setuptools  
           pip install pytest
+          pip install coverage
           pip install -e ".[testing]"
         working-directory: src/server
           
       - name: Test with pytest
-        run: pytest
+        run: |
+          coverage run -m pytest
         working-directory: src/server
         env:
           PLATFORM: ${{ matrix.platform }}
