@@ -4,6 +4,8 @@ import bentoml
 from bentoml.io import Text, NumpyNdarray
 from typing import List
 
+from dcp_server import models as DCPModels
+
 
 class CustomRunnable(bentoml.Runnable):
     '''
@@ -16,13 +18,16 @@ class CustomRunnable(bentoml.Runnable):
     def __init__(self, model, save_model_path):
         """Constructs all the necessary attributes for the CustomRunnable.
 
-        :param model: model to be trained or evaluated
+        :param model: model to be trained or evaluated - will be one of classes in models.py
         :param save_model_path: full path of the model object that it will be saved into
         :type save_model_path: str
         """        
         
         self.model = model
         self.save_model_path = save_model_path
+        # load model if it already exists to continue training from there?
+        if self.save_model_path in [model.tag.name for model in bentoml.models.list()]:  
+            self.model = bentoml.pytorch.load_model(self.save_model_path+":latest")
 
     @bentoml.Runnable.method(batchable=False)
     def evaluate(self, img: np.ndarray) -> np.ndarray:
@@ -34,8 +39,10 @@ class CustomRunnable(bentoml.Runnable):
         :type z_axis: int
         :return: mask of the image, list of 2D arrays, or single 3D array (if do_3D=True) labelled image.
         :rtype: np.ndarray
-        """              
-
+        """
+        # load the latest model if it is available (in case train has already occured)
+        if self.save_model_path in [model.tag.name for model in bentoml.models.list()]:  
+            self.model = bentoml.pytorch.load_model(self.save_model_path+":latest")
         mask = self.model.eval(img=img)
 
         return mask
@@ -51,24 +58,15 @@ class CustomRunnable(bentoml.Runnable):
         :return: path of the saved model
         :rtype: str
         """        
-        #s1 = self.model.segmentor.net.state_dict()
-        #c1 = self.model.classifier.parameters()
         self.model.train(imgs, masks)
-        '''
-        s2 = self.model.segmentor.net.state_dict()
-        c2 = self.model.classifier.parameters()
-        if s1 == s2: print('S1 and S2 COMP: THEY ARE THE SAME!!!!!')
-        else: print('S1 and S2 COMP: THEY ARE NOOOT THE SAME!!!!!')
-        for p1, p2 in zip(c1, c2):
-            if p1.data.ne(p2.data).sum() > 0:
-                print("C1 and C2 NOT THE SAME")
-                break
-        '''
         # Save the bentoml model
-        bentoml.picklable_model.save_model(self.save_model_path, self.model) 
+        #bentoml.picklable_model.save_model(self.save_model_path, self.model) 
+        bentoml.pytorch.save_model(self.save_model_path,   # Model name in the local Model Store
+                                   self.model,  # Model instance being saved
+                                   external_modules=[DCPModels]
+                                   )
 
         return self.save_model_path
-    
 
 class CustomBentoService():
     """BentoML Service class. Contains all the functions necessary to serve the service with BentoML
@@ -123,12 +121,9 @@ class CustomBentoService():
             :rtype: str
             """            
             print("Calling retrain from server.")
-
             # Train the model
             model_path = await self.segmentation.train(input_path)
-
             msg = "Success! Trained model saved in: " + model_path
-
             return msg
         
         return svc

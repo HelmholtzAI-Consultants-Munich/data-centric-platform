@@ -12,9 +12,9 @@ from cellpose.metrics import aggregated_jaccard_index
 #from segment_anything import SamPredictor, sam_model_registry
 #from segment_anything.automatic_mask_generator import SamAutomaticMaskGenerator
 
-from dcp_server.utils import get_centered_patches, find_max_patch_size, create_patch_dataset, get_objects
+from dcp_server.utils import get_centered_patches, find_max_patch_size, create_patch_dataset
 
-class CustomCellposeModel(models.CellposeModel):
+class CustomCellposeModel(models.CellposeModel, nn.Module):
     """Custom cellpose model inheriting the attributes and functions from the original CellposeModel and implementing
     additional attributes and methods needed for this project.
     """    
@@ -32,7 +32,14 @@ class CustomCellposeModel(models.CellposeModel):
         """
         
         # Initialize the cellpose model
-        super().__init__(**model_config["segmentor"])
+        #super().__init__(**model_config["segmentor"])
+        nn.Module.__init__(self)
+        models.CellposeModel.__init__(self, **model_config["segmentor"])
+        self.mkldnn = False # otherwise we get error with saving model
+        self.train_config = train_config
+        self.eval_config = eval_config
+
+    def update_configs(self, train_config, eval_config):
         self.train_config = train_config
         self.eval_config = eval_config
         
@@ -66,10 +73,7 @@ class CustomCellposeModel(models.CellposeModel):
         super().train(train_data=deepcopy(imgs), train_labels=masks, **self.train_config["segmentor"])
         
         pred_masks = [self.eval(img) for img in masks]
-        print(len(pred_masks))
         self.metric = np.mean(aggregated_jaccard_index(masks, pred_masks))
-        # pred_masks = [self.eval(img) for img in masks]
-
         # self.loss = self.loss_fn(masks, pred_masks)
     
     def masks_to_outlines(self, mask):
@@ -87,7 +91,7 @@ class CustomCellposeModel(models.CellposeModel):
 class CellClassifierFCNN(nn.Module):
     
     '''
-    Fully convolutional classifier for cell images.
+    Fully convolutional classifier for cell images. NOTE -> This model cannot be used as a standalone model in DCP
 
     Args:
         model_config (dict): Model configuration.
@@ -127,6 +131,10 @@ class CellClassifierFCNN(nn.Module):
         )
         self.final_conv = nn.Conv2d(128, self.num_classes, 1)
         self.pooling = nn.AdaptiveMaxPool2d(1)
+
+    def update_configs(self, train_config, eval_config):
+        self.train_config = train_config
+        self.eval_config = eval_config
 
     def forward(self, x):
 
@@ -200,14 +208,15 @@ class CellClassifierFCNN(nn.Module):
         return y_hat
 
 
-class CellposePatchCNN():
+class CellposePatchCNN(nn.Module):
 
     """
     Cellpose & patches of cells and then cnn to classify each patch
     """
     
     def __init__(self, model_config, train_config, eval_config):
-        
+        super().__init__()
+
         self.model_config = model_config
         self.train_config = train_config
         self.eval_config = eval_config
@@ -220,22 +229,10 @@ class CellposePatchCNN():
                                              self.train_config,
                                              self.eval_config)
 
-    def init_from_checkpoints(self, chpt_classifier=None, chpt_segmentor=None):
-        """
-        Initialize the model from pre-trained checkpoints.
-        """
-
-        self.segmentor = CustomCellposeModel(
-            self.model_config.get("segmentor", {}), 
-            self.train_config.get("segmentor", {}),
-            self.eval_config.get("segmentor", {})
-        )
-        self.classifier = CellClassifierFCNN(
-            self.model_config.get("classifier", {}), 
-            self.train_config.get("classifier", {}),
-            self.eval_config.get("classifier", {})
-        )
-
+    def update_configs(self, train_config, eval_config):
+        self.train_config = train_config
+        self.eval_config = eval_config
+        
     def train(self, imgs, masks):
         """Trains the given model. First trains the segmentor and then the clasiffier.
 
