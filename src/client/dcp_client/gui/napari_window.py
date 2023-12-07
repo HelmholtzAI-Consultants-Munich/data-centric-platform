@@ -1,16 +1,30 @@
 from __future__ import annotations
 from typing import List, TYPE_CHECKING
 
+import numpy as np
+
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QComboBox, QLabel, QGridLayout
 from PyQt5.QtCore import Qt
 import napari
+from napari.qt import thread_worker
+import numpy as np
 
 if TYPE_CHECKING:
     from dcp_client.app import Application
 
 from dcp_client.utils import utils
-from napari.qt import thread_worker
-import numpy as np
+
+widget_list = [
+    'ellipse_button',
+    'line_button',
+    'path_button',
+    'polygon_button',
+    'vertex_remove_button',
+    'vertex_insert_button',
+    'move_back_button',
+    'move_front_button',
+    'label_eraser',
+]
 
 class NapariWindow(QWidget):
     '''Napari Window Widget object.
@@ -29,38 +43,45 @@ class NapariWindow(QWidget):
         self.app.search_segs()
 
         # Set the viewer
+
+        # with thread_worker():
         self.viewer = napari.Viewer(show=False)
 
         self.viewer.add_image(img, name=utils.get_path_stem(self.app.cur_selected_img))
-
+      
         for seg_file in self.app.seg_filepaths:
             self.viewer.add_labels(self.app.load_image(seg_file), name=utils.get_path_stem(seg_file))
 
         layer = self.viewer.layers[utils.get_path_stem(self.app.seg_filepaths[0])]
+        self.qctrl = self.viewer.window.qt_viewer.controls.widgets[layer]
 
         self.changed = False
+        self.event_coords = None
 
         main_window = self.viewer.window._qt_window
+        
         layout = QGridLayout()
         layout.addWidget(main_window, 0, 0, 1, 4)
 
         # set first mask as active by default
         self.active_mask_index = 0
 
+        self.switch_to_active_mask()
+
         if layer.data.shape[0] >= 2:
             # User hint
             message_label = QLabel('Choose an active mask')
             message_label.setAlignment(Qt.AlignRight)
             layout.addWidget(message_label, 1, 0)
-
+        
         # Drop list to choose which is an active mask
-
+            
             self.mask_choice_dropdown = QComboBox()
             self.mask_choice_dropdown.addItem('Instance Segmentation Mask', userData=0)
             self.mask_choice_dropdown.addItem('Labels Mask', userData=1)
             layout.addWidget(self.mask_choice_dropdown, 1, 1)
 
-
+            
 
             # when user has chosen the mask, we don't want to change it anymore to avoid errors
             lock_button = QPushButton("Confirm Final Choice")
@@ -70,7 +91,6 @@ class NapariWindow(QWidget):
             layer.mouse_drag_callbacks.append(self.copy_mask_callback)
             layer.events.set_data.connect(lambda event: self.copy_mask_callback(layer, event))
 
-       
 
         add_to_inprogress_button = QPushButton('Move to \'Curatation in progress\' folder')
         layout.addWidget(add_to_inprogress_button, 2, 0, 1, 2)
@@ -82,40 +102,77 @@ class NapariWindow(QWidget):
 
         self.setLayout(layout)
 
-        # self.show()
+    def switch_controls(self, target_widget, status: bool):
+        getattr(self.qctrl, target_widget).setEnabled(status)
+
+    def switch_to_active_mask(self):
+        self.switch_controls("paint_button", True)
+        self.switch_controls("erase_button", True)
+        self.switch_controls("fill_button", False)
+    
+    def switch_to_non_active_mask(self):
+        self.switch_controls("paint_button", False)
+        self.switch_controls("erase_button", False)
+        self.switch_controls("fill_button", True) 
+
     def set_active_mask(self):
         self.mask_choice_dropdown.setDisabled(True)
         self.active_mask_index = self.mask_choice_dropdown.currentData()
+        if self.active_mask_index == 1:
+            self.switch_to_non_active_mask()
 
-    def on_mask_choice_changed(self, index):
-        self.active_mask_index = self.mask_choice_dropdown.itemData(index)
 
     def copy_mask_callback(self, layer, event):
 
         source_mask = layer.data
-
+    
         if event.type == "mouse_press":
 
             c, event_x, event_y = event.position
             c, event_x, event_y = int(c), int(np.round(event_x)), int(np.round(event_y))
+
+            if source_mask[c, event_x, event_y] == 0:
+                self.new_pixel = True
+            else:
+                self.new_pixel = False
+
             self.event_coords = (c, event_x, event_y)
 
         elif event.type == "set_data":
 
+            if self.viewer.dims.current_step[0] == self.active_mask_index:
+                self.switch_to_active_mask()
+            else:
+                self.switch_to_non_active_mask()
+
             if self.event_coords is not None:
+
                 c, event_x, event_y = self.event_coords
                 
                 if c == self.active_mask_index:
 
                     labels, counts = np.unique(source_mask[c, event_x - 1: event_x + 2, event_y - 1: event_y + 2], return_counts=True)
-                    
-                    if labels.size > 0:
 
+                    if labels.size > 0:
+                     
                         idx = np.argmax(counts)
                         label = labels[idx]
 
                         mask_fill = source_mask[c] == label
-                        source_mask[abs(c - 1)][mask_fill] = label
+
+                        labels_seg, counts_seg = np.unique(
+                            source_mask[abs(c - 1)][mask_fill], 
+                            return_counts=True
+                        )
+                        idx_seg = np.argmax(counts_seg)
+                        label_seg = labels_seg[idx_seg]
+
+                        if self.new_pixel or label == 0:
+                            # print(label, label_seg)
+                            source_mask[abs(c - 1)][mask_fill] = label
+                        # else:
+                        #     print("nothing to expand")
+                        #     source_mask[abs(c - 1)][mask_fill] = label
 
                         self.changed = True
 
@@ -123,6 +180,7 @@ class NapariWindow(QWidget):
 
                     mask_fill = source_mask[abs(c - 1)] == 0
                     source_mask[c][mask_fill] = 0
+        
 
 
     def on_add_to_curated_button_clicked(self):
@@ -141,6 +199,7 @@ class NapariWindow(QWidget):
             message_text = "Please select the segmenation you wish to save from the layer list"
             utils.create_warning_box(message_text, message_title="Warning")
             return
+        
         seg = self.viewer.layers[cur_seg_selected].data
 
         # Move original image
@@ -181,4 +240,5 @@ class NapariWindow(QWidget):
         seg = self.viewer.layers[cur_seg_selected].data
         self.app.save_image(self.app.inprogr_data_path, cur_seg_selected+'.tiff', seg)
         
+        self.viewer.close()
         self.close()
