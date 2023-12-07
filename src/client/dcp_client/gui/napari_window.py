@@ -44,26 +44,33 @@ class NapariWindow(QWidget):
         layout = QGridLayout()
         layout.addWidget(main_window, 0, 0, 1, 4)
 
-         # User hint
-        message_label = QLabel('Choose an active mask')
-        message_label.setAlignment(Qt.AlignRight)
-        layout.addWidget(message_label, 1, 0)
+        # set first mask as active by default
+        self.active_mask_index = 0
 
-       # Drop list to choose which is an active mask
-        self.mask_choice_dropdown = QComboBox()
-        self.mask_choice_dropdown.addItem('Instance Segmentation Mask', userData=0)
-        self.mask_choice_dropdown.addItem('Labels Mask', userData=1)
-        layout.addWidget(self.mask_choice_dropdown, 1, 1)
-        self.mask_choice_dropdown.currentIndexChanged.connect(self.on_mask_choice_changed)
+        if layer.data.shape[0] >= 2:
+            # User hint
+            message_label = QLabel('Choose an active mask')
+            message_label.setAlignment(Qt.AlignRight)
+            layout.addWidget(message_label, 1, 0)
 
-        # when user has chosen the mask, we don't want to change it anymore to avoid errors
-        lock_button = QPushButton("Confirm Final Choice")
-        lock_button.clicked.connect(self.set_active_mask)
+        # Drop list to choose which is an active mask
 
-        layer.mouse_drag_callbacks.append(self.copy_mask_callback)
-        layer.events.set_data.connect(lambda event: self.copy_mask_callback(layer, event))
+            self.mask_choice_dropdown = QComboBox()
+            self.mask_choice_dropdown.addItem('Instance Segmentation Mask', userData=0)
+            self.mask_choice_dropdown.addItem('Labels Mask', userData=1)
+            layout.addWidget(self.mask_choice_dropdown, 1, 1)
 
-        layout.addWidget(lock_button, 1, 2)
+
+
+            # when user has chosen the mask, we don't want to change it anymore to avoid errors
+            lock_button = QPushButton("Confirm Final Choice")
+            lock_button.clicked.connect(self.set_active_mask)
+
+            layout.addWidget(lock_button, 1, 2)
+            layer.mouse_drag_callbacks.append(self.copy_mask_callback)
+            layer.events.set_data.connect(lambda event: self.copy_mask_callback(layer, event))
+
+       
 
         add_to_inprogress_button = QPushButton('Move to \'Curatation in progress\' folder')
         layout.addWidget(add_to_inprogress_button, 2, 0, 1, 2)
