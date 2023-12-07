@@ -1,7 +1,8 @@
 from __future__ import annotations
 from typing import List, TYPE_CHECKING
 
-from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout
+from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QComboBox, QLabel, QGridLayout
+from PyQt5.QtCore import Qt
 import napari
 
 if TYPE_CHECKING:
@@ -29,33 +30,58 @@ class NapariWindow(QWidget):
 
         # Set the viewer
         self.viewer = napari.Viewer(show=False)
+
         self.viewer.add_image(img, name=utils.get_path_stem(self.app.cur_selected_img))
+
         for seg_file in self.app.seg_filepaths:
             self.viewer.add_labels(self.app.load_image(seg_file), name=utils.get_path_stem(seg_file))
 
         layer = self.viewer.layers[utils.get_path_stem(self.app.seg_filepaths[0])]
 
+        self.changed = False
+
+        main_window = self.viewer.window._qt_window
+        layout = QGridLayout()
+        layout.addWidget(main_window, 0, 0, 1, 4)
+
+         # User hint
+        message_label = QLabel('Choose an active mask')
+        message_label.setAlignment(Qt.AlignRight)
+        layout.addWidget(message_label, 1, 0)
+
+       # Drop list to choose which is an active mask
+        self.mask_choice_dropdown = QComboBox()
+        self.mask_choice_dropdown.addItem('Instance Segmentation Mask', userData=0)
+        self.mask_choice_dropdown.addItem('Labels Mask', userData=1)
+        layout.addWidget(self.mask_choice_dropdown, 1, 1)
+        self.mask_choice_dropdown.currentIndexChanged.connect(self.on_mask_choice_changed)
+
+        # when user has chosen the mask, we don't want to change it anymore to avoid errors
+        lock_button = QPushButton("Confirm Final Choice")
+        lock_button.clicked.connect(self.set_active_mask)
+
         layer.mouse_drag_callbacks.append(self.copy_mask_callback)
         layer.events.set_data.connect(lambda event: self.copy_mask_callback(layer, event))
 
-        main_window = self.viewer.window._qt_window
-        layout = QVBoxLayout()
-        layout.addWidget(main_window)
-
-        buttons_layout = QHBoxLayout()
+        layout.addWidget(lock_button, 1, 2)
 
         add_to_inprogress_button = QPushButton('Move to \'Curatation in progress\' folder')
-        buttons_layout.addWidget(add_to_inprogress_button)
+        layout.addWidget(add_to_inprogress_button, 2, 0, 1, 2)
         add_to_inprogress_button.clicked.connect(self.on_add_to_inprogress_button_clicked)
     
         add_to_curated_button = QPushButton('Move to \'Curated dataset\' folder')
-        buttons_layout.addWidget(add_to_curated_button)
+        layout.addWidget(add_to_curated_button, 2, 2, 1, 2)
         add_to_curated_button.clicked.connect(self.on_add_to_curated_button_clicked)
 
-        layout.addLayout(buttons_layout)
-
         self.setLayout(layout)
-        self.show()
+
+        # self.show()
+    def set_active_mask(self):
+        self.mask_choice_dropdown.setDisabled(True)
+        self.active_mask_index = self.mask_choice_dropdown.currentData()
+
+    def on_mask_choice_changed(self, index):
+        self.active_mask_index = self.mask_choice_dropdown.itemData(index)
 
     def copy_mask_callback(self, layer, event):
 
@@ -71,18 +97,25 @@ class NapariWindow(QWidget):
 
             if self.event_coords is not None:
                 c, event_x, event_y = self.event_coords
+                
+                if c == self.active_mask_index:
 
-                if c == 0:
-
-                    labels, counts = np.unique(source_mask[0,event_x - 1: event_x + 2, event_y - 1: event_y + 2], return_counts=True)
+                    labels, counts = np.unique(source_mask[c, event_x - 1: event_x + 2, event_y - 1: event_y + 2], return_counts=True)
                     
                     if labels.size > 0:
 
                         idx = np.argmax(counts)
                         label = labels[idx]
 
-                        mask_fill = source_mask[0] == label
-                        source_mask[1][mask_fill] = label
+                        mask_fill = source_mask[c] == label
+                        source_mask[abs(c - 1)][mask_fill] = label
+
+                        self.changed = True
+
+                else:
+
+                    mask_fill = source_mask[abs(c - 1)] == 0
+                    source_mask[c][mask_fill] = 0
 
 
     def on_add_to_curated_button_clicked(self):
