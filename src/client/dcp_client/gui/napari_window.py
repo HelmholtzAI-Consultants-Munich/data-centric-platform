@@ -8,6 +8,8 @@ if TYPE_CHECKING:
     from dcp_client.app import Application
 
 from dcp_client.utils import utils
+from napari.qt import thread_worker
+import numpy as np
 
 class NapariWindow(QWidget):
     '''Napari Window Widget object.
@@ -31,6 +33,11 @@ class NapariWindow(QWidget):
         for seg_file in self.app.seg_filepaths:
             self.viewer.add_labels(self.app.load_image(seg_file), name=utils.get_path_stem(seg_file))
 
+        layer = self.viewer.layers[utils.get_path_stem(self.app.seg_filepaths[0])]
+
+        layer.mouse_drag_callbacks.append(self.copy_mask_callback)
+        layer.events.set_data.connect(lambda event: self.copy_mask_callback(layer, event))
+
         main_window = self.viewer.window._qt_window
         layout = QVBoxLayout()
         layout.addWidget(main_window)
@@ -49,6 +56,35 @@ class NapariWindow(QWidget):
 
         self.setLayout(layout)
         self.show()
+
+    def copy_mask_callback(self, layer, event):
+
+        source_mask = layer.data
+
+        if event.type == "mouse_press":
+
+            c, event_x, event_y = event.position
+            c, event_x, event_y = int(c), int(np.round(event_x)), int(np.round(event_y))
+            self.event_coords = (c, event_x, event_y)
+
+        elif event.type == "set_data":
+
+            if self.event_coords is not None:
+                c, event_x, event_y = self.event_coords
+
+                if c == 0:
+
+                    # idx = np.ix_((range(event_x - 1, event_x + 2), range(event_y - 1, event_y + 2)))
+                    labels, counts = np.unique(source_mask[0,event_x - 1: event_x + 2, event_y - 1: event_y + 2], return_counts=True)
+                    labels = labels[labels > 0]
+
+                    idx = np.argmax(counts[labels > 0])
+
+                    label = labels[idx]
+
+                    mask_fill = source_mask[0] == label
+                    source_mask[1][mask_fill] = label
+
 
     def on_add_to_curated_button_clicked(self):
         '''
@@ -78,6 +114,7 @@ class NapariWindow(QWidget):
         self.app.delete_images(self.app.seg_filepaths)
         # TODO Create the Archive folder for the rest? Or move them as well? 
 
+        self.viewer.close()
         self.close()
 
     def on_add_to_inprogress_button_clicked(self):
