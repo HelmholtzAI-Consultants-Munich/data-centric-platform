@@ -51,6 +51,7 @@ jobs:
       - name: Test with pytest
         run: |
           coverage run -m pytest
+          coverage xml
         working-directory: src/client
         env:
           PLATFORM: ${{ matrix.platform }}
@@ -58,7 +59,7 @@ jobs:
       - name: Coverage client tests
         uses: codecov/codecov-action@v3
         with:
-          files: src/client/.coverage
+          files: src/client/coverage.xml
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -91,6 +92,7 @@ jobs:
       - name: Test with pytest
         run: |
           coverage run -m pytest
+          coverage xml
         working-directory: src/server
         env:
           PLATFORM: ${{ matrix.platform }}
@@ -98,7 +100,7 @@ jobs:
       - name: Coverage server tests
         uses: codecov/codecov-action@v3
         with:
-          files: src/server/.coverage
+          files: src/server/coverage.xml
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         
