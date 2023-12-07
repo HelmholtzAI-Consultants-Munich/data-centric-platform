@@ -51,7 +51,7 @@ jobs:
       - name: Test with pytest
         run: |
           coverage run -m pytest
-          coverage xml
+          coverage xml -i
         working-directory: src/client
         env:
           PLATFORM: ${{ matrix.platform }}
@@ -92,7 +92,7 @@ jobs:
       - name: Test with pytest
         run: |
           coverage run -m pytest
-          coverage xml
+          coverage xml -i
         working-directory: src/server
         env:
           PLATFORM: ${{ matrix.platform }}
