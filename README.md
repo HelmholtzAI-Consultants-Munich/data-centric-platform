@@ -1,5 +1,5 @@
 # Data Centric Platform
-*A data centric platform for all-type segmentation in microscopy imaging*
+*A data centric platform for all-kinds segmentation in microscopy imaging*
 
 ![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
 ![tests](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/actions/workflows/test.yml/badge.svg?event=push)
