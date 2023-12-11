@@ -9,6 +9,17 @@ import napari
 from napari.qt import thread_worker
 import numpy as np
 
+from skimage.filters import sobel
+from skimage.morphology import diamond, disk, octagon
+from skimage.segmentation import watershed
+from skimage.feature import canny, peak_local_max
+
+from scipy import ndimage as ndi
+
+import cv2
+
+from copy import deepcopy
+
 if TYPE_CHECKING:
     from dcp_client.app import Application
 
@@ -39,7 +50,7 @@ class NapariWindow(QWidget):
         self.setWindowTitle("napari viewer")
 
         # Load image and get corresponding segmentation filenames
-        img = self.app.load_image()
+        self.img = self.app.load_image()
         self.app.search_segs()
 
         # Set the viewer
@@ -47,16 +58,17 @@ class NapariWindow(QWidget):
         # with thread_worker():
         self.viewer = napari.Viewer(show=False)
 
-        self.viewer.add_image(img, name=utils.get_path_stem(self.app.cur_selected_img))
-      
+        self.viewer.add_image(self.img, name=utils.get_path_stem(self.app.cur_selected_img))
+
         for seg_file in self.app.seg_filepaths:
             self.viewer.add_labels(self.app.load_image(seg_file), name=utils.get_path_stem(seg_file))
 
-        layer = self.viewer.layers[utils.get_path_stem(self.app.seg_filepaths[0])]
-        self.qctrl = self.viewer.window.qt_viewer.controls.widgets[layer]
+        self.layer = self.viewer.layers[utils.get_path_stem(self.app.seg_filepaths[0])]
+        self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
 
         self.changed = False
         self.event_coords = None
+        self.active_mask_instance = None
 
         main_window = self.viewer.window._qt_window
         
@@ -66,9 +78,15 @@ class NapariWindow(QWidget):
         # set first mask as active by default
         self.active_mask_index = 0
 
+        self.instances = set(np.unique(self.layer.data[self.active_mask_index])[1:])
+        self.instances_updated = set()
+
+        self.find_edges(use_prev=False)
+        self.prev_mask = self.layer.data[0]
+
         self.switch_to_active_mask()
 
-        if layer.data.shape[0] >= 2:
+        if self.layer.data.shape[0] >= 2:
             # User hint
             message_label = QLabel('Choose an active mask')
             message_label.setAlignment(Qt.AlignRight)
@@ -81,15 +99,13 @@ class NapariWindow(QWidget):
             self.mask_choice_dropdown.addItem('Labels Mask', userData=1)
             layout.addWidget(self.mask_choice_dropdown, 1, 1)
 
-            
-
             # when user has chosen the mask, we don't want to change it anymore to avoid errors
             lock_button = QPushButton("Confirm Final Choice")
             lock_button.clicked.connect(self.set_active_mask)
 
             layout.addWidget(lock_button, 1, 2)
-            layer.mouse_drag_callbacks.append(self.copy_mask_callback)
-            layer.events.set_data.connect(lambda event: self.copy_mask_callback(layer, event))
+            self.layer.mouse_drag_callbacks.append(self.copy_mask_callback)
+            self.layer.events.set_data.connect(lambda event: self.copy_mask_callback(self.layer, event))
 
 
         add_to_inprogress_button = QPushButton('Move to \'Curatation in progress\' folder')
@@ -106,22 +122,62 @@ class NapariWindow(QWidget):
         getattr(self.qctrl, target_widget).setEnabled(status)
 
     def switch_to_active_mask(self):
+
         self.switch_controls("paint_button", True)
         self.switch_controls("erase_button", True)
         self.switch_controls("fill_button", False)
+
+        self.active_mask = True
     
     def switch_to_non_active_mask(self):
+
+        self.instances = set(np.unique(self.layer.data[self.active_mask_index])[1:])
+
         self.switch_controls("paint_button", False)
         self.switch_controls("erase_button", False)
         self.switch_controls("fill_button", True) 
 
+        self.active_mask = False
+
     def set_active_mask(self):
         self.mask_choice_dropdown.setDisabled(True)
         self.active_mask_index = self.mask_choice_dropdown.currentData()
+        self.instances = set(np.unique(self.layer.data[self.active_mask_index])[1:])
+        self.prev_mask = self.layer.data[self.active_mask]
         if self.active_mask_index == 1:
             self.switch_to_non_active_mask()
 
+    def find_edges(self, idx=None, use_prev=False):
 
+        if idx is not None and not isinstance(idx, list):
+            idx = [idx]
+
+        source_mask = self.layer.data[self.active_mask_index]
+
+        instances = np.unique(source_mask)[1:]
+        edges = np.zeros_like(source_mask).astype(int)
+
+        kernel = np.ones((5, 5))
+
+        if len(instances):
+            for c in instances:
+                if idx is None or c in idx:
+        
+                    mask_instance = (source_mask == c).astype(np.uint8)
+                    mask_diff = mask_instance
+
+                    edge_mask = 255 * (canny(255 * (mask_diff)) > 0).astype(np.uint8)
+                    edge_mask = cv2.morphologyEx(
+                        edge_mask, 
+                        cv2.MORPH_CLOSE, 
+                        kernel,
+                    )
+                    edges = edges + edge_mask
+
+            edges = edges > 0
+
+            self.layer.data = self.layer.data * np.invert(edges).astype(np.uint8)
+            
     def copy_mask_callback(self, layer, event):
 
         source_mask = layer.data
@@ -138,7 +194,11 @@ class NapariWindow(QWidget):
 
             self.event_coords = (c, event_x, event_y)
 
+           
+
         elif event.type == "set_data":
+            
+            active_mask_current = self.active_mask
 
             if self.viewer.dims.current_step[0] == self.active_mask_index:
                 self.switch_to_active_mask()
@@ -160,6 +220,9 @@ class NapariWindow(QWidget):
 
                         mask_fill = source_mask[c] == label
 
+                        self.changed = True
+                        self.instances_updated.add(label)
+
                         labels_seg, counts_seg = np.unique(
                             source_mask[abs(c - 1)][mask_fill], 
                             return_counts=True
@@ -167,20 +230,22 @@ class NapariWindow(QWidget):
                         idx_seg = np.argmax(counts_seg)
                         label_seg = labels_seg[idx_seg]
 
-                        if self.new_pixel or label == 0:
-                            # print(label, label_seg)
+                        if not label in self.instances:
                             source_mask[abs(c - 1)][mask_fill] = label
-                        # else:
-                        #     print("nothing to expand")
-                        #     source_mask[abs(c - 1)][mask_fill] = label
+                        else:
+                            source_mask[abs(c - 1)][mask_fill] = label_seg
 
-                        self.changed = True
+                        self.instances.add(label)
+
+                        if (active_mask_current) and (not self.active_mask):
+                            
+                            self.instances_updated = set()
+                            self.prev_mask = source_mask
 
                 else:
-
+                    
                     mask_fill = source_mask[abs(c - 1)] == 0
                     source_mask[c][mask_fill] = 0
-        
 
 
     def on_add_to_curated_button_clicked(self):
