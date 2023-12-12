@@ -50,6 +50,12 @@ The config file has to have the five main parts. All the ```marked``` arguments 
   - ```classifier```: train configuration for classifier, see _eval()_ of ```CellClassifierFCNN```.
   - ```mask_channel_axis```: If a multi-class instance segmentation model has been used, then the masks returned by the model should have two channels, one for the instance segmentation results and one indicating the obects class. This variable indicated at which dim the channel axis should be stored. Currently should be kept at 0, as this is the only way the masks can be visualised correcly by napari in the client.
 
+To make it easier for you we provide you with two config files: ```config.cfg``` is set up to work for a panoptic segmentation task, while ```config_instance.cfg``` for instance segmentation. Make sure to rename the config you wish to use to ```config.cfg```. The default is panoptic segmentation. 
+
+## Models
+The current models are currently integrated into DCP:
+* CellPose --> for instance segmentation tasks
+* CellposePatchCNN --> for panoptic segmentation tasks: includes the Cellpose model for instance segmentation followed by a patch wise CNN model on the predicted instances for obtaining class labels
 
 ## Running with Docker [DO NOT USE UNTIL ISSUE IS SOLVED]
 
