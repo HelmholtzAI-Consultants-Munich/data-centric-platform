@@ -242,20 +242,10 @@ class NapariWindow(QWidget):
                         # If a new color is used, then it is copied to a label mask
                         # Otherwise, we copy the existing color from the label mask 
                         
-                        # print(self.instances)
-                        # print(label)
-                        
                         if not label in self.instances:
                             source_mask[abs(c - 1)][mask_fill] = label
                         else:
                             source_mask[abs(c - 1)][mask_fill] = label_seg
-
-                        # self.instances.add(label)
-
-                        # if (active_mask_current) and (not self.active_mask):
-                            
-                        #     self.instances_updated = set()
-                            # self.prev_mask = source_mask
 
                 else:
                     
