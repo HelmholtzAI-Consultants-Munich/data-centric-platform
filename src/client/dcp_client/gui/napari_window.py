@@ -81,10 +81,10 @@ class NapariWindow(QWidget):
         # unique labels
         self.instances = set(np.unique(self.layer.data[self.active_mask_index])[1:])
         # for copying contours
-        # self.instances_updated = set()
+        self.instances_updated = set()
 
         # For each instance find the contours and set the color of it to 0 to be invisible
-        self.find_edges(use_prev=False)
+        self.find_edges()
         # self.prev_mask = self.layer.data[0]
 
         self.switch_to_active_mask()
@@ -98,12 +98,14 @@ class NapariWindow(QWidget):
         # Drop list to choose which is an active mask
             
             self.mask_choice_dropdown = QComboBox()
+            self.mask_choice_dropdown.setEnabled(False)
             self.mask_choice_dropdown.addItem('Instance Segmentation Mask', userData=0)
             self.mask_choice_dropdown.addItem('Labels Mask', userData=1)
             layout.addWidget(self.mask_choice_dropdown, 1, 1)
 
             # when user has chosen the mask, we don't want to change it anymore to avoid errors
             lock_button = QPushButton("Confirm Final Choice")
+            lock_button.setEnabled(False)
             lock_button.clicked.connect(self.set_active_mask)
 
             layout.addWidget(lock_button, 1, 2)
@@ -227,7 +229,7 @@ class NapariWindow(QWidget):
                         mask_fill = source_mask[c] == label
 
                         # self.changed = True
-                        self.instances_updated.add(label)
+                        # self.instances_updated.add(label)
 
                         # Find the color of the label mask at the given point
                         labels_seg, counts_seg = np.unique(
@@ -239,17 +241,21 @@ class NapariWindow(QWidget):
 
                         # If a new color is used, then it is copied to a label mask
                         # Otherwise, we copy the existing color from the label mask 
+                        
+                        # print(self.instances)
+                        # print(label)
+                        
                         if not label in self.instances:
                             source_mask[abs(c - 1)][mask_fill] = label
                         else:
                             source_mask[abs(c - 1)][mask_fill] = label_seg
 
-                        self.instances.add(label)
+                        # self.instances.add(label)
 
                         # if (active_mask_current) and (not self.active_mask):
                             
                         #     self.instances_updated = set()
-                        #     self.prev_mask = source_mask
+                            # self.prev_mask = source_mask
 
                 else:
                     
