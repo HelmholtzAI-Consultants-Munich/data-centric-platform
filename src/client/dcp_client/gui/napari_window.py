@@ -78,11 +78,14 @@ class NapariWindow(QWidget):
         # set first mask as active by default
         self.active_mask_index = 0
 
+        # unique labels
         self.instances = set(np.unique(self.layer.data[self.active_mask_index])[1:])
-        self.instances_updated = set()
+        # for copying contours
+        # self.instances_updated = set()
 
+        # For each instance find the contours and set the color of it to 0 to be invisible
         self.find_edges(use_prev=False)
-        self.prev_mask = self.layer.data[0]
+        # self.prev_mask = self.layer.data[0]
 
         self.switch_to_active_mask()
 
@@ -147,26 +150,28 @@ class NapariWindow(QWidget):
         if self.active_mask_index == 1:
             self.switch_to_non_active_mask()
 
-    def find_edges(self, idx=None, use_prev=False):
-
+    def find_edges(self, idx=None):
+        '''
+        idx - indices of the specific labels from which to get contour
+        '''
         if idx is not None and not isinstance(idx, list):
             idx = [idx]
 
-        source_mask = self.layer.data[self.active_mask_index]
+        active_mask = self.layer.data[self.active_mask_index]
 
-        instances = np.unique(source_mask)[1:]
-        edges = np.zeros_like(source_mask).astype(int)
+        instances = np.unique(active_mask)[1:]
+        edges = np.zeros_like(active_mask).astype(int)
 
+        # to merge the discontinuous contours
         kernel = np.ones((5, 5))
 
         if len(instances):
-            for c in instances:
-                if idx is None or c in idx:
+            for i in instances:
+                if idx is None or i in idx:
         
-                    mask_instance = (source_mask == c).astype(np.uint8)
-                    mask_diff = mask_instance
+                    mask_instance = (active_mask == i).astype(np.uint8)
 
-                    edge_mask = 255 * (canny(255 * (mask_diff)) > 0).astype(np.uint8)
+                    edge_mask = 255 * (canny(255 * (mask_instance)) > 0).astype(np.uint8)
                     edge_mask = cv2.morphologyEx(
                         edge_mask, 
                         cv2.MORPH_CLOSE, 
@@ -174,8 +179,9 @@ class NapariWindow(QWidget):
                     )
                     edges = edges + edge_mask
 
+            # if masks are intersecting then we want to count it only once
             edges = edges > 0
-
+            # cut the contours
             self.layer.data = self.layer.data * np.invert(edges).astype(np.uint8)
             
     def copy_mask_callback(self, layer, event):
@@ -220,9 +226,10 @@ class NapariWindow(QWidget):
 
                         mask_fill = source_mask[c] == label
 
-                        self.changed = True
+                        # self.changed = True
                         self.instances_updated.add(label)
 
+                        # Find the color of the label mask at the given point
                         labels_seg, counts_seg = np.unique(
                             source_mask[abs(c - 1)][mask_fill], 
                             return_counts=True
@@ -230,6 +237,8 @@ class NapariWindow(QWidget):
                         idx_seg = np.argmax(counts_seg)
                         label_seg = labels_seg[idx_seg]
 
+                        # If a new color is used, then it is copied to a label mask
+                        # Otherwise, we copy the existing color from the label mask 
                         if not label in self.instances:
                             source_mask[abs(c - 1)][mask_fill] = label
                         else:
@@ -237,10 +246,10 @@ class NapariWindow(QWidget):
 
                         self.instances.add(label)
 
-                        if (active_mask_current) and (not self.active_mask):
+                        # if (active_mask_current) and (not self.active_mask):
                             
-                            self.instances_updated = set()
-                            self.prev_mask = source_mask
+                        #     self.instances_updated = set()
+                        #     self.prev_mask = source_mask
 
                 else:
                     
