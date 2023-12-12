@@ -13,5 +13,19 @@ This repo includes a client and server side for using our data centric platform.
 
 To run the client GUI follow the instructions described in [DCP Client Installation & Launch](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/client/README.md).
 
+DCP handles all kinds of **segmentation tasks**! Try it out if you need to do:
+* **Instance** segmentation
+* **Semantic** segmentation
+* **Panoptic** segmentation
+
 ### Toy data
 This repo includes the ```data/``` directory with some toy data which you can use as the *Uncurated dataset* folder. You can create (empty) folders for the other two directories required in the welcome window and start playing around.
+
+### Enabling data centric development
+Our platform encourages the use of data centric practices. With the user friendly client interface you can:
+- Detect and remove outliers from your training data: only confirmed samples are used to train our models
+- Detect and correct labeling errors: editing labels with the integrated napari visualisation tool
+- Establish consensus: allows for multiple annotators before curated label is passed to train model
+- Focus on data curation: no interaction with model parameters during training and inference
+
+#### *Get more with less!*
