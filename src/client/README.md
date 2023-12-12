@@ -35,6 +35,8 @@ Before launching the GUI you will need to set up your client configuration file,
   ```
   Before continuing, you need to make sure that DCP server is running, either locally or on the cloud. See [DCP Server Installation & Launch](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/server/README.md#using-pypi) for instructions on how to launch the server. **Note:** In order for this connection to succeed, you will need to have contacted the team developing DCP, so they can add your IP to the list of accepted requests.
 
+To make it easier for you we provide you with two config files, one works when running a local server and one for remote - just make sure you rename the config file you wish to use to ```config.cfg```. The defualt is local configuration. 
+
 
 2. **Launching the client**
    
