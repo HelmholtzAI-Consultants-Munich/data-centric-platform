@@ -1,3 +1,4 @@
 napari[pyqt5]>=0.4.17
 bentoml[grpc]>=1.0.13
+opencv-python>=4.8.1
 pytest>=7.4.3
