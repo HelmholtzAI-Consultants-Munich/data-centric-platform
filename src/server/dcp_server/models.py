@@ -9,6 +9,10 @@ import numpy as np
 
 from cellpose.metrics import aggregated_jaccard_index
 
+# TODO [coding club: flo] I propose to split this file into multiple files to have it more modular
+# TODO [coding club: dona] We suggest to specify the type of the arguments
+
+
 # from segment_anything import SamPredictor, sam_model_registry
 # from segment_anything.automatic_mask_generator import SamAutomaticMaskGenerator
 
@@ -158,6 +162,8 @@ class CellClassifierFCNN(nn.Module):
         x = x.view(x.size(0), -1)
         return x
 
+    # TODO [coding club: flo] consider introducing an abstract class, that has  abstractmethods for train and eval, that all models need to implement; also consider different abstract classes for object detection, instance/semantic/panoptic segmentation as inputs and outputs of the methods will vary for these different ML tasks -> inspiration: https://github.com/BrainLesion/preprocessing/blob/main/brainles_preprocessing/registration/registrator.py
+    # TODO [coding club: flo] consider introducing custom types to do input and output validation -> inspiration: https://github.com/BrainLesion/panoptica/blob/main/panoptica/utils/datatypes.py
     def train(self, imgs, labels):
         """
         input:
@@ -223,6 +229,7 @@ class CellClassifierFCNN(nn.Module):
         return y_hat
 
 
+# TODO [coding club: flo] this seems to be a helper module, so it might be outsourced
 class CellposePatchCNN(nn.Module):
 
     """
@@ -248,7 +255,9 @@ class CellposePatchCNN(nn.Module):
         self.train_config = train_config
         self.eval_config = eval_config
 
+    # TODO [coding club: flo] see comment above in the other class
     def train(self, imgs, masks):
+        # TODO [coding club: flo] a typical way to structure tensors is BCHWD (batch, channel, height, width, depth); this "[2, H, W] or [2, 3, H, W] for 3D" is confusing me
         """Trains the given model. First trains the segmentor and then the clasiffier.
 
         :param imgs: images to train on (training data)
@@ -259,6 +268,7 @@ class CellposePatchCNN(nn.Module):
         """
         # train cellpose
         masks = np.array(masks)
+         # TODO [coding club: flo] is this array indexing correct? it seems the instances and masks are selected in the first dimension? do you actually have a batch dimension or not?
         masks_instances = list(
             masks[:, 0, ...]
         )  # [mask.sum(-1) for mask in masks] if masks[0].ndim == 3 else masks
