@@ -230,6 +230,7 @@ class CellClassifierFCNN(nn.Module):
 
 
 # TODO [coding club: flo] this seems to be a helper module, so it might be outsourced
+# TODO [coding club: flo] suggestion; the patches are centered segmentations coming from cell-pose; the segmentation map from cell-pose contains important roi information which could also be an input to this model; now the model might be confused if multiple classes occur in the patch, one strategy to cope with that might be to mask all instances which do not belong to the instance of interest from the patch [probably it is a good idea to inflate/expand the mask a bit in this process as the cellpose segmentation might be undersegmented]. Ideally this should remove "confusing pixels" for the model. However, neighboriding instances might also contain important class information for your instance of interest, therefore, the only way to deal with that seems to be a multi-class instance segmentation model
 class CellposePatchCNN(nn.Module):
 
     """
@@ -268,7 +269,7 @@ class CellposePatchCNN(nn.Module):
         """
         # train cellpose
         masks = np.array(masks)
-         # TODO [coding club: flo] is this array indexing correct? it seems the instances and masks are selected in the first dimension? do you actually have a batch dimension or not?
+        # TODO [coding club: flo] is this array indexing correct? it seems the instances and masks are selected in the first dimension? do you actually have a batch dimension or not?
         masks_instances = list(
             masks[:, 0, ...]
         )  # [mask.sum(-1) for mask in masks] if masks[0].ndim == 3 else masks
