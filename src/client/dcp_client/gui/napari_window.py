@@ -7,7 +7,7 @@ import napari
 
 import numpy as np
 from skimage.feature import canny
-import cv2
+from skimage.morphology import closing, square
 
 if TYPE_CHECKING:
     from dcp_client.app import Application
@@ -149,10 +149,7 @@ class NapariWindow(QWidget):
         active_mask = self.layer.data[self.active_mask_index]
 
         instances = np.unique(active_mask)[1:]
-        edges = np.zeros_like(active_mask).astype(int)
-
-        # to merge the discontinuous contours
-        kernel = np.ones((5, 5))
+        edges = np.zeros_like(active_mask).astype(int) 
 
         if len(instances):
             for i in instances:
@@ -161,11 +158,8 @@ class NapariWindow(QWidget):
                     mask_instance = (active_mask == i).astype(np.uint8)
 
                     edge_mask = 255 * (canny(255 * (mask_instance)) > 0).astype(np.uint8)
-                    edge_mask = cv2.morphologyEx(
-                        edge_mask, 
-                        cv2.MORPH_CLOSE, 
-                        kernel,
-                    )
+                    # to merge the discontinuous contours
+                    edges = closing(edges, square(5))
                     edges = edges + edge_mask
 
             # if masks are intersecting then we want to count it only once
