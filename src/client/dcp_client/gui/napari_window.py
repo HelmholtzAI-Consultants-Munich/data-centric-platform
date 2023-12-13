@@ -1,24 +1,13 @@
 from __future__ import annotations
 from typing import List, TYPE_CHECKING
 
-import numpy as np
-
-from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QComboBox, QLabel, QGridLayout
-from PyQt5.QtCore import Qt
+from qtpy.QtWidgets import QWidget, QPushButton, QComboBox, QLabel, QGridLayout
+from qtpy.QtCore import Qt
 import napari
-from napari.qt import thread_worker
+
 import numpy as np
-
-from skimage.filters import sobel
-from skimage.morphology import diamond, disk, octagon
-from skimage.segmentation import watershed
-from skimage.feature import canny, peak_local_max
-
-from scipy import ndimage as ndi
-
+from skimage.feature import canny
 import cv2
-
-from copy import deepcopy
 
 if TYPE_CHECKING:
     from dcp_client.app import Application
@@ -54,8 +43,6 @@ class NapariWindow(QWidget):
         self.app.search_segs()
 
         # Set the viewer
-
-        # with thread_worker():
         self.viewer = napari.Viewer(show=False)
 
         self.viewer.add_image(self.img, name=utils.get_path_stem(self.app.cur_selected_img))
