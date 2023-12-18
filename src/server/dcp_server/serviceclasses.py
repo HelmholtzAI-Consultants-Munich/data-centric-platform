@@ -127,8 +127,9 @@ class CustomBentoService():
             """            
             print("Calling retrain from server.")
             # Train the model
-            model_path = await self.segmentation.train(input_path)
-            msg = "Success! Trained model saved in: " + model_path
+            msg = await self.segmentation.train(input_path)
+            if msg!=self.segmentation.no_files_msg:
+                msg = "Success! Trained model saved in: " + msg
             return msg
         
         return svc
