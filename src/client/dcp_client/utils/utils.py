@@ -23,13 +23,18 @@ class IconProvider(QFileIconProvider):
         else:
             return super().icon(type)
 
-def create_warning_box(message_text, message_title="Warning"):
+def create_warning_box(message_text, message_title="Warning", add_cancel_btn=False):
     msg = QMessageBox()
     msg.setIcon(QMessageBox.Information)
     msg.setText(message_text)
     msg.setWindowTitle(message_title)
-    msg.setStandardButtons(QMessageBox.Ok)
-    msg.exec()
+    if add_cancel_btn:
+        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+    else:
+        msg.setStandardButtons(QMessageBox.Ok)
+    usr_response = msg.exec()
+    if usr_response == QMessageBox.Ok: return True
+    else: return False
 
 def read_config(name, config_path = 'config.cfg') -> dict:   
     """Reads the configuration file

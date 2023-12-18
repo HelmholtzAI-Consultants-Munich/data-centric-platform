@@ -56,7 +56,7 @@ class NapariWindow(QWidget):
         '''
         if  self.app.cur_selected_path == str(self.app.train_data_path):
             message_text = "Image is already in the \'Curated data\' folder and should not be changed again"
-            utils.create_warning_box(message_text, message_title="Warning")
+            _ = utils.create_warning_box(message_text, message_title="Warning")
             return
         
         # take the name of the currently selected layer (by the user)
@@ -64,7 +64,7 @@ class NapariWindow(QWidget):
         # TODO if more than one item is selected this will break!
         if '_seg' not in cur_seg_selected:
             message_text = "Please select the segmenation you wish to save from the layer list"
-            utils.create_warning_box(message_text, message_title="Warning")
+            _ = utils.create_warning_box(message_text, message_title="Warning")
             return
         seg = self.viewer.layers[cur_seg_selected].data
 
@@ -87,7 +87,7 @@ class NapariWindow(QWidget):
         # TODO: Do we allow this? What if they moved it by mistake? User can always manually move from their folders?)
         if self.app.cur_selected_path == str(self.app.train_data_path):
             message_text = "Images from '\Curated data'\ folder can not be moved back to \'Curatation in progress\' folder."
-            utils.create_warning_box(message_text, message_title="Warning")
+            _ = utils.create_warning_box(message_text, message_title="Warning")
             return
         
         # take the name of the currently selected layer (by the user)
@@ -95,7 +95,7 @@ class NapariWindow(QWidget):
         # TODO if more than one item is selected this will break!
         if '_seg' not in cur_seg_selected:
             message_text = "Please select the segmenation you wish to save from the layer list"
-            utils.create_warning_box(message_text, message_title="Warning")
+            _ = utils.create_warning_box(message_text, message_title="Warning")
             return
 
         # Move original image
