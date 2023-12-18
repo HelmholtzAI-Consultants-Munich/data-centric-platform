@@ -20,6 +20,7 @@ class GeneralSegmentation():
         self.imagestorage = imagestorage
         self.runner = runner 
         self.model = model
+        self.no_files_msg = "No image-label pairs found in curated directory"
         
     async def segment_image(self, input_path, list_of_images):
         """Segments images from the given  directory
@@ -65,7 +66,7 @@ class GeneralSegmentation():
         train_img_mask_pairs = self.imagestorage.get_image_seg_pairs(input_path)
 
         if not train_img_mask_pairs:
-            return "No images and segs found"
+            return self.no_files_msg
                 
         imgs, masks = self.imagestorage.prepare_images_and_masks_for_training(train_img_mask_pairs)
         model_save_path =  await self.runner.train.async_run(imgs, masks)
