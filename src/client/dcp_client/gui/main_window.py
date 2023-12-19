@@ -47,7 +47,8 @@ class MainWindow(QWidget):
     def main_window(self):
         self.setWindowTitle(self.title)
         #self.resize(1000, 1500)
-        self.main_layout = QHBoxLayout()  
+        main_layout = QVBoxLayout()
+        dir_layout = QHBoxLayout()  
         
         self.uncurated_layout = QVBoxLayout()
         self.inprogress_layout = QVBoxLayout()
@@ -77,7 +78,7 @@ class MainWindow(QWidget):
         self.inference_button.clicked.connect(self.on_run_inference_button_clicked)  # add selected image    
         self.uncurated_layout.addWidget(self.inference_button, alignment=Qt.AlignCenter)
 
-        self.main_layout.addLayout(self.uncurated_layout)
+        dir_layout.addLayout(self.uncurated_layout)
 
         # In progress layout
         self.inprogr_dir_layout = QVBoxLayout() 
@@ -103,7 +104,7 @@ class MainWindow(QWidget):
         self.launch_nap_button.clicked.connect(self.on_launch_napari_button_clicked)  # add selected image    
         self.inprogress_layout.addWidget(self.launch_nap_button, alignment=Qt.AlignCenter)
 
-        self.main_layout.addLayout(self.inprogress_layout)
+        dir_layout.addLayout(self.inprogress_layout)
 
         # Curated layout
         self.train_dir_layout = QVBoxLayout() 
@@ -128,17 +129,21 @@ class MainWindow(QWidget):
         self.train_button = QPushButton("Train Model", self)
         self.train_button.clicked.connect(self.on_train_button_clicked)  # add selected image    
         self.curated_layout.addWidget(self.train_button, alignment=Qt.AlignCenter)
+        dir_layout.addLayout(self.curated_layout)
 
-        self.main_layout.addLayout(self.curated_layout)
+        main_layout.addLayout(dir_layout)
 
         # add progress bar
+        progress_layout = QHBoxLayout()
+        progress_layout.addStretch(1) 
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setRange(0,1)
-        self.main_layout.addWidget(self.progress_bar)
+        progress_layout.addWidget(self.progress_bar)
         self.worker_thread = WorkerThread(app=self.app)
         self.worker_thread.task_finished.connect(self.on_finished)
+        main_layout.addLayout(progress_layout)
 
-        self.setLayout(self.main_layout)
+        self.setLayout(main_layout)
         self.show()
 
     def on_item_train_selected(self, item):
@@ -212,4 +217,3 @@ if __name__ == "__main__":
                        inprogr_data_path='') # set path
     window = MainWindow(app=app_)
     sys.exit(app.exec())
-
