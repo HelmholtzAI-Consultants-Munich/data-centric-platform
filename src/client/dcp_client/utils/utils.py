@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import  QFileIconProvider, QMessageBox
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, QTimer
 from PyQt5.QtGui import QPixmap, QIcon
 
 from pathlib import Path, PurePath
@@ -23,17 +23,22 @@ class IconProvider(QFileIconProvider):
         else:
             return super().icon(type)
 
-def create_warning_box(message_text, message_title="Warning", add_cancel_btn=False):    
+def create_warning_box(message_text, message_title="Warning", add_cancel_btn=False, custom_dialog=None, sim=False):    
     #setup box
-    msg = QMessageBox()
+    if custom_dialog is None: msg = QMessageBox()
+    else: msg = custom_dialog
     msg.setIcon(QMessageBox.Information)
     msg.setText(message_text)
     msg.setWindowTitle(message_title)
     # if specified add a cancel button else only an ok
     if add_cancel_btn:
         msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        # simulate button click if specified - workaround used for testing
+        if sim: QTimer.singleShot(0, msg.button(QMessageBox.Cancel).clicked)
     else:
         msg.setStandardButtons(QMessageBox.Ok)
+        # simulate button click if specified - workaround used for testing
+        if sim: QTimer.singleShot(0, msg.button(QMessageBox.Ok).clicked)
     # return if user clicks Ok and False otherwise
     usr_response = msg.exec()
     if usr_response == QMessageBox.Ok: return True
