@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView, QProgressBar
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
 
 from dcp_client.utils import settings
 from dcp_client.utils.utils import IconProvider, create_warning_box
@@ -11,16 +11,32 @@ from dcp_client.gui.napari_window import NapariWindow
 if TYPE_CHECKING:
     from dcp_client.app import Application
 
+class WorkerThread(QThread):
+    ''' Worker thread for displaying Pulse ProgressBar during model serving '''
+    task_finished = pyqtSignal(tuple)
+    def __init__(self, app: Application, task: str = None, parent = None,):
+        super().__init__(parent)
+        self.app = app
+        self.task = task
+
+    def run(self):
+        ''' Once run_inference the tuple of (message_text, message_title) will be returned to on_finished'''
+        if self.task=='inference':
+            message_text, message_title = self.app.run_inference()
+        elif self.task=='train':
+            message_text, message_title = self.app.run_train()
+        self.task_finished.emit((message_text, message_title))
 
 class MainWindow(QWidget):
-    '''Main Window Widget object.
+    '''
+    Main Window Widget object.
     Opens the main window of the app where selected images in both directories are listed. 
     User can view the images, train the mdoel to get the labels, and visualise the result.
     :param eval_data_path: Chosen path to images without labeles, selected by the user in the WelcomeWindow
     :type eval_data_path: string
     :param train_data_path: Chosen path to images with labeles, selected by the user in the WelcomeWindow
     :type train_data_path: string
-    '''
+    '''    
 
     def __init__(self, app: Application):
         super().__init__()
@@ -115,6 +131,13 @@ class MainWindow(QWidget):
 
         self.main_layout.addLayout(self.curated_layout)
 
+        # add progress bar
+        self.progress_bar = QProgressBar(self)
+        self.progress_bar.setRange(0,1)
+        self.main_layout.addWidget(self.progress_bar)
+        self.worker_thread = WorkerThread(app=self.app)
+        self.worker_thread.task_finished.connect(self.on_finished)
+
         self.setLayout(self.main_layout)
         self.show()
 
@@ -131,12 +154,16 @@ class MainWindow(QWidget):
         self.app.cur_selected_path = self.app.inprogr_data_path
 
     def on_train_button_clicked(self):
-        message_text = self.app.run_train()
-        _ = create_warning_box(message_text)
+        self.train_button.setEnabled(False)
+        self.progress_bar.setRange(0,0)
+        self.worker_thread.task = 'train'
+        self.worker_thread.start()
 
     def on_run_inference_button_clicked(self):
-        message_text, message_title = self.app.run_inference()
-        _ = create_warning_box(message_text, message_title)
+        self.inference_button.setEnabled(False)
+        self.progress_bar.setRange(0,0)
+        self.worker_thread.task = 'inference'
+        self.worker_thread.start()
 
     def on_launch_napari_button_clicked(self):   
         ''' 
@@ -149,18 +176,34 @@ class MainWindow(QWidget):
             self.nap_win = NapariWindow(self.app)
             self.nap_win.show()
 
+    def on_finished(self, result):
+        ''' 
+        Is called once the worker thread emits the on finished signal
+        '''
+        self.progress_bar.setRange(0,1) # Stop the pulsation
+        message_text, message_title = result
+        _ = create_warning_box(message_text, message_title)
+        self.inference_button.setEnabled(True)
+        self.train_button.setEnabled(True)
+
+
 if __name__ == "__main__":
     import sys
     from PyQt5.QtWidgets import QApplication
-    from app import Application
-    from bentoml_model import BentomlModel
-    from fsimagestorage import FilesystemImageStorage
-    import settings
+    from dcp_client.app import Application
+    from dcp_client.utils.bentoml_model import BentomlModel
+    from dcp_client.utils.fsimagestorage import FilesystemImageStorage
+    from dcp_client.utils import settings
+    from dcp_client.utils.sync_src_dst import DataRSync
     settings.init()
     image_storage = FilesystemImageStorage()
     ml_model = BentomlModel()
+    data_sync = DataRSync(user_name="local",
+                          host_name="local",
+                          server_repo_path=None)
     app = QApplication(sys.argv)
     app_ = Application(ml_model=ml_model, 
+                       syncer=data_sync,
                        image_storage=image_storage, 
                        server_ip='0.0.0.0',
                        server_port=7010,
@@ -169,3 +212,4 @@ if __name__ == "__main__":
                        inprogr_data_path='') # set path
     window = MainWindow(app=app_)
     sys.exit(app.exec())
+

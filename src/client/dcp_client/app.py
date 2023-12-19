@@ -72,14 +72,15 @@ class Application:
         """ Checks if the ml model is connected to the server, connects if not (and if possible), and trains the model with all data available in train_data_path """
         if not self.ml_model.is_connected:
             connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
-            if not connection_success: return "Connection could not be established. Please check if the server is running and try again."
+            if not connection_success: return "Warning", "Connection could not be established. Please check if the server is running and try again."
         # if syncer.host name is None then local machine is used to train
+        message_title = "Success"
         if self.syncer.host_name=="local": 
-            return self.ml_model.run_train(self.train_data_path)
+            message_text = self.ml_model.run_train(self.train_data_path)
         else:
             srv_relative_path = self.syncer.sync(src='client', dst='server', path=self.train_data_path)
-            return self.ml_model.run_train(srv_relative_path)
-            
+            message_text = self.ml_model.run_train(srv_relative_path)
+        return message_text, message_title
     
     def run_inference(self):
         """ Checks if the ml model is connected to the server, connects if not (and if possible), and runs inference on all images in eval_data_path """
@@ -107,7 +108,7 @@ class Application:
             message_title = "Warning"
         else:
             message_text = "Success! Masks generated for all images"
-            message_title="Success"
+            message_title = "Success"
         return message_text, message_title
 
     def load_image(self, image_name=None):
