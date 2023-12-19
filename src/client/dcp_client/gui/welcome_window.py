@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QLineEdit
-from PyQt5.QtCore import Qt
+from qtpy.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QLineEdit
+from qtpy.QtCore import Qt
 
 from dcp_client.gui.main_window import MainWindow
 from dcp_client.utils.utils import create_warning_box

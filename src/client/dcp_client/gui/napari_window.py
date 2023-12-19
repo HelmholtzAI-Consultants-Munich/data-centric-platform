@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import List, TYPE_CHECKING
 
-from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QComboBox, QLabel, QGridLayout
-from PyQt5.QtCore import Qt
+from qtpy.QtWidgets import QWidget, QPushButton, QComboBox, QLabel, QGridLayout
+from qtpy.QtCore import Qt
 import napari
 from napari.qt import thread_worker
 from dcp_client.app import Compute4Mask
@@ -42,8 +42,6 @@ class NapariWindow(QWidget):
         self.app.search_segs()
 
         # Set the viewer
-
-        # with thread_worker():
         self.viewer = napari.Viewer(show=False)
 
         self.viewer.add_image(img, name=utils.get_path_stem(self.app.cur_selected_img))

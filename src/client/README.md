@@ -15,24 +15,27 @@ pip install -e .
    
 Before launching the GUI you will need to set up your client configuration file, _dcp_client/config.cfg_. Please, obey the [formal JSON format](https://www.json.org/json-en.html). Here, we will define how the client will interact with the server. There are currently two options available: running the server locally, or connecting to the running instance on the FZJ jusuf-cloud. To connect to a locally running server, set:
   ```
-     "user": "local", 
-      "host": "local", 
-      "data-path": "None", 
-      "ip": "localhost", 
-      "port": 7010
+     "server":{
+               "user": "local", 
+               "host": "local", 
+               "data-path": "None", 
+               "ip": "localhost", 
+               "port": 7010
   }
   ```
   To connect to the running service on jusuf-cloud, set:
   ```
        "server":{
-        "user": "xxxxx",
-        "host": "xxxxxx", 
-        "data-path": "xxxxx",
-        "ip": "xxx.xx.xx.xx", 
-        "port": xxxx
+              "user": "xxxxx",
+              "host": "xxxxxx", 
+              "data-path": "xxxxx",
+              "ip": "xxx.xx.xx.xx", 
+              "port": xxxx
     }
   ```
   Before continuing, you need to make sure that DCP server is running, either locally or on the cloud. See [DCP Server Installation & Launch](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/server/README.md#using-pypi) for instructions on how to launch the server. **Note:** In order for this connection to succeed, you will need to have contacted the team developing DCP, so they can add your IP to the list of accepted requests.
+
+To make it easier for you we provide you with two config files, one works when running a local server and one for remote - just make sure you rename the config file you wish to use to ```config.cfg```. The defualt is local configuration. 
 
 
 2. **Launching the client**
