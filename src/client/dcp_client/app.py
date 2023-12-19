@@ -6,6 +6,10 @@ import os
 from dcp_client.utils import utils
 from dcp_client.utils import settings
 
+#changed from here
+from skimage.feature import canny, peak_local_max
+import numpy as np
+import cv2
 
 class Model(ABC):
     @abstractmethod
@@ -137,5 +141,84 @@ class Application:
         for image_name in image_names:
             if os.path.exists(os.path.join(self.cur_selected_path, image_name)):    
                 self.fs_image_storage.delete_image(self.cur_selected_path, image_name)
+
+           
+class Compute4Mask:
+
+    @staticmethod
+    def get_unique_objects(active_mask):
+        """
+        Get unique objects from the active mask.
+        """
+
+        return set(np.unique(active_mask)[1:])
+    
+    @staticmethod
+    def find_edges(instance_mask, idx=None):
+        '''
+        Find edges in the instance mask.
+
+        Parameters:
+        - instance_mask (numpy.ndarray): The instance mask array.
+        - idx (list, optional): Indices of specific labels to get contours.
+
+        Returns:
+        - numpy.ndarray: Array representing edges in the instance segmentation mask.
+        '''
+        if idx is not None and not isinstance(idx, list):
+            idx = [idx]
+
+        instances = np.unique(instance_mask)[1:]
+        edges = np.zeros_like(instance_mask).astype(int)
+
+        # to merge the discontinuous contours
+        kernel = np.ones((5, 5))
+
+        if len(instances):
+            for i in instances:
+                if idx is None or i in idx:
+        
+                    mask_instance = (instance_mask == i).astype(np.uint8)
+
+                    edge_mask = 255 * (canny(255 * (mask_instance)) > 0).astype(np.uint8)
+                    edge_mask = cv2.morphologyEx(
+                        edge_mask, 
+                        cv2.MORPH_CLOSE, 
+                        kernel,
+                    )
+                    edges = edges + edge_mask
+
+            # if masks are intersecting then we want to count it only once
+            edges = edges > 0
+            
+            return edges
+        
+    @staticmethod    
+    def get_rounded_pos(event_position):
+        """
+        Get rounded position from the event position.
+        """
+
+        c, event_x, event_y = event_position
+        return int(c), int(np.round(event_x)), int(np.round(event_y))
+    
+    @staticmethod
+    def argmax (counts):
+       
+       return np.argmax(counts)
+    
+    @staticmethod
+    def get_unique_counts_around_event(source_mask, c, event_x, event_y):
+        """
+        Get unique counts around the specified event position in the source mask.
+        """
+        return np.unique(source_mask[c, event_x - 1: event_x + 2, event_y - 1: event_y + 2], return_counts=True)
+    
+    @staticmethod
+    def get_unique_counts_for_mask(source_mask, c, mask_fill):
+        """
+        Get unique counts for the specified mask in the source mask.
+        """
+        return np.unique(source_mask[abs(c - 1)][mask_fill], return_counts=True) 
 
 

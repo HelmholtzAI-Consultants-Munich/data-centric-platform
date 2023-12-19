@@ -1,24 +1,12 @@
 from __future__ import annotations
 from typing import List, TYPE_CHECKING
 
-import numpy as np
-
 from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QComboBox, QLabel, QGridLayout
 from PyQt5.QtCore import Qt
 import napari
 from napari.qt import thread_worker
-import numpy as np
+from dcp_client.app import Compute4Mask
 
-from skimage.filters import sobel
-from skimage.morphology import diamond, disk, octagon
-from skimage.segmentation import watershed
-from skimage.feature import canny, peak_local_max
-
-from scipy import ndimage as ndi
-
-import cv2
-
-from copy import deepcopy
 
 if TYPE_CHECKING:
     from dcp_client.app import Application
@@ -50,7 +38,7 @@ class NapariWindow(QWidget):
         self.setWindowTitle("napari viewer")
 
         # Load image and get corresponding segmentation filenames
-        self.img = self.app.load_image()
+        img = self.app.load_image()
         self.app.search_segs()
 
         # Set the viewer
@@ -58,7 +46,7 @@ class NapariWindow(QWidget):
         # with thread_worker():
         self.viewer = napari.Viewer(show=False)
 
-        self.viewer.add_image(self.img, name=utils.get_path_stem(self.app.cur_selected_img))
+        self.viewer.add_image(img, name=utils.get_path_stem(self.app.cur_selected_img))
 
         for seg_file in self.app.seg_filepaths:
             self.viewer.add_labels(self.app.load_image(seg_file), name=utils.get_path_stem(seg_file))
@@ -79,13 +67,14 @@ class NapariWindow(QWidget):
         self.active_mask_index = 0
 
         # unique labels
-        self.instances = set(np.unique(self.layer.data[self.active_mask_index])[1:])
+        self.instances = Compute4Mask.get_unique_objects(self.layer.data[self.active_mask_index])
+        
         # for copying contours
         self.instances_updated = set()
 
         # For each instance find the contours and set the color of it to 0 to be invisible
-        self.find_edges()
-        # self.prev_mask = self.layer.data[0]
+        edges = Compute4Mask.find_edges(instance_mask=self.layer.data[0])
+        self.layer.data = self.layer.data * (~edges).astype(int)
 
         self.switch_to_active_mask()
 
@@ -103,7 +92,7 @@ class NapariWindow(QWidget):
             self.mask_choice_dropdown.addItem('Labels Mask', userData=1)
             layout.addWidget(self.mask_choice_dropdown, 1, 1)
 
-            # when user has chosen the mask, we don't want to change it anymore to avoid errors
+            # when user has chosens the mask, we don't want to change it anymore to avoid errors
             lock_button = QPushButton("Confirm Final Choice")
             lock_button.setEnabled(False)
             lock_button.clicked.connect(self.set_active_mask)
@@ -124,19 +113,35 @@ class NapariWindow(QWidget):
         self.setLayout(layout)
 
     def switch_controls(self, target_widget, status: bool):
+        """
+        Enable or disable a specific widget.
+
+        Parameters:
+        - target_widget (str): The name of the widget to be controlled within the QCtrl object.
+        - status (bool): If True, the widget will be enabled; if False, it will be disabled.
+    
+        """
         getattr(self.qctrl, target_widget).setEnabled(status)
 
     def switch_to_active_mask(self):
+        """
+        Switch the application to the active mask mode by enabling 'paint_button', 'erase_button' 
+        and 'fill_button'.
+        """
 
         self.switch_controls("paint_button", True)
         self.switch_controls("erase_button", True)
-        self.switch_controls("fill_button", False)
+        self.switch_controls("fill_button", True)
 
         self.active_mask = True
     
     def switch_to_non_active_mask(self):
+        """
+        Switch the application to non-active mask mode by enabling 'fill_button' and disabling 'paint_button' and 'erase_button'.
+        """
 
-        self.instances = set(np.unique(self.layer.data[self.active_mask_index])[1:])
+        self.instances = Compute4Mask.get_unique_objects(self.layer.data[self.active_mask_index])
+
 
         self.switch_controls("paint_button", False)
         self.switch_controls("erase_button", False)
@@ -145,69 +150,33 @@ class NapariWindow(QWidget):
         self.active_mask = False
 
     def set_active_mask(self):
-        self.mask_choice_dropdown.setDisabled(True)
-        self.active_mask_index = self.mask_choice_dropdown.currentData()
-        self.instances = set(np.unique(self.layer.data[self.active_mask_index])[1:])
-        self.prev_mask = self.layer.data[self.active_mask]
+        """
+        Sets the active mask index based on the drop down list, by default 
+        instance segmentation mask is an active mask with index 0.
+        If the active mask index is 1, it switches to non-active mask mode.
+        """
         if self.active_mask_index == 1:
             self.switch_to_non_active_mask()
 
-    def find_edges(self, idx=None):
-        '''
-        idx - indices of the specific labels from which to get contour
-        '''
-        if idx is not None and not isinstance(idx, list):
-            idx = [idx]
-
-        active_mask = self.layer.data[self.active_mask_index]
-
-        instances = np.unique(active_mask)[1:]
-        edges = np.zeros_like(active_mask).astype(int)
-
-        # to merge the discontinuous contours
-        kernel = np.ones((5, 5))
-
-        if len(instances):
-            for i in instances:
-                if idx is None or i in idx:
-        
-                    mask_instance = (active_mask == i).astype(np.uint8)
-
-                    edge_mask = 255 * (canny(255 * (mask_instance)) > 0).astype(np.uint8)
-                    edge_mask = cv2.morphologyEx(
-                        edge_mask, 
-                        cv2.MORPH_CLOSE, 
-                        kernel,
-                    )
-                    edges = edges + edge_mask
-
-            # if masks are intersecting then we want to count it only once
-            edges = edges > 0
-            # cut the contours
-            self.layer.data = self.layer.data * np.invert(edges).astype(np.uint8)
-            
+   
     def copy_mask_callback(self, layer, event):
+        """
+        Handles mouse press and set data events to copy masks based on the active mask index.
+        Parameters:
+            - layer: The layer object associated with the mask.
+            - event: The event triggering the callback.
+        """
 
         source_mask = layer.data
     
         if event.type == "mouse_press":
 
-            c, event_x, event_y = event.position
-            c, event_x, event_y = int(c), int(np.round(event_x)), int(np.round(event_y))
-
-            if source_mask[c, event_x, event_y] == 0:
-                self.new_pixel = True
-            else:
-                self.new_pixel = False
-
+            c, event_x, event_y = Compute4Mask.get_rounded_pos(event.position)
             self.event_coords = (c, event_x, event_y)
 
            
-
         elif event.type == "set_data":
             
-            active_mask_current = self.active_mask
-
             if self.viewer.dims.current_step[0] == self.active_mask_index:
                 self.switch_to_active_mask()
             else:
@@ -218,25 +187,25 @@ class NapariWindow(QWidget):
                 c, event_x, event_y = self.event_coords
                 
                 if c == self.active_mask_index:
+                    
+                    # When clicking, the mouse provides a continuous position.
+                    # To identify the color placement, we examine nearby positions within one pixel [idx_x - 1, idx_x + 1] and [idx_y - 1, idx_y + 1].
 
-                    labels, counts = np.unique(source_mask[c, event_x - 1: event_x + 2, event_y - 1: event_y + 2], return_counts=True)
+                    labels, counts = Compute4Mask.get_unique_counts_around_event(source_mask, c, event_x, event_y)
 
                     if labels.size > 0:
                      
-                        idx = np.argmax(counts)
+                        # index of the most common color in the area around the click excluding 0 
+                        idx = Compute4Mask.argmax(counts)
+                        # the most common color in the area around the click 
                         label = labels[idx]
-
+                        # get the mask of the instance
                         mask_fill = source_mask[c] == label
 
-                        # self.changed = True
-                        # self.instances_updated.add(label)
-
                         # Find the color of the label mask at the given point
-                        labels_seg, counts_seg = np.unique(
-                            source_mask[abs(c - 1)][mask_fill], 
-                            return_counts=True
-                        )
-                        idx_seg = np.argmax(counts_seg)
+                        # Determine the most common color in the label mask
+                        labels_seg, counts_seg = Compute4Mask.get_unique_counts_for_mask(source_mask, c, mask_fill)
+                        idx_seg = Compute4Mask.argmax(counts_seg)
                         label_seg = labels_seg[idx_seg]
 
                         # If a new color is used, then it is copied to a label mask
@@ -248,7 +217,7 @@ class NapariWindow(QWidget):
                             source_mask[abs(c - 1)][mask_fill] = label_seg
 
                 else:
-                    
+                    # the only action to be applied to the instance mask is erasing.
                     mask_fill = source_mask[abs(c - 1)] == 0
                     source_mask[c][mask_fill] = 0
 
