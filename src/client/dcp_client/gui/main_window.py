@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from dcp_client.app import Application
 
 
+
 class MainWindow(QWidget):
     '''Main Window Widget object.
     Opens the main window of the app where selected images in both directories are listed. 
@@ -147,7 +148,7 @@ class MainWindow(QWidget):
             create_warning_box(message_text, message_title="Warning")
         else:
             self.nap_win = NapariWindow(self.app)
-            self.nap_win.show()
+            self.nap_win.show() 
 
 if __name__ == "__main__":
     import sys
