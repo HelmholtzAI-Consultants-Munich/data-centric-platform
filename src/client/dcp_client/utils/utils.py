@@ -13,8 +13,9 @@ class IconProvider(QFileIconProvider):
         self.ICON_SIZE = QSize(512,512)
 
     def icon(self, type: 'QFileIconProvider.IconType'):
-
-        fn = type.filePath()
+        try:
+            fn = type.filePath()
+        except AttributeError: return super().icon(type) # TODO handle exception differently?
 
         if fn.endswith(settings.accepted_types):
             a = QPixmap(self.ICON_SIZE)
@@ -23,11 +24,17 @@ class IconProvider(QFileIconProvider):
         else:
             return super().icon(type)
 
-def create_warning_box(message_text, message_title="Warning", add_cancel_btn=False, custom_dialog=None, sim=False):    
+def create_warning_box(message_text, message_title="Information", add_cancel_btn=False, custom_dialog=None, sim=False):    
     #setup box
     if custom_dialog is None: msg = QMessageBox()
     else: msg = custom_dialog
-    msg.setIcon(QMessageBox.Information)
+    if message_title=="Warning": 
+        message_type = QMessageBox.Warning
+    elif message_title=="Error":
+        message_type = QMessageBox.Critical
+    else:
+        message_type = QMessageBox.Information
+    msg.setIcon(message_type)
     msg.setText(message_text)
     msg.setWindowTitle(message_title)
     # if specified add a cancel button else only an ok
