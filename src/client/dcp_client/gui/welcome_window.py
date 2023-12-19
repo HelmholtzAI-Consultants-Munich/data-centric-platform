@@ -129,15 +129,15 @@ class WelcomeWindow(QWidget):
             self.mw = MainWindow(self.app)
         else:
             message_text = "You need to specify a folder both for your uncurated and curated dataset (even if the curated folder is currently empty). Please go back and select folders for both."
-            create_warning_box(message_text, message_title="Warning")
+            _ = create_warning_box(message_text, message_title="Warning")
 
     def start_upload(self):
         message_text = ("Your current configurations are set to run some operations on the cloud. \n"
                         "For this we need to upload your data to our server."
                         "We will now upload your data. Click ok to continue. \n"
                         "If you do not agree close the application and contact your software provider.")
-        create_warning_box(message_text, message_title="Warning")
-        self.app.upload_data_to_server()
+        usr_response = create_warning_box(message_text, message_title="Warning", add_cancel_btn=True)
+        if usr_response: self.app.upload_data_to_server()
         self.hide()
         self.mw = MainWindow(self.app)
     

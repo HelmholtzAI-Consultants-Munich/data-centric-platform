@@ -132,11 +132,11 @@ class MainWindow(QWidget):
 
     def on_train_button_clicked(self):
         message_text = self.app.run_train()
-        create_warning_box(message_text)
+        _ = create_warning_box(message_text)
 
     def on_run_inference_button_clicked(self):
         message_text, message_title = self.app.run_inference()
-        create_warning_box(message_text, message_title)
+        _ = create_warning_box(message_text, message_title)
 
     def on_launch_napari_button_clicked(self):   
         ''' 
@@ -144,7 +144,7 @@ class MainWindow(QWidget):
         '''
         if not self.app.cur_selected_img or '_seg.tiff' in self.app.cur_selected_img:
             message_text = "Please first select an image you wish to visualise. The selected image must be an original images, not a mask."
-            create_warning_box(message_text, message_title="Warning")
+            _ = create_warning_box(message_text, message_title="Warning")
         else:
             self.nap_win = NapariWindow(self.app)
             self.nap_win.show()
