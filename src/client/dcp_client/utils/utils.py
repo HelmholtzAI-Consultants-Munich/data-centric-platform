@@ -23,15 +23,18 @@ class IconProvider(QFileIconProvider):
         else:
             return super().icon(type)
 
-def create_warning_box(message_text, message_title="Warning", add_cancel_btn=False):
+def create_warning_box(message_text, message_title="Warning", add_cancel_btn=False):    
+    #setup box
     msg = QMessageBox()
     msg.setIcon(QMessageBox.Information)
     msg.setText(message_text)
     msg.setWindowTitle(message_title)
+    # if specified add a cancel button else only an ok
     if add_cancel_btn:
         msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
     else:
         msg.setStandardButtons(QMessageBox.Ok)
+    # return if user clicks Ok and False otherwise
     usr_response = msg.exec()
     if usr_response == QMessageBox.Ok: return True
     else: return False
