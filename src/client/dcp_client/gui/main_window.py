@@ -45,6 +45,9 @@ class MainWindow(QWidget):
         self.main_window()
         
     def main_window(self):
+        '''
+        Sets up the GUI
+        '''
         self.setWindowTitle(self.title)
         #self.resize(1000, 1500)
         main_layout = QVBoxLayout()
@@ -147,24 +150,39 @@ class MainWindow(QWidget):
         self.show()
 
     def on_item_train_selected(self, item):
+        '''
+        Is called once an image is selected in the 'curated dataset' folder
+        '''
         self.app.cur_selected_img = item.data()
         self.app.cur_selected_path = self.app.train_data_path
 
     def on_item_eval_selected(self, item):
+        '''
+        Is called once an image is selected in the 'uncurated dataset' folder
+        '''
         self.app.cur_selected_img = item.data()
         self.app.cur_selected_path = self.app.eval_data_path
 
     def on_item_inprogr_selected(self, item):
+        '''
+        Is called once an image is selected in the 'in progress' folder
+        '''
         self.app.cur_selected_img = item.data()
         self.app.cur_selected_path = self.app.inprogr_data_path
 
     def on_train_button_clicked(self):
+        ''' 
+        Is called once user clicks the "Train Model" button
+        '''
         self.train_button.setEnabled(False)
         self.progress_bar.setRange(0,0)
         self.worker_thread.task = 'train'
         self.worker_thread.start()
 
     def on_run_inference_button_clicked(self):
+        ''' 
+        Is called once user clicks the "Generate Labels" button
+        '''
         self.inference_button.setEnabled(False)
         self.progress_bar.setRange(0,0)
         self.worker_thread.task = 'inference'
