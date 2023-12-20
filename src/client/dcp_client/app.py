@@ -65,10 +65,16 @@ class Application:
         self.seg_filepaths = []
 
     def upload_data_to_server(self):
+        """
+        Uploads the train and eval data to the server.
+        """
         self.syncer.first_sync(path=self.train_data_path)
         self.syncer.first_sync(path=self.eval_data_path)
 
     def try_server_connection(self):
+        """
+        Checks if the ml model is connected to server and attempts to connect if not.
+        """
         if not self.ml_model.is_connected:
             connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
         return connection_success
