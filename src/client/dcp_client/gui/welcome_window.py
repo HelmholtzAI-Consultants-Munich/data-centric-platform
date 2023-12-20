@@ -50,18 +50,18 @@ class WelcomeWindow(QWidget):
         self.path_layout.addWidget(self.inprogr_textbox)
         self.path_layout.addWidget(self.train_textbox)
         
-        file_open_button_val = QPushButton('Browse',self)
-        file_open_button_val.show()
-        file_open_button_val.clicked.connect(self.browse_eval_clicked)
-        file_open_button_prog = QPushButton('Browse',self)
-        file_open_button_prog.show()
-        file_open_button_prog.clicked.connect(self.browse_inprogr_clicked)
-        file_open_button_train = QPushButton('Browse',self)
-        file_open_button_train.show()
-        file_open_button_train.clicked.connect(self.browse_train_clicked)
-        self.button_layout.addWidget(file_open_button_val)
-        self.button_layout.addWidget(file_open_button_prog)
-        self.button_layout.addWidget(file_open_button_train)
+        self.file_open_button_val = QPushButton('Browse',self)
+        self.file_open_button_val.show()
+        self.file_open_button_val.clicked.connect(self.browse_eval_clicked)
+        self.file_open_button_prog = QPushButton('Browse',self)
+        self.file_open_button_prog.show()
+        self.file_open_button_prog.clicked.connect(self.browse_inprogr_clicked)
+        self.file_open_button_train = QPushButton('Browse',self)
+        self.file_open_button_train.show()
+        self.file_open_button_train.clicked.connect(self.browse_train_clicked)
+        self.button_layout.addWidget(self.file_open_button_val)
+        self.button_layout.addWidget(self.file_open_button_prog)
+        self.button_layout.addWidget(self.file_open_button_train)
 
         input_layout.addLayout(self.text_layout)
         input_layout.addLayout(self.path_layout)
@@ -72,10 +72,11 @@ class WelcomeWindow(QWidget):
         self.start_button.setFixedSize(120, 30)
         self.start_button.show()
         # check if we need to upload data to server
+        self.done_upload = False # we only do once
         if self.app.syncer.host_name == "local":
             self.start_button.clicked.connect(self.start_main)
         else:
-            self.start_button.clicked.connect(self.start_upload)
+            self.start_button.clicked.connect(self.start_upload_and_main)
         self.main_layout.addWidget(self.start_button, alignment=Qt.AlignCenter)
         self.setLayout(self.main_layout)
 
@@ -86,13 +87,15 @@ class WelcomeWindow(QWidget):
         Activates  when the user clicks the button to choose the evaluation directory (QFileDialog) and 
         displays the name of the evaluation directory chosen in the validation textbox line (QLineEdit).
         '''
-
-        fd = QFileDialog()
-        fd.setFileMode(QFileDialog.Directory)
-        if fd.exec_():
-            self.app.eval_data_path = fd.selectedFiles()[0]
-        self.val_textbox.setText(self.app.eval_data_path)
-    
+        self.fd = QFileDialog()
+        try:
+            self.fd.setFileMode(QFileDialog.Directory)
+            if self.fd.exec_():
+                self.app.eval_data_path = self.fd.selectedFiles()[0]
+            self.val_textbox.setText(self.app.eval_data_path)
+        finally:
+            self.fd = None
+            
     def browse_train_clicked(self):
         '''
         Activates  when the user clicks the button to choose the train directory (QFileDialog) and 
@@ -118,7 +121,6 @@ class WelcomeWindow(QWidget):
             self.app.inprogr_data_path = fd.selectedFiles()[0] #TODO: case when browse is clicked but nothing is specified - currently it is filled with os.getcwd()
         self.inprogr_textbox.setText(self.app.inprogr_data_path)
   
-    
     def start_main(self):
         '''
         Starts the main window after the user clicks 'Start' and only if both evaluation and train directories are chosen. 
@@ -131,13 +133,18 @@ class WelcomeWindow(QWidget):
             message_text = "You need to specify a folder both for your uncurated and curated dataset (even if the curated folder is currently empty). Please go back and select folders for both."
             _ = create_warning_box(message_text, message_title="Warning")
 
-    def start_upload(self):
-        message_text = ("Your current configurations are set to run some operations on the cloud. \n"
-                        "For this we need to upload your data to our server."
-                        "We will now upload your data. Click ok to continue. \n"
-                        "If you do not agree close the application and contact your software provider.")
-        usr_response = create_warning_box(message_text, message_title="Warning", add_cancel_btn=True)
-        if usr_response: self.app.upload_data_to_server()
-        self.hide()
-        self.mw = MainWindow(self.app)
+    def start_upload_and_main(self):
+        '''
+        If the configs are set to use remote not local server then the user is asked to confirm the upload of their data
+        to the server and the upload starts before launching the main window.
+        '''
+        if self.done_upload is False:
+            message_text = ("Your current configurations are set to run some operations on the cloud. \n"
+                            "For this we need to upload your data to our server."
+                            "We will now upload your data. Click ok to continue. \n"
+                            "If you do not agree close the application and contact your software provider.")
+            usr_response = create_warning_box(message_text, message_title="Warning", add_cancel_btn=True)
+            if usr_response: self.app.upload_data_to_server()
+            self.done_upload = True
+        self.start_main()
     
