@@ -8,8 +8,9 @@ from dcp_client.utils import settings
 
 #changed from here
 from skimage.feature import canny, peak_local_max
+from skimage.morphology import closing, square
 import numpy as np
-import cv2
+
 
 class Model(ABC):
     @abstractmethod
@@ -171,9 +172,6 @@ class Compute4Mask:
         instances = np.unique(instance_mask)[1:]
         edges = np.zeros_like(instance_mask).astype(int)
 
-        # to merge the discontinuous contours
-        kernel = np.ones((5, 5))
-
         if len(instances):
             for i in instances:
                 if idx is None or i in idx:
@@ -181,11 +179,7 @@ class Compute4Mask:
                     mask_instance = (instance_mask == i).astype(np.uint8)
 
                     edge_mask = 255 * (canny(255 * (mask_instance)) > 0).astype(np.uint8)
-                    edge_mask = cv2.morphologyEx(
-                        edge_mask, 
-                        cv2.MORPH_CLOSE, 
-                        kernel,
-                    )
+                    edges = closing(edges, square(5))
                     edges = edges + edge_mask
 
             # if masks are intersecting then we want to count it only once
