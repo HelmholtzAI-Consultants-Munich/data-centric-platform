@@ -67,12 +67,18 @@ class Application:
     def upload_data_to_server(self):
         self.syncer.first_sync(path=self.train_data_path)
         self.syncer.first_sync(path=self.eval_data_path)
+
+    def try_server_connection(self):
+        if not self.ml_model.is_connected:
+            connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
+        return connection_success
     
     def run_train(self):
         """ Checks if the ml model is connected to the server, connects if not (and if possible), and trains the model with all data available in train_data_path """
-        if not self.ml_model.is_connected:
-            connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
-            if not connection_success: return "Warning", "Connection could not be established. Please check if the server is running and try again."
+        if not self.try_server_connection(): 
+            message_title = "Warning"
+            message_text = "Connection could not be established. Please check if the server is running and try again."
+            return message_text, message_title
         # if syncer.host name is None then local machine is used to train
         message_title = "Information"
         if self.syncer.host_name=="local": 
@@ -87,11 +93,10 @@ class Application:
     
     def run_inference(self):
         """ Checks if the ml model is connected to the server, connects if not (and if possible), and runs inference on all images in eval_data_path """
-        if not self.ml_model.is_connected:
-            connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
-            if not connection_success: 
-                message_text = "Connection could not be established. Please check if the server is running and try again."
-                return message_text, "Warning"
+        if self.try_server_connection() is False: 
+            message_title = "Warning"
+            message_text = "Connection could not be established. Please check if the server is running and try again."
+            return message_text, message_title
 
         if self.syncer.host_name=="local":
             # model serving directly from local
