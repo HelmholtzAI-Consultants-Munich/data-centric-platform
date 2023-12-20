@@ -5,7 +5,7 @@ from qtpy.QtWidgets import QWidget, QPushButton, QComboBox, QLabel, QGridLayout
 from qtpy.QtCore import Qt
 import napari
 from napari.qt import thread_worker
-from dcp_client.app import Compute4Mask
+from dcp_client.utils.utils import Compute4Mask
 
 
 if TYPE_CHECKING:
