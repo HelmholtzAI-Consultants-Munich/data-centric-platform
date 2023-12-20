@@ -176,7 +176,7 @@ def test_train_eval_run(data_train, data_eval, model):
     if "metric" in attrs:
         assert(model.metric>0.1)
     if "loss" in attrs:
-        assert(model.loss<0.03)
+        assert(model.loss<0.3)
 
     # for PatchCNN model 
     if pred_mask.ndim > 2:

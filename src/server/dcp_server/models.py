@@ -409,7 +409,7 @@ class UNet(nn.Module):
 
             self.loss = 0
 
-            for _, (imgs, masks) in enumerate(train_dataloader):
+            for imgs, masks in train_dataloader:
                 imgs = imgs.float()
                 masks = masks.long()
 
@@ -422,6 +422,8 @@ class UNet(nn.Module):
                 loss.backward()
                 optimizer.step()
 
+                self.loss += loss.detach().mean().item()
+
             self.loss /= len(train_dataloader) 
 
     def eval(self, img):
@@ -431,20 +433,22 @@ class UNet(nn.Module):
             img: np.ndarray[np.uint8]
             Output: y_hat - The predicted label
         """ 
-        # normalise
-        img = (img-np.min(img))/(np.max(img)-np.min(img))
-        img = torch.from_numpy(img).float().unsqueeze(0)
+        with torch.no_grad():
+            # normalise
+            img = (img-np.min(img))/(np.max(img)-np.min(img))
+            img = torch.from_numpy(img).float().unsqueeze(0)
 
-        img = img.unsqueeze(1) if img.ndim == 3 else img
-     
-        preds = self.forward(img)
-        y_labels = torch.argmax(preds, 1).numpy()[0]
+            img = img.unsqueeze(1) if img.ndim == 3 else img
+        
+            preds = self.forward(img)
+            class_mask = torch.argmax(preds, 1).numpy()[0]
 
-        y_instances = label((y_labels > 0).astype(int))[0]
+            instance_mask = label((class_mask > 0).astype(int))[0]
 
-        y_hat = np.stack((y_instances, y_labels))
+            final_mask = np.stack((instance_mask, class_mask))
 
-        return y_hat
+        return final_mask
+
         
 # class CustomSAMModel():
 # # https://github.com/facebookresearch/segment-anything/blob/main/notebooks/automatic_mask_generator_example.ipynb
