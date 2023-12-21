@@ -2,7 +2,6 @@ import pytest
 import sys
 sys.path.append('../')
 
-from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtCore import Qt
 
 from dcp_client.gui.welcome_window import WelcomeWindow
@@ -10,7 +9,6 @@ from dcp_client.app import Application
 from dcp_client.utils.bentoml_model import BentomlModel
 from dcp_client.utils.fsimagestorage import FilesystemImageStorage
 from dcp_client.utils.sync_src_dst import DataRSync
-from dcp_client.utils import utils
 from dcp_client.utils import settings
 
 @pytest.fixture
@@ -83,18 +81,18 @@ def test_browse_inprogr_clicked(qtbot, app):
     assert app.inprogr_textbox.text() == app.app.inprogr_data_path
 
 '''
+def test_start_main_not_selected(qtbot, app):
+    app.app.train_data_path = None
+    app.app.eval_data_path = None
+    app.sim = True
+    qtbot.mouseClick(app.start_button, Qt.LeftButton)
+    assert not hasattr(app, 'mw')
+
 def test_start_main(qtbot, app, setup_global_variable):
     settings.accepted_types = setup_global_variable
     # Set some paths for testing
     app.app.eval_data_path = "/path/to/eval"
     app.app.train_data_path = "/path/to/train"
-
-    result = None
-    def execute_warning_box():
-        nonlocal result
-        box = QMessageBox()
-        result = utils.create_warning_box("Test Message", custom_dialog=box, sim=True)
-    qtbot.waitUntil(execute_warning_box, timeout=5000) 
     # Simulate clicking the start button
     qtbot.mouseClick(app.start_button, Qt.LeftButton)
     # Check if the main window is created
