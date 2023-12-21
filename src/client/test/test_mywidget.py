@@ -2,7 +2,7 @@ import pytest
 import sys
 sys.path.append('../')
 
-from PyQt5.QtWidgets import QWidget, QMessageBox
+from PyQt5.QtWidgets import QMessageBox
 
 from dcp_client.gui._my_widget import MyWidget
 
