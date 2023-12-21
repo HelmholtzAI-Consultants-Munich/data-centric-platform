@@ -1,12 +1,14 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView, QProgressBar
+from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView, QProgressBar
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 
 from dcp_client.utils import settings
-from dcp_client.utils.utils import IconProvider, create_warning_box
+from dcp_client.utils.utils import IconProvider
+
 from dcp_client.gui.napari_window import NapariWindow
+from dcp_client.gui._my_widget import MyWidget
 
 if TYPE_CHECKING:
     from dcp_client.app import Application
@@ -27,7 +29,7 @@ class WorkerThread(QThread):
             message_text, message_title = self.app.run_train()
         self.task_finished.emit((message_text, message_title))
 
-class MainWindow(QWidget):
+class MainWindow(MyWidget):
     '''
     Main Window Widget object.
     Opens the main window of the app where selected images in both directories are listed. 
@@ -194,7 +196,7 @@ class MainWindow(QWidget):
         '''
         if not self.app.cur_selected_img or '_seg.tiff' in self.app.cur_selected_img:
             message_text = "Please first select an image you wish to visualise. The selected image must be an original image, not a mask."
-            _ = create_warning_box(message_text, message_title="Warning")
+            _ = self.create_warning_box(message_text, message_title="Warning")
         else:
             self.nap_win = NapariWindow(self.app)
             self.nap_win.show()
@@ -205,7 +207,7 @@ class MainWindow(QWidget):
         '''
         self.progress_bar.setRange(0,1) # Stop the pulsation
         message_text, message_title = result
-        _ = create_warning_box(message_text, message_title)
+        _ = self.create_warning_box(message_text, message_title)
         self.inference_button.setEnabled(True)
         self.train_button.setEnabled(True)
 

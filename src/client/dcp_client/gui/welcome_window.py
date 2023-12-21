@@ -1,17 +1,16 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from PyQt5.QtWidgets import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QLineEdit
+from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QLineEdit
 from PyQt5.QtCore import Qt
 
 from dcp_client.gui.main_window import MainWindow
-from dcp_client.utils.utils import create_warning_box
+from dcp_client.gui._my_widget import MyWidget
 
 if TYPE_CHECKING:
     from dcp_client.app import Application
 
-        
-class WelcomeWindow(QWidget):
+class WelcomeWindow(MyWidget):
     '''Welcome Window Widget object.
     The first window of the application providing a dialog that allows users to select directories. 
     Currently supported image file types that can be selected for segmentation are: .jpg, .jpeg, .png, .tiff, .tif.
@@ -131,7 +130,7 @@ class WelcomeWindow(QWidget):
             self.mw = MainWindow(self.app)
         else:
             message_text = "You need to specify a folder both for your uncurated and curated dataset (even if the curated folder is currently empty). Please go back and select folders for both."
-            _ = create_warning_box(message_text, message_title="Warning")
+            _ = self.create_warning_box(message_text, message_title="Warning")
 
     def start_upload_and_main(self):
         '''
@@ -143,7 +142,7 @@ class WelcomeWindow(QWidget):
                             "For this we need to upload your data to our server."
                             "We will now upload your data. Click ok to continue. \n"
                             "If you do not agree close the application and contact your software provider.")
-            usr_response = create_warning_box(message_text, message_title="Warning", add_cancel_btn=True)
+            usr_response = self.create_warning_box(message_text, message_title="Warning", add_cancel_btn=True)
             if usr_response: self.app.upload_data_to_server()
             self.done_upload = True
         self.start_main()
