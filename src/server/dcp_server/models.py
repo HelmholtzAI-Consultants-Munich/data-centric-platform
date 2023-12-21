@@ -328,13 +328,13 @@ class UNet(nn.Module):
     def __init__(self, model_config, train_config, eval_config):
 
         super().__init__()
-        self.model_config = model_config["unet"]
-        self.train_config = train_config["unet"]
-        self.eval_config = eval_config["unet"]
+        self.model_config = model_config
+        self.train_config = train_config
+        self.eval_config = eval_config
 
-        self.in_channels = self.model_config["in_channels"]
-        self.out_channels = self.model_config["out_channels"]
-        self.features = self.model_config["features"]
+        self.in_channels = self.model_config["unet"]["in_channels"]
+        self.out_channels = self.model_config["unet"]["out_channels"]
+        self.features = self.model_config["unet"]["features"]
 
         self.encoder = nn.ModuleList()
         self.decoder = nn.ModuleList()
@@ -382,9 +382,9 @@ class UNet(nn.Module):
 
     def train(self, imgs, masks):
 
-        lr = self.train_config['lr']
-        epochs = self.train_config['n_epochs']
-        batch_size = self.train_config['batch_size']
+        lr = self.train_config["unet"]['lr']
+        epochs = self.train_config["unet"]['n_epochs']
+        batch_size = self.train_config["unet"]['batch_size']
 
         # Convert input images and labels to tensors
 
@@ -445,7 +445,7 @@ class UNet(nn.Module):
 
             instance_mask = label((class_mask > 0).astype(int))[0]
 
-            final_mask = np.stack((instance_mask, class_mask))
+            final_mask = np.stack((instance_mask, class_mask), axis=self.eval_config['mask_channel_axis']).astype(np.uint16) 
 
         return final_mask
 
