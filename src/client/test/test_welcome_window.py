@@ -2,9 +2,8 @@ import pytest
 import sys
 sys.path.append('../')
 
-from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox
-from PyQt5.QtTest import QTest
-from PyQt5.QtCore import Qt, QTimer, QCoreApplication
+from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtCore import Qt
 
 from dcp_client.gui.welcome_window import WelcomeWindow
 from dcp_client.app import Application
