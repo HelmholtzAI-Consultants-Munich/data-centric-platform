@@ -15,16 +15,17 @@ from dcp_client.utils.sync_src_dst import DataRSync
 
 @pytest.fixture
 def app():
-    img = data.astronaut()
-    img2 = data.cat()
+    img1 = data.astronaut()
+    img2 = data.coffee()
+    img3 = data.cat()
+
     if not os.path.exists('in_prog'): 
         os.mkdir('in_prog')
-        imsave('in_prog/test_img.png', img)
-        imsave('in_prog/test_img2.png', img2)
+        imsave('in_prog/coffee.png', img2)
 
     if not os.path.exists('eval_data_path'): 
         os.mkdir('eval_data_path')
-        imsave('eval_data_path/test_img.png', img)
+        imsave('eval_data_path/cat.png', img3)
 
     rsyncer = DataRSync(user_name="local", host_name="local", server_repo_path='.')
     app = Application(BentomlModel(),
@@ -33,34 +34,30 @@ def app():
                       "0.0.0.0",
                       7010,
                       os.path.join(os.getcwd(), 'eval_data_path'))
-    
-    app.cur_selected_img = 'test_img.png'
-    app.cur_selected_path = 'in_prog'
 
-    return app, img, img2
+    return app, img1, img2, img3
 
 def test_load_image(app):
-    app, img, img2 = app  # Unpack the app, img, and img2 from the fixture
+    app, img, img2, _ = app  # Unpack the app, img, and img2 from the fixture
+    
+    app.cur_selected_img = 'coffee.png'
+    app.cur_selected_path = 'in_prog'
 
     img_test = app.load_image()  # if image_name is None
     assert img.all() == img_test.all()
 
-    img_test2 = app.load_image('test_img2.png')  # if a filename is given
+    app.cur_selected_path = 'eval_data_path'
+    img_test2 = app.load_image('cat.png')  # if a filename is given
     assert img2.all() == img_test2.all()
 
-    # delete everything we created
-    os.remove('in_prog/test_img.png')
-    os.remove('in_prog/test_img2.png')
-    os.rmdir('in_prog')
-
 def test_run_inference_no_connection(app):
-    app, _, _ = app 
+    app, _, _, _ = app 
     message_text, message_title = app.run_inference()
     assert message_text=="Connection could not be established. Please check if the server is running and try again."
     assert message_title=="Warning"
 
 def test_run_inference_run(app):
-    app, _, _ = app 
+    app, _, _, _ = app 
     # start the sevrer in the background locally
     command = [
         "bentoml",
@@ -75,18 +72,29 @@ def test_run_inference_run(app):
     time.sleep(60) # and wait until it is setup
     # then do model serving
     message_text, message_title = app.run_inference()
+    # and assert returning message
     assert message_text== "Success! Masks generated for all images"
     assert message_title=="Information"
-    os.remove('eval_data_path/test_img.png')
-    os.remove('eval_data_path/test_img_seg.tiff')
-    os.rmdir('eval_data_path')
+    # finally clean up process
     process.terminate()
     process.wait()
     process.kill()
 
+def test_search_segs(app):
+    app, _, _, _ = app 
+    app.cur_selected_img = 'cat.png'
+    app.cur_selected_path = 'eval_data_path'
+    app.search_segs()
+    res = app.seg_filepaths 
+    assert len(res)==1
+    assert res[0]=='cat_seg.tiff'
+    # also remove the seg as it is not needed for other scripts
+    os.remove('eval_data_path/cat_seg.tiff') 
+
+
 '''
 def test_run_train():
-    
+    pass
 
 def test_save_image():
     pass
@@ -95,9 +103,6 @@ def test_move_images():
     pass
 
 def test_delete_images():
-    pass
-
-def test_search_segs():
     pass
 
 '''

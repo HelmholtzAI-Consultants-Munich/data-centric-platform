@@ -77,8 +77,6 @@ def test_item_train_selected(qtbot, app, setup_global_variable):
     assert app.list_view_train.selectionModel().currentIndex() == index
     assert app.app.cur_selected_img=='astronaut.png'
     assert app.app.cur_selected_path==app.app.train_data_path
-    os.remove('train_data_path/astronaut.png')
-    os.rmdir('train_data_path')
 
 def test_item_inprog_selected(qtbot, app, setup_global_variable):
     settings.accepted_types = setup_global_variable
@@ -94,8 +92,6 @@ def test_item_inprog_selected(qtbot, app, setup_global_variable):
     assert app.list_view_inprogr.selectionModel().currentIndex() == index
     assert app.app.cur_selected_img == "coffee.png"
     assert app.app.cur_selected_path == app.app.inprogr_data_path
-    os.remove('in_prog/coffee.png')
-    os.rmdir('in_prog')
 
 def test_item_eval_selected(qtbot, app, setup_global_variable):
     settings.accepted_types = setup_global_variable
@@ -111,9 +107,6 @@ def test_item_eval_selected(qtbot, app, setup_global_variable):
     assert app.list_view_eval.selectionModel().currentIndex() == index
     assert app.app.cur_selected_img=='cat.png'
     assert app.app.cur_selected_path==app.app.eval_data_path
-    os.remove('eval_data_path/cat.png')
-    os.rmdir('eval_data_path')
-    
 
 def test_train_button_click(qtbot, app):
     # Click the "Train Model" button
@@ -161,3 +154,21 @@ def test_launch_napari_button_click(qtbot, app):
     # Assert that the napari window has launched
     assert hasattr(app, 'nap_win')
     assert app.nap_win.isVisible()
+
+
+@pytest.fixture(scope='session', autouse=True)
+def cleanup_files(request):
+    # This code runs after all tests from all files have completed
+    yield
+    # Clean up
+    for fname in os.listdir('train_data_path'):
+        os.remove(os.path.join('train_data_path', fname))
+    os.rmdir('train_data_path')
+
+    for fname in os.listdir('in_prog'):
+        os.remove(os.path.join('in_prog', fname))
+    os.rmdir('in_prog')
+
+    for fname in os.listdir('eval_data_path'):
+        os.remove(os.path.join('eval_data_path', fname))
+    os.rmdir('eval_data_path')
