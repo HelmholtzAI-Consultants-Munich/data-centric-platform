@@ -76,7 +76,9 @@ def test_item_train_selected(qtbot, app, setup_global_variable):
     # Assert that the selected item matches the expected item
     assert app.list_view_train.selectionModel().currentIndex() == index
     assert app.app.cur_selected_img=='astronaut.png'
-    assert app.app.cur_selected_path=='train_data_path'
+    assert app.app.cur_selected_path==app.app.train_data_path
+    os.remove('train_data_path/astronaut.png')
+    os.rmdir('train_data_path')
 
 def test_item_inprog_selected(qtbot, app, setup_global_variable):
     settings.accepted_types = setup_global_variable
@@ -92,6 +94,8 @@ def test_item_inprog_selected(qtbot, app, setup_global_variable):
     assert app.list_view_inprogr.selectionModel().currentIndex() == index
     assert app.app.cur_selected_img == "coffee.png"
     assert app.app.cur_selected_path == app.app.inprogr_data_path
+    os.remove('in_prog/coffee.png')
+    os.rmdir('in_prog')
 
 def test_item_eval_selected(qtbot, app, setup_global_variable):
     settings.accepted_types = setup_global_variable
@@ -106,5 +110,54 @@ def test_item_eval_selected(qtbot, app, setup_global_variable):
     # Assert that the selected item matches the expected item
     assert app.list_view_eval.selectionModel().currentIndex() == index
     assert app.app.cur_selected_img=='cat.png'
-    assert app.app.cur_selected_path=='eval_data_path'
+    assert app.app.cur_selected_path==app.app.eval_data_path
+    os.remove('eval_data_path/cat.png')
+    os.rmdir('eval_data_path')
     
+
+def test_train_button_click(qtbot, app):
+    # Click the "Train Model" button
+    QTest.mouseClick(app.train_button, Qt.LeftButton)
+    # Assert that the worker thread is properly configured
+    assert app.worker_thread.task == 'train'
+    assert not app.train_button.isEnabled()
+    # Wait for the worker thread to finish
+    QTest.qWaitForWindowActive(app)
+    # The train functionality of the thread is tested with app tests
+
+def test_inference_button_click(qtbot, app):
+    # Click the "Generate Labels" button
+    QTest.mouseClick(app.inference_button, Qt.LeftButton)
+    # Assert that the worker thread is properly configured
+    assert app.worker_thread.task == 'inference'
+    assert not app.inference_button.isEnabled()
+    # Wwait for the worker thread to finish
+    QTest.qWaitForWindowActive(app)
+    # The inference functionality of the thread is tested with app tests
+
+def test_on_finished(qtbot, app):
+    assert app.train_button.isEnabled()
+    assert app.inference_button.isEnabled()
+    assert not app.worker_thread.isRunning()
+
+def test_launch_napari_button_click_without_selection(qtbot, app):
+    # Try clicking the view button without having selected an image
+    app.sim = True
+    qtbot.mouseClick(app.launch_nap_button, Qt.LeftButton)
+    assert not hasattr(app, 'nap_win')
+
+def test_launch_napari_button_click(qtbot, app):
+    settings.accepted_types = setup_global_variable
+    # Simulate selection of an image to view before clivking on view button
+    index = app.list_view_eval.indexAt(app.list_view_eval.viewport().rect().topLeft())
+    pos = app.list_view_eval.visualRect(index).center()
+    # Simulate file click
+    QTest.mouseClick(app.list_view_eval.viewport(), 
+                     Qt.LeftButton, 
+                     pos=pos)
+    app.on_item_eval_selected(index)
+    # Now click the view button
+    qtbot.mouseClick(app.launch_nap_button, Qt.LeftButton)
+    # Assert that the napari window has launched
+    assert hasattr(app, 'nap_win')
+    assert app.nap_win.isVisible()
