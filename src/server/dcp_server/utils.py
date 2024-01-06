@@ -74,7 +74,8 @@ def crop_centered_padded_patch(x: np.ndarray,
             x[m] = np.random.normal(scale=noise_intensity, size=x[m].shape)
 
     patch = x[max(top, 0):min(bottom, x.shape[0]), max(left, 0):min(right, x.shape[1]), :]
-
+    if mask is not None:
+        mask = mask[max(top, 0):min(bottom, x.shape[0]), max(left, 0):min(right, x.shape[1]), :]
     # Calculate the required padding amounts
     size_x, size_y = x.shape[1], x.shape[0]
 
@@ -83,23 +84,39 @@ def crop_centered_padded_patch(x: np.ndarray,
         patch = np.hstack((
             np.random.normal(scale=noise_intensity, size=(patch.shape[0], abs(left), patch.shape[2])).astype(np.uint8),
             patch))
+        if mask is not None: 
+            mask = np.hstack((
+            np.zeros((mask.shape[0], abs(left), mask.shape[2])).astype(np.uint8),
+            mask))
     # Apply padding on the right side if necessary
     if right > size_x: 
         patch = np.hstack((
             patch,
             np.random.normal(scale=noise_intensity, size=(patch.shape[0], (right - size_x), patch.shape[2])).astype(np.uint8)))
+        if mask is not None: 
+            mask = np.hstack((
+            mask,
+            np.zeros((mask.shape[0], (right - size_x), mask.shape[2])).astype(np.uint8)))
     # Apply padding on the top side if necessary
     if top < 0: 
         patch = np.vstack((
             np.random.normal(scale=noise_intensity, size=(abs(top), patch.shape[1], patch.shape[2])).astype(np.uint8),
             patch))
+        if mask is not None: 
+            mask = np.vstack((
+            np.zeros((abs(top), mask.shape[1], mask.shape[2])).astype(np.uint8),
+            mask))
     # Apply padding on the bottom side if necessary
     if bottom > size_y: 
         patch = np.vstack((
             patch, 
             np.random.normal(scale=noise_intensity, size=(bottom - size_y, patch.shape[1], patch.shape[2])).astype(np.uint8)))
-
-    return patch 
+        if mask is not None: 
+            mask = np.vstack((
+            mask, 
+            np.zeros((bottom - size_y, mask.shape[1], mask.shape[2])).astype(np.uint8)))
+    
+    return patch, mask 
 
 
 def get_center_of_mass_and_label(mask: np.ndarray) -> np.ndarray:
@@ -133,7 +150,8 @@ def get_centered_patches(img,
                          mask,
                          p_size: int,
                          noise_intensity=5,
-                         mask_class=None):
+                         mask_class=None,
+                         include_mask=False):
 
     ''' 
     Extracts centered patches from the input image based on the centers of objects identified in the mask.
@@ -155,12 +173,16 @@ def get_centered_patches(img,
     # Crop patches around each center of mass
     for c, l in zip(centers_of_mass, instance_labels):
         c_x, c_y = c
-        patch = crop_centered_padded_patch(img.copy(),
+        patch, patch_mask = crop_centered_padded_patch(img.copy(),
                                             (c_x, c_y),
                                             (p_size, p_size),
                                             l,
                                             mask=mask,
                                             noise_intensity=noise_intensity)
+        if include_mask:
+            patch = np.concatenate((patch, patch_mask), axis=-1)
+            
+
         patches.append(patch)
         if mask_class is not None:
             # get the class instance for the specific object
@@ -205,13 +227,14 @@ def find_max_patch_size(mask):
 
         return max_patch_size_edge
     
-def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, max_patch_size):
+def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, max_patch_size, include_mask):
     '''
     Splits img and masks into patches of equal size which are centered around the cells.
     If patch_size is not given, the algorithm should first run through all images to find the max cell size, and use
     the max cell size to define the patch size. All patches and masks should then be returned
     in the same format as imgs and masks (same type, i.e. check if tensor or np.array and same 
     convention of dims, e.g.  CxHxW)
+    include_mask(bool) : Flag indicating whether to include the mask along with patches. 
     '''
 
     if max_patch_size is None:
@@ -226,7 +249,8 @@ def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, 
                                             mask_instance,
                                             max_patch_size, 
                                             noise_intensity=noise_intensity,
-                                            mask_class=mask_class)
+                                            mask_class=mask_class,
+                                            include_mask = include_mask)
         patches.extend(patch)
         labels.extend(label) 
     return patches, labels

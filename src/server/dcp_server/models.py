@@ -108,6 +108,9 @@ class CellClassifierFCNN(nn.Module):
 
         self.train_config = train_config["classifier"]
         self.eval_config = eval_config["classifier"]
+
+        self.include_mask = model_config["classifier"]["include_mask"]
+        self.in_channels = self.in_channels + 1 if self.include_mask else self.in_channels
         
         self.layer1 = nn.Sequential(
             nn.Conv2d(self.in_channels, 16, 3, 2, 5),
@@ -220,6 +223,7 @@ class CellposePatchCNN(nn.Module):
         self.model_config = model_config
         self.train_config = train_config
         self.eval_config = eval_config
+        self.include_mask = self.model_config["classifier"]["include_mask"]
 
         # Initialize the cellpose model and the classifier
         self.segmentor = CustomCellposeModel(self.model_config, 
@@ -252,7 +256,9 @@ class CellposePatchCNN(nn.Module):
                                                masks_classes,
                                                masks_instances,
                                                noise_intensity = self.train_config["classifier"]["train_data"]["noise_intensity"],
-                                               max_patch_size = self.train_config["classifier"]["train_data"]["patch_size"])
+                                               max_patch_size = self.train_config["classifier"]["train_data"]["patch_size"],
+                                               include_mask = self.include_mask
+                                               )
         # train classifier
         self.classifier.train(patches, labels)
 
@@ -274,7 +280,8 @@ class CellposePatchCNN(nn.Module):
             patches, instance_labels, _ = get_centered_patches(img,
                                                                instance_mask,
                                                                max_patch_size,
-                                                               noise_intensity=noise_intensity)
+                                                               noise_intensity=noise_intensity,
+                                                               include_mask=self.include_mask)
             # loop over patches and create classification mask
             for idx, patch in enumerate(patches):
                 patch_class = self.classifier.eval(patch) # patch size should be HxWxC, e.g. 64,64,3
