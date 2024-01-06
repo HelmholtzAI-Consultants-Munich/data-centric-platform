@@ -6,11 +6,6 @@ import os
 from dcp_client.utils import utils
 from dcp_client.utils import settings
 
-#changed from here
-from skimage.feature import canny, peak_local_max
-from skimage.morphology import closing, square
-import numpy as np
-
 
 class Model(ABC):
     @abstractmethod
