@@ -7,12 +7,15 @@ from copy import deepcopy
 from tqdm import tqdm
 import numpy as np
 
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import f1_score
+
 from cellpose.metrics import aggregated_jaccard_index
 
 #from segment_anything import SamPredictor, sam_model_registry
 #from segment_anything.automatic_mask_generator import SamAutomaticMaskGenerator
 
-from dcp_server.utils import get_centered_patches, find_max_patch_size, create_patch_dataset
+from dcp_server.utils import get_centered_patches, find_max_patch_size, create_patch_dataset, create_dataset_for_rf
 
 class CustomCellposeModel(models.CellposeModel, nn.Module):
     """Custom cellpose model inheriting the attributes and functions from the original CellposeModel and implementing
@@ -103,8 +106,8 @@ class CellClassifierFCNN(nn.Module):
     def __init__(self, model_config, train_config, eval_config):
         super().__init__()
 
-        self.in_channels = model_config["classifier"]["in_channels"]
-        self.num_classes = model_config["classifier"]["num_classes"]
+        self.in_channels = model_config["classifier"].get("in_channels",1)
+        self.num_classes = model_config["classifier"].get("num_classes",3)
 
         self.train_config = train_config["classifier"]
         self.eval_config = eval_config["classifier"]
@@ -221,11 +224,20 @@ class CellposePatchCNN(nn.Module):
         self.train_config = train_config
         self.eval_config = eval_config
 
+        self.classifier_class = self.model_config.get("classifier").get("model_class", "CellClassifierFCNN")
+
         # Initialize the cellpose model and the classifier
         self.segmentor = CustomCellposeModel(self.model_config, 
                                              self.train_config,
                                              self.eval_config)
-        self.classifier = CellClassifierFCNN(self.model_config,
+        
+        if self.classifier_class == "FCNN":
+            self.classifier = CellClassifierFCNN(self.model_config,
+                                             self.train_config,
+                                             self.eval_config)
+            
+        elif self.classifier_class == "RandomForest":
+            self.classifier = CellClassifierShallowModel(self.model_config,
                                              self.train_config,
                                              self.eval_config)
 
@@ -248,11 +260,15 @@ class CellposePatchCNN(nn.Module):
         self.segmentor.train(imgs, masks_instances)
         # create patch dataset to train classifier
         masks_classes = list(masks[:,1,...]) #[((mask > 0) * np.arange(1, 4)).sum(-1) for mask in masks]
-        patches, labels = create_patch_dataset(imgs,
+        patches, patch_masks, labels = create_patch_dataset(imgs,
                                                masks_classes,
                                                masks_instances,
                                                noise_intensity = self.train_config["classifier"]["train_data"]["noise_intensity"],
                                                max_patch_size = self.train_config["classifier"]["train_data"]["patch_size"])
+        
+        if self.classifier_class == "RandomForest":
+            patches = create_dataset_for_rf(patches, patch_masks)
+        
         # train classifier
         self.classifier.train(patches, labels)
 
@@ -271,10 +287,12 @@ class CellposePatchCNN(nn.Module):
             noise_intensity = self.eval_config["classifier"]["data"]["noise_intensity"]
             
             # get patches centered around detected objects
-            patches, instance_labels, _ = get_centered_patches(img,
+            patches, patch_masks, instance_labels, _ = get_centered_patches(img,
                                                                instance_mask,
                                                                max_patch_size,
                                                                noise_intensity=noise_intensity)
+            if self.classifier_class == "RandomForest":
+                patches = create_dataset_for_rf(patches, patch_masks)
             # loop over patches and create classification mask
             for idx, patch in enumerate(patches):
                 patch_class = self.classifier.eval(patch) # patch size should be HxWxC, e.g. 64,64,3
@@ -286,7 +304,28 @@ class CellposePatchCNN(nn.Module):
         
         return final_mask
 
+class CellClassifierShallowModel:
 
+    def __init__(self, model_config, train_config, eval_config):
+
+        self.model_config = model_config
+        self.train_config = train_config
+        self.eval_config = eval_config
+
+        self.model = RandomForestClassifier()
+
+   
+    def train(self, X_train, y_train):
+
+        self.model.fit(X_train,y_train)
+
+        y_hat = self.model.predict(X_train)
+        self.metric = f1_score(y_train, y_hat, average='micro')
+
+    
+    def eval(self, X_test):
+        print(f"X_test: {X_test.shape}")
+        return self.model.predict(X_test.reshape(1,-1))
         
 # class CustomSAMModel():
 # # https://github.com/facebookresearch/segment-anything/blob/main/notebooks/automatic_mask_generator_example.ipynb
