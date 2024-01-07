@@ -142,15 +142,19 @@ class WelcomeWindow(QWidget):
     
     def start_main(self):
         '''
-        Starts the main window after the user clicks 'Start' and only if both evaluation and train directories are chosen. 
+        Starts the main window after the user clicks 'Start' and only if both evaluation and train directories are chosen and all unique. 
         '''
-        
-        if self.app.train_data_path and self.app.eval_data_path:
+        if self.app.inprogr_data_path == self.app.train_data_path == self.app.eval_data_path:
+            message_text = "All directory names must be distinct."
+            create_warning_box(message_text, message_title="Warning")
+
+        elif self.app.train_data_path and self.app.eval_data_path:
             self.hide()
             self.mw = MainWindow(self.app)
         else:
             message_text = "You need to specify a folder both for your uncurated and curated dataset (even if the curated folder is currently empty). Please go back and select folders for both."
             create_warning_box(message_text, message_title="Warning")
+
 
     def start_upload(self):
         message_text = ("Your current configurations are set to run some operations on the cloud. \n"
