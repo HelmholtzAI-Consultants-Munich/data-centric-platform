@@ -44,8 +44,14 @@ class WelcomeWindow(QWidget):
         self.text_layout.addWidget(train_label)
 
         self.val_textbox = QLineEdit(self)
+        self.val_textbox.textEdited.connect(lambda x: self.on_text_changed(self.val_textbox, "eval", x))
+
         self.inprogr_textbox = QLineEdit(self)
+        self.inprogr_textbox.textEdited.connect(lambda x: self.on_text_changed(self.inprogr_textbox, "inprogress", x))
+
         self.train_textbox = QLineEdit(self)
+        self.train_textbox.textEdited.connect(lambda x: self.on_text_changed(self.train_textbox, "train", x))
+
         self.path_layout.addWidget(self.val_textbox)
         self.path_layout.addWidget(self.inprogr_textbox)
         self.path_layout.addWidget(self.train_textbox)
@@ -104,6 +110,21 @@ class WelcomeWindow(QWidget):
         if fd.exec_():
             self.app.train_data_path = fd.selectedFiles()[0]
         self.train_textbox.setText(self.app.train_data_path)
+
+    def on_text_changed(self, field_obj, field_name, text):
+        '''
+        Update data paths based on text changes in input fields. 
+        Used for copying paths in the welcome window.
+        '''
+
+        if field_name == "train":
+            self.app.train_data_path = text
+        elif field_name == "eval":
+            self.app.eval_data_path = text
+        elif field_name == "inprogress":
+            self.app.inprogr_data_path = text
+        field_obj.setText(text)
+        
 
 
     def browse_inprogr_clicked(self):
