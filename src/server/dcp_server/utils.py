@@ -3,6 +3,7 @@ import json
 import numpy as np
 from scipy.ndimage import find_objects, center_of_mass
 from skimage import measure
+from copy import deepcopy
 
 def read_config(name, config_path = 'config.cfg') -> dict:   
     """Reads the configuration file
@@ -72,6 +73,8 @@ def crop_centered_padded_patch(x: np.ndarray,
         x[m] = 0
         if noise_intensity is not None:
             x[m] = np.random.normal(scale=noise_intensity, size=x[m].shape)
+            if mask is not None:
+                mask[m] = 0
 
     patch = x[max(top, 0):min(bottom, x.shape[0]), max(left, 0):min(right, x.shape[1]), :]
     if mask is not None:
@@ -177,9 +180,10 @@ def get_centered_patches(img,
                                             (c_x, c_y),
                                             (p_size, p_size),
                                             l,
-                                            mask=mask,
+                                            mask=deepcopy(mask),
                                             noise_intensity=noise_intensity)
         if include_mask:
+            patch_mask = 255 * (patch_mask > 0).astype(np.uint8)
             patch = np.concatenate((patch, patch_mask), axis=-1)
             
 
