@@ -112,13 +112,10 @@ def test_train_button_click(qtbot, app):
     # Click the "Train Model" button
     QTest.mouseClick(app.train_button, Qt.LeftButton)
     # Assert that the worker thread is properly configured
-    print('AAAAAAAAAA')
     assert app.worker_thread.task == 'train'
-    print('BBBBBBBB')
     assert not app.train_button.isEnabled()
-    print('CCCCC')
     # Wait for the worker thread to finish
-    QTest.qWaitForWindowActive(app, timeout=5000)
+    #QTest.qWaitForWindowActive(app, timeout=5000)
     # The train functionality of the thread is tested with app tests
 
 def test_inference_button_click(qtbot, app):
@@ -128,7 +125,7 @@ def test_inference_button_click(qtbot, app):
     assert app.worker_thread.task == 'inference'
     assert not app.inference_button.isEnabled()
     # Wwait for the worker thread to finish
-    QTest.qWaitForWindowActive(app, timeout=5000)
+    #QTest.qWaitForWindowActive(app, timeout=5000)
     # The inference functionality of the thread is tested with app tests
 
 def test_on_finished(qtbot, app):
