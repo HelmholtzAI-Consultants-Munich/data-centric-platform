@@ -20,15 +20,6 @@ class WorkerThread(QThread):
         super().__init__(parent)
         self.app = app
         self.task = task
-    '''
-    def run(self):
-        #Once run_inference the tuple of (message_text, message_title) will be returned to on_finished
-        if self.task=='inference':
-            message_text, message_title = self.app.run_inference()
-        elif self.task=='train':
-            message_text, message_title = self.app.run_train()
-        self.task_finished.emit((message_text, message_title))
-    '''
 
     def run(self):
         ''' Once run_inference the tuple of (message_text, message_title) will be returned to on_finished'''
@@ -40,10 +31,11 @@ class WorkerThread(QThread):
             else:
                 message_text, message_title = "Unknown task", "Error"
 
-            self.task_finished.emit((message_text, message_title))
         except Exception as e:
             # Log any exceptions that might occur in the thread
-            print(f"Exception in WorkerThread: {e}")
+            message_text, message_title = f"Exception in WorkerThread: {e}", "Error"
+
+        self.task_finished.emit((message_text, message_title))
 
 class MainWindow(MyWidget):
     '''
@@ -60,6 +52,7 @@ class MainWindow(MyWidget):
         super().__init__()
         self.app = app
         self.title = "Data Overview"
+        self.worker_thread = None
         self.main_window()
         
     def main_window(self):
@@ -160,8 +153,6 @@ class MainWindow(MyWidget):
         self.progress_bar = QProgressBar(self)
         self.progress_bar.setRange(0,1)
         progress_layout.addWidget(self.progress_bar)
-        self.worker_thread = WorkerThread(app=self.app)
-        self.worker_thread.task_finished.connect(self.on_finished)
         main_layout.addLayout(progress_layout)
 
         self.setLayout(main_layout)
@@ -194,7 +185,10 @@ class MainWindow(MyWidget):
         '''
         self.train_button.setEnabled(False)
         self.progress_bar.setRange(0,0)
-        self.worker_thread.task = 'train'
+        # initialise the worker thread
+        self.worker_thread = WorkerThread(app=self.app, task='train')
+        self.worker_thread.task_finished.connect(self.on_finished)
+        # start the worker thread to train
         self.worker_thread.start()
 
     def on_run_inference_button_clicked(self):
@@ -203,7 +197,10 @@ class MainWindow(MyWidget):
         '''
         self.inference_button.setEnabled(False)
         self.progress_bar.setRange(0,0)
-        self.worker_thread.task = 'inference'
+        # initialise the worker thread
+        self.worker_thread = WorkerThread(app=self.app, task='inference')
+        self.worker_thread.task_finished.connect(self.on_finished)
+        # start the worker thread to run inference
         self.worker_thread.start()
 
     def on_launch_napari_button_clicked(self):   
@@ -223,9 +220,16 @@ class MainWindow(MyWidget):
         '''
         self.progress_bar.setRange(0,1) # Stop the pulsation
         message_text, message_title = result
+        print("AAAAAAAAAAAAAAAA", self.worker_thread.isRunning())
         _ = self.create_warning_box(message_text, message_title)
         self.inference_button.setEnabled(True)
         self.train_button.setEnabled(True)
+        print("BBBBBBBB", self.train_button.isEnabled(), self.inference_button.isEnabled())
+        # Delete the worker thread when it's done
+        self.worker_thread.quit()
+        self.worker_thread.wait()
+        self.worker_thread.deleteLater()
+        self.worker_thread = None  # Set to None to indicate it's no longer in use
 
 
 if __name__ == "__main__":
