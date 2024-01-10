@@ -50,6 +50,11 @@ jobs:
           pip install coverage
           pip install -e ".[testing]"
         working-directory: src/client
+
+      - name: Install server dependencies (for communication tests)
+        run: |
+          pip install -e ".[testing]"
+        working-directory: src/server
           
       - name: Test with pytest
         run: |
