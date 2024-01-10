@@ -107,7 +107,6 @@ def test_item_eval_selected(qtbot, app, setup_global_variable):
     assert app.list_view_eval.selectionModel().currentIndex() == index
     assert app.app.cur_selected_img=='cat.png'
     assert app.app.cur_selected_path==app.app.eval_data_path
-'''
 
 def test_train_button_click(qtbot, app):
     # Click the "Train Model" button
@@ -118,7 +117,7 @@ def test_train_button_click(qtbot, app):
     # Wait for the worker thread to finish
     QTest.qWaitForWindowActive(app)
     # The train functionality of the thread is tested with app tests
-
+''''
 def test_inference_button_click(qtbot, app):
     # Click the "Generate Labels" button
     QTest.mouseClick(app.inference_button, Qt.LeftButton)
