@@ -32,21 +32,15 @@ def app(qtbot, setup_global_variable):
 
     if not os.path.exists('train_data_path'): 
         os.mkdir('train_data_path')
-        os.chmod('train_data_path', 0o0777)
         imsave('train_data_path/astronaut.png', img1)
-        os.chmod('train_data_path/astronaut.png', 0o0777)
 
     if not os.path.exists('in_prog'): 
         os.mkdir('in_prog')
-        os.chmod('in_prog', 0o0777)
         imsave('in_prog/coffee.png', img2)
-        os.chmod('in_prog/coffee.png', 0o0777)
     
     if not os.path.exists('eval_data_path'): 
         os.mkdir('eval_data_path')
-        os.chmod('eval_data_path', 0o0777)
         imsave('eval_data_path/cat.png', img3)
-        os.chmod('eval_data_path/cat.png', 0o0777)
 
     rsyncer = DataRSync(user_name="local", host_name="local", server_repo_path='.')
     application = Application(BentomlModel(),
