@@ -20,14 +20,30 @@ class WorkerThread(QThread):
         super().__init__(parent)
         self.app = app
         self.task = task
-
+    '''
     def run(self):
-        ''' Once run_inference the tuple of (message_text, message_title) will be returned to on_finished'''
+        #Once run_inference the tuple of (message_text, message_title) will be returned to on_finished
         if self.task=='inference':
             message_text, message_title = self.app.run_inference()
         elif self.task=='train':
             message_text, message_title = self.app.run_train()
         self.task_finished.emit((message_text, message_title))
+    '''
+
+    def run(self):
+        ''' Once run_inference the tuple of (message_text, message_title) will be returned to on_finished'''
+        try:
+            if self.task == 'inference':
+                message_text, message_title = self.app.run_inference()
+            elif self.task == 'train':
+                message_text, message_title = self.app.run_train()
+            else:
+                message_text, message_title = "Unknown task", "Error"
+
+            self.task_finished.emit((message_text, message_title))
+        except Exception as e:
+            # Log any exceptions that might occur in the thread
+            print(f"Exception in WorkerThread: {e}")
 
 class MainWindow(MyWidget):
     '''
