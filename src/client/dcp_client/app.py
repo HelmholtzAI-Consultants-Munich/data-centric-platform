@@ -75,13 +75,12 @@ class Application:
         """
         Checks if the ml model is connected to server and attempts to connect if not.
         """
-        if not self.ml_model.is_connected:
-            connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
+        connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
         return connection_success
     
     def run_train(self):
         """ Checks if the ml model is connected to the server, connects if not (and if possible), and trains the model with all data available in train_data_path """
-        if not self.try_server_connection(): 
+        if not self.ml_model.is_connected and not self.try_server_connection(): 
             message_title = "Warning"
             message_text = "Connection could not be established. Please check if the server is running and try again."
             return message_text, message_title
@@ -99,11 +98,11 @@ class Application:
     
     def run_inference(self):
         """ Checks if the ml model is connected to the server, connects if not (and if possible), and runs inference on all images in eval_data_path """
-        if self.try_server_connection() is False: 
+        if not self.ml_model.is_connected and not self.try_server_connection(): 
             message_title = "Warning"
             message_text = "Connection could not be established. Please check if the server is running and try again."
             return message_text, message_title
-
+        
         if self.syncer.host_name=="local":
             # model serving directly from local
             list_of_files_not_suported = self.ml_model.run_inference(self.eval_data_path)       
