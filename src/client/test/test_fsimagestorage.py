@@ -15,6 +15,7 @@ def sample_image():
     img = data.astronaut()
     fname = 'test_img.png'
     imsave(fname, img)
+    os.chmod(fname, 0o0777)
     return fname
     
 def test_load_image(fis, sample_image):
