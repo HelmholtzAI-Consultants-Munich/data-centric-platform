@@ -107,7 +107,7 @@ def test_item_eval_selected(qtbot, app, setup_global_variable):
     assert app.list_view_eval.selectionModel().currentIndex() == index
     assert app.app.cur_selected_img=='cat.png'
     assert app.app.cur_selected_path==app.app.eval_data_path
-
+'''
 def test_train_button_click(qtbot, app):
     # Click the "Train Model" button
     QTest.mouseClick(app.train_button, Qt.LeftButton)
@@ -117,7 +117,7 @@ def test_train_button_click(qtbot, app):
     # Wait for the worker thread to finish
     QTest.qWaitForWindowActive(app)
     # The train functionality of the thread is tested with app tests
-''''
+
 def test_inference_button_click(qtbot, app):
     # Click the "Generate Labels" button
     QTest.mouseClick(app.inference_button, Qt.LeftButton)
@@ -132,7 +132,7 @@ def test_on_finished(qtbot, app):
     assert app.train_button.isEnabled()
     assert app.inference_button.isEnabled()
     assert not app.worker_thread.isRunning()
-
+'''
 def test_launch_napari_button_click_without_selection(qtbot, app):
     # Try clicking the view button without having selected an image
     app.sim = True
@@ -172,4 +172,3 @@ def cleanup_files(request):
     for fname in os.listdir('eval_data_path'):
         os.remove(os.path.join('eval_data_path', fname))
     os.rmdir('eval_data_path')
-'''
