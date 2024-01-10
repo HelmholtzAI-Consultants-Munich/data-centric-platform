@@ -218,13 +218,14 @@ class MainWindow(MyWidget):
         ''' 
         Is called once the worker thread emits the on finished signal
         '''
-        self.progress_bar.setRange(0,1) # Stop the pulsation
+        # Stop the pulsation
+        self.progress_bar.setRange(0,1) 
+        # Display message of result
         message_text, message_title = result
-        print("AAAAAAAAAAAAAAAA", self.worker_thread.isRunning())
         _ = self.create_warning_box(message_text, message_title)
+        # Re-enable buttons
         self.inference_button.setEnabled(True)
         self.train_button.setEnabled(True)
-        print("BBBBBBBB", self.train_button.isEnabled(), self.inference_button.isEnabled())
         # Delete the worker thread when it's done
         self.worker_thread.quit()
         self.worker_thread.wait()
