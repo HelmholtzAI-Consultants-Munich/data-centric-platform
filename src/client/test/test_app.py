@@ -69,7 +69,9 @@ def test_run_inference_run(app):
         "--port=7010",
     ]
     process = subprocess.Popen(command)
-    time.sleep(60) # and wait until it is setup
+    # and wait until it is setup
+    if sys.platform == 'win32' or sys.platform == 'cygwin': time.sleep(120) 
+    else: time.sleep(60)
     # then do model serving
     message_text, message_title = app.run_inference()
     # and assert returning message
@@ -90,7 +92,6 @@ def test_search_segs(app):
     assert res[0]=='cat_seg.tiff'
     # also remove the seg as it is not needed for other scripts
     os.remove('eval_data_path/cat_seg.tiff') 
-
 
 '''
 def test_run_train():
