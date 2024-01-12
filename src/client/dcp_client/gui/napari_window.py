@@ -13,17 +13,6 @@ if TYPE_CHECKING:
 
 from dcp_client.utils import utils
 
-widget_list = [
-    'ellipse_button',
-    'line_button',
-    'path_button',
-    'polygon_button',
-    'vertex_remove_button',
-    'vertex_insert_button',
-    'move_back_button',
-    'move_front_button',
-    'label_eraser',
-]
 
 class NapariWindow(QWidget):
     '''Napari Window Widget object.
