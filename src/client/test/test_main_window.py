@@ -139,7 +139,6 @@ def test_launch_napari_button_click_without_selection(qtbot, app):
 
 def test_launch_napari_button_click(qtbot, app):
     settings.accepted_types = setup_global_variable
-    app.seg_filepaths = ['train_data_path/astronaut.png']
     # Simulate selection of an image to view before clicking on view button
     index = app.list_view_eval.indexAt(app.list_view_eval.viewport().rect().topLeft())
     pos = app.list_view_eval.visualRect(index).center()
@@ -148,6 +147,7 @@ def test_launch_napari_button_click(qtbot, app):
                      Qt.LeftButton, 
                      pos=pos)
     app.on_item_eval_selected(index)
+    app.seg_filepaths = ['train_data_path/astronaut.png']
     # Now click the view button
     qtbot.mouseClick(app.launch_nap_button, Qt.LeftButton)
     # Assert that the napari window has launched
