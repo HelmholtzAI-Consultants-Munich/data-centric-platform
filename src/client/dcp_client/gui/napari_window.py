@@ -168,6 +168,8 @@ class NapariWindow(MyWidget):
            
         elif event.type == "set_data":
             
+            assert 0 == 1
+
             if self.viewer.dims.current_step[0] == self.active_mask_index:
                 self.switch_to_active_mask()
             else:
