@@ -47,8 +47,8 @@ def model(model_class):
 
 @pytest.fixture
 def data_train():
-    print(model_classes)
-    images, masks = get_synthetic_dataset(num_samples=4)
+    # the size of the image should be divisable by 16 
+    images, masks = get_synthetic_dataset(num_samples=4, canvas_size=(512,768))
     masks = [np.array(mask) for mask in masks]
     masks_instances = [mask.sum(-1) for mask in masks]
     masks_classes = [((mask > 0) * np.arange(1, 4)).sum(-1) for mask in masks]
