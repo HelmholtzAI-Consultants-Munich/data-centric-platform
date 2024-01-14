@@ -9,6 +9,7 @@ import numpy as np
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import f1_score, log_loss
+from sklearn.exceptions import NotFittedError
 
 from cellpose.metrics import aggregated_jaccard_index
 
@@ -272,9 +273,8 @@ class CellposePatchCNN(nn.Module):
         else:
             self.classifier.train(patches, labels)
         # train classifier
-
         self.metric = (self.segmentor.metric + self.classifier.metric) / 2
-        self.loss = (self.segmentor.loss + self.classifier.loss) / 2
+        self.loss = self.classifier.loss
 
     def eval(self, img):
         # TBD we assume image is either 2D [H, W] (see fsimage storage)
@@ -301,6 +301,7 @@ class CellposePatchCNN(nn.Module):
             for idx, patch in enumerate(patches):
                 patch_class = self.classifier.eval(patch) # patch size should be HxWxC, e.g. 64,64,3
                 # Assign predicted class to corresponding location in final_mask
+                patch_class = patch_class.item() if isinstance(patch_class, torch.Tensor) else patch_class
                 class_mask[instance_mask==instance_labels[idx]] = patch_class.item() + 1
             # Apply mask to final_mask, retaining only regions where cellpose_mask is greater than 0
             #class_mask = class_mask * (instance_mask > 0)#.long())
@@ -322,6 +323,7 @@ class CellClassifierShallowModel:
     def train(self, X_train, y_train):
 
         self.model.fit(X_train,y_train)
+
         y_hat = self.model.predict(X_train)
         y_hat_proba = self.model.predict_proba(X_train)
 
@@ -330,8 +332,15 @@ class CellClassifierShallowModel:
 
     
     def eval(self, X_test):
-        print(f"X_test: {X_test.shape}")
-        return self.model.predict(X_test.reshape(1,-1))
+
+        X_test = X_test.reshape(1,-1)
+
+        try:
+            y_hat = self.model.predict(X_test)
+        except NotFittedError as e:
+            y_hat = np.zeros(X_test.shape[0])
+   
+        return y_hat
         
 # class CustomSAMModel():
 # # https://github.com/facebookresearch/segment-anything/blob/main/notebooks/automatic_mask_generator_example.ipynb
