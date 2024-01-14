@@ -38,10 +38,9 @@ class NapariWindow(MyWidget):
 
         if len(self.app.seg_filepaths):
             self.layer = self.viewer.layers[get_path_stem(self.app.seg_filepaths[0])]
+            self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
         else:
             self.layer = None
-            
-        self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
 
         self.changed = False
         self.event_coords = None
