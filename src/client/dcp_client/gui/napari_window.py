@@ -36,7 +36,11 @@ class NapariWindow(MyWidget):
         for seg_file in self.app.seg_filepaths:
             self.viewer.add_labels(self.app.load_image(seg_file), name=get_path_stem(seg_file))
 
-        self.layer = self.viewer.layers[get_path_stem(self.app.seg_filepaths[0])]
+        if len(self.app.seg_filepaths):
+            self.layer = self.viewer.layers[get_path_stem(self.app.seg_filepaths[0])]
+        else:
+            self.layer = None
+            
         self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
 
         self.changed = False
