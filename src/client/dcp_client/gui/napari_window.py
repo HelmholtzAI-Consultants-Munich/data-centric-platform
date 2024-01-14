@@ -159,9 +159,9 @@ class NapariWindow(MyWidget):
         """
 
         source_mask = layer.data
-    
-        if event.type == "mouse_press":
 
+        if event.type == "mouse_press":
+            # assert 0 == 1
             c, event_x, event_y = Compute4Mask.get_rounded_pos(event.position)
             self.event_coords = (c, event_x, event_y)
 
