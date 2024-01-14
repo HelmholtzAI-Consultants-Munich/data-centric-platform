@@ -8,7 +8,7 @@ from tqdm import tqdm
 import numpy as np
 
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, log_loss
 
 from cellpose.metrics import aggregated_jaccard_index
 
@@ -267,10 +267,14 @@ class CellposePatchCNN(nn.Module):
                                                max_patch_size = self.train_config["classifier"]["train_data"]["patch_size"])
         
         if self.classifier_class == "RandomForest":
-            patches = create_dataset_for_rf(patches, patch_masks)
-        
+            features = create_dataset_for_rf(patches, patch_masks)
+            self.classifier.train(features, labels)
+        else:
+            self.classifier.train(patches, labels)
         # train classifier
-        self.classifier.train(patches, labels)
+
+        self.metric = (self.segmentor.metric + self.classifier.metric) / 2
+        self.loss = (self.segmentor.loss + self.classifier.loss) / 2
 
     def eval(self, img):
         # TBD we assume image is either 2D [H, W] (see fsimage storage)
@@ -318,9 +322,11 @@ class CellClassifierShallowModel:
     def train(self, X_train, y_train):
 
         self.model.fit(X_train,y_train)
-
         y_hat = self.model.predict(X_train)
+        y_hat_proba = self.model.predict_proba(X_train)
+
         self.metric = f1_score(y_train, y_hat, average='micro')
+        self.loss = log_loss(y_train, y_hat_proba)
 
     
     def eval(self, X_test):
