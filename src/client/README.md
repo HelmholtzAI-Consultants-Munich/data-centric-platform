@@ -5,7 +5,7 @@ The client of our data centric platform for microscopy imaging.
 
 ## How to use?
 ### Installation
-This installation has been tested using a conda environment with python version 3.9 on a mac local machine. In your dedicated environment run:
+Before starting make sure you have navigated to ```data-centric-platform/src/client```. All future steps expect you are in the client directory. This installation has been tested using a conda environment with python version 3.9 on a mac local machine. In your dedicated environment run:
 ```
 pip install -e .
 ```
@@ -53,9 +53,9 @@ The welcome window should have now popped up.
    
   Here you will need to select the directories which we will be using throughout the data centric workflow. The following directories need to be defined:
   
-  * **Uncurated dataset path:** This folder should initially contain all images of your dataset. They may or may not be accompanied by corresponding segmentations, but if they do, the segmentations should have the same filename as the image followed by the ending defined in ```setup/seg_name_string```, deifned in ```server/dcp_server/config.cfg``` (default extension is _seg)
+  * **Uncurated dataset path:** This folder is intended to store all images of your dataset. These images may be accompanied by corresponding segmentations. If present, segmentation files should share the same filename as their associated image, appended with a suffix as specified in 'setup/seg_name_string', defined in ```server/dcp_server/config.cfg``` (default: '_seg').
   * **Curation in progress path:(Optional)** Images for which the segmentation is a work in progress should be moved here. Each image in this folder can have one or multiple segmentations corresponding to it (by changing the filename of the segmentation in the napari layer list after editing it, see **Viewer**). If you do not want to use an intermediate working dir, you can skip setting a path to this directory (it is not required). No future functions affect this directory, it is only used to move to and from the uncurated and curated directories.
-  * **Curated dataset path:** This folder should contain images along with their final segmentations. **Only** move images here when the segmentation is complete and finalised, you won't be able to change them after they have been moved here. These are then used for training your model.
+  * **Curated dataset path:** This folder is intended to contain images along with their final segmentations. **Only** move images here when the segmentation is complete and finalised, you won't be able to change them after they have been moved here. These are then used for training your model.
 
 4. **Setting paths**
 
@@ -73,7 +73,7 @@ The main working window will appear next. This gives you an overview of the dire
 6. **The viewer**
 
 In DCP, we use [napari](https://napari.org/stable) for viewing our images and makss, adding, editing or removing labels. An example of the viewer can be seen below. After adding or removing any objects and editing existing objects wherever necessary, there are two options available:
-- Click the **Move to Curation in progress folder** if you are not 100% certain about the labels you have created. You can also click on the label in the labels layer and change the name. This will result in several label files being created in the *In progress folder*, which can be examined later on.
+- Click the **Move to Curation in progress folder** if you are not 100% certain about the labels you have created. You can also click on the label in the labels layer and change the name. This will result in several label files being created in the *In progress folder*, which can be examined later on.  **Note:** When changing the layer name in Napari, the user should rename it such that they add their initials or any other new info after _seg. E.g., if the labels of 1_seg.tiff have been changed in the Napari viewer, then the appropriate naming would for example be: 1_seg_CB.tiff and not 1_CB_seg.tiff.
 - Click the **Move to Curated dataset folder** if you are certain that the labels you are now viewing are final and require no more curation. These images and labels will later be used for training the machine learning model, so make sure that you select this option only if you are certain about the labels. If several labels are displayed (opened from the 'Curation in progress' step), make sure to **click** on the single label in the labels layer list you wish to be moved to the *Curated data folder*. The other images will then be automatically deleted from this folder.
 
 ![Alt Text](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/client/readme_figs/client_napari_viewer.png)

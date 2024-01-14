@@ -11,10 +11,10 @@ from dcp_client.utils.utils import Compute4Mask
 if TYPE_CHECKING:
     from dcp_client.app import Application
 
-from dcp_client.utils import utils
+from dcp_client.utils.utils import get_path_stem
+from dcp_client.gui._my_widget import MyWidget
 
-
-class NapariWindow(QWidget):
+class NapariWindow(MyWidget):
     '''Napari Window Widget object.
     Opens the napari image viewer to view and fix the labeles.
     :param app:
@@ -32,13 +32,11 @@ class NapariWindow(QWidget):
 
         # Set the viewer
         self.viewer = napari.Viewer(show=False)
-
-        self.viewer.add_image(img, name=utils.get_path_stem(self.app.cur_selected_img))
-
+        self.viewer.add_image(img, name=get_path_stem(self.app.cur_selected_img))
         for seg_file in self.app.seg_filepaths:
-            self.viewer.add_labels(self.app.load_image(seg_file), name=utils.get_path_stem(seg_file))
+            self.viewer.add_labels(self.app.load_image(seg_file), name=get_path_stem(seg_file))
 
-        self.layer = self.viewer.layers[utils.get_path_stem(self.app.seg_filepaths[0])]
+        self.layer = self.viewer.layers[get_path_stem(self.app.seg_filepaths[0])]
         self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
 
         self.changed = False
@@ -215,7 +213,7 @@ class NapariWindow(QWidget):
         '''
         if  self.app.cur_selected_path == str(self.app.train_data_path):
             message_text = "Image is already in the \'Curated data\' folder and should not be changed again"
-            utils.create_warning_box(message_text, message_title="Warning")
+            _ = self.create_warning_box(message_text, message_title="Warning")
             return
         
         # take the name of the currently selected layer (by the user)
@@ -223,7 +221,7 @@ class NapariWindow(QWidget):
         # TODO if more than one item is selected this will break!
         if '_seg' not in cur_seg_selected:
             message_text = "Please select the segmenation you wish to save from the layer list"
-            utils.create_warning_box(message_text, message_title="Warning")
+            _ = self.create_warning_box(message_text, message_title="Warning")
             return
         
         seg = self.viewer.layers[cur_seg_selected].data
@@ -248,7 +246,7 @@ class NapariWindow(QWidget):
         # TODO: Do we allow this? What if they moved it by mistake? User can always manually move from their folders?)
         if self.app.cur_selected_path == str(self.app.train_data_path):
             message_text = "Images from '\Curated data'\ folder can not be moved back to \'Curatation in progress\' folder."
-            utils.create_warning_box(message_text, message_title="Warning")
+            _ = self.create_warning_box(message_text, message_title="Warning")
             return
         
         # take the name of the currently selected layer (by the user)
@@ -256,7 +254,7 @@ class NapariWindow(QWidget):
         # TODO if more than one item is selected this will break!
         if '_seg' not in cur_seg_selected:
             message_text = "Please select the segmenation you wish to save from the layer list"
-            utils.create_warning_box(message_text, message_title="Warning")
+            _ = self.create_warning_box(message_text, message_title="Warning")
             return
 
         # Move original image

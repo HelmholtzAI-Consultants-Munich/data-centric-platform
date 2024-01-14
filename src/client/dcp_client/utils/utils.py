@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import  QFileIconProvider, QMessageBox
+from PyQt5.QtWidgets import  QFileIconProvider
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap, QIcon
 import numpy as np
@@ -16,8 +16,9 @@ class IconProvider(QFileIconProvider):
         self.ICON_SIZE = QSize(512,512)
 
     def icon(self, type: 'QFileIconProvider.IconType'):
-
-        fn = type.filePath()
+        try:
+            fn = type.filePath()
+        except AttributeError: return super().icon(type) # TODO handle exception differently?
 
         if fn.endswith(settings.accepted_types):
             a = QPixmap(self.ICON_SIZE)
@@ -25,14 +26,6 @@ class IconProvider(QFileIconProvider):
             return QIcon(a)
         else:
             return super().icon(type)
-
-def create_warning_box(message_text, message_title="Warning"):
-    msg = QMessageBox()
-    msg.setIcon(QMessageBox.Information)
-    msg.setText(message_text)
-    msg.setWindowTitle(message_title)
-    msg.setStandardButtons(QMessageBox.Ok)
-    msg.exec()
 
 def read_config(name, config_path = 'config.cfg') -> dict:   
     """Reads the configuration file

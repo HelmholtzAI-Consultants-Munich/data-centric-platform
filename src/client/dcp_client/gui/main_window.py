@@ -1,38 +1,68 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from qtpy.QtWidgets import QWidget, QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView
-from qtpy.QtCore import Qt
+from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView, QProgressBar
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
 
 from dcp_client.utils import settings
-from dcp_client.utils.utils import IconProvider, create_warning_box
+from dcp_client.utils.utils import IconProvider
+
 from dcp_client.gui.napari_window import NapariWindow
+from dcp_client.gui._my_widget import MyWidget
 
 if TYPE_CHECKING:
     from dcp_client.app import Application
 
+class WorkerThread(QThread):
+    ''' Worker thread for displaying Pulse ProgressBar during model serving '''
+    task_finished = pyqtSignal(tuple)
+    def __init__(self, app: Application, task: str = None, parent = None,):
+        super().__init__(parent)
+        self.app = app
+        self.task = task
 
+    def run(self):
+        ''' Once run_inference the tuple of (message_text, message_title) will be returned to on_finished'''
+        try:
+            if self.task == 'inference':
+                message_text, message_title = self.app.run_inference()
+            elif self.task == 'train':
+                message_text, message_title = self.app.run_train()
+            else:
+                message_text, message_title = "Unknown task", "Error"
 
-class MainWindow(QWidget):
-    '''Main Window Widget object.
+        except Exception as e:
+            # Log any exceptions that might occur in the thread
+            message_text, message_title = f"Exception in WorkerThread: {e}", "Error"
+
+        self.task_finished.emit((message_text, message_title))
+
+class MainWindow(MyWidget):
+    '''
+    Main Window Widget object.
     Opens the main window of the app where selected images in both directories are listed. 
     User can view the images, train the mdoel to get the labels, and visualise the result.
     :param eval_data_path: Chosen path to images without labeles, selected by the user in the WelcomeWindow
     :type eval_data_path: string
     :param train_data_path: Chosen path to images with labeles, selected by the user in the WelcomeWindow
     :type train_data_path: string
-    '''
+    '''    
 
     def __init__(self, app: Application):
         super().__init__()
         self.app = app
         self.title = "Data Overview"
+        self.worker_thread = None
         self.main_window()
         
     def main_window(self):
+        '''
+        Sets up the GUI
+        '''
         self.setWindowTitle(self.title)
         #self.resize(1000, 1500)
-        self.main_layout = QHBoxLayout()  
+        main_layout = QVBoxLayout()
+        dir_layout = QHBoxLayout()  
         
         self.uncurated_layout = QVBoxLayout()
         self.inprogress_layout = QVBoxLayout()
@@ -62,7 +92,7 @@ class MainWindow(QWidget):
         self.inference_button.clicked.connect(self.on_run_inference_button_clicked)  # add selected image    
         self.uncurated_layout.addWidget(self.inference_button, alignment=Qt.AlignCenter)
 
-        self.main_layout.addLayout(self.uncurated_layout)
+        dir_layout.addLayout(self.uncurated_layout)
 
         # In progress layout
         self.inprogr_dir_layout = QVBoxLayout() 
@@ -88,7 +118,7 @@ class MainWindow(QWidget):
         self.launch_nap_button.clicked.connect(self.on_launch_napari_button_clicked)  # add selected image    
         self.inprogress_layout.addWidget(self.launch_nap_button, alignment=Qt.AlignCenter)
 
-        self.main_layout.addLayout(self.inprogress_layout)
+        dir_layout.addLayout(self.inprogress_layout)
 
         # Curated layout
         self.train_dir_layout = QVBoxLayout() 
@@ -113,55 +143,113 @@ class MainWindow(QWidget):
         self.train_button = QPushButton("Train Model", self)
         self.train_button.clicked.connect(self.on_train_button_clicked)  # add selected image    
         self.curated_layout.addWidget(self.train_button, alignment=Qt.AlignCenter)
+        dir_layout.addLayout(self.curated_layout)
 
-        self.main_layout.addLayout(self.curated_layout)
+        main_layout.addLayout(dir_layout)
 
-        self.setLayout(self.main_layout)
+        # add progress bar
+        progress_layout = QHBoxLayout()
+        progress_layout.addStretch(1) 
+        self.progress_bar = QProgressBar(self)
+        self.progress_bar.setRange(0,1)
+        progress_layout.addWidget(self.progress_bar)
+        main_layout.addLayout(progress_layout)
+
+        self.setLayout(main_layout)
         self.show()
 
     def on_item_train_selected(self, item):
+        '''
+        Is called once an image is selected in the 'curated dataset' folder
+        '''
         self.app.cur_selected_img = item.data()
         self.app.cur_selected_path = self.app.train_data_path
 
     def on_item_eval_selected(self, item):
+        '''
+        Is called once an image is selected in the 'uncurated dataset' folder
+        '''
         self.app.cur_selected_img = item.data()
         self.app.cur_selected_path = self.app.eval_data_path
 
     def on_item_inprogr_selected(self, item):
+        '''
+        Is called once an image is selected in the 'in progress' folder
+        '''
         self.app.cur_selected_img = item.data()
         self.app.cur_selected_path = self.app.inprogr_data_path
 
     def on_train_button_clicked(self):
-        message_text = self.app.run_train()
-        create_warning_box(message_text)
+        ''' 
+        Is called once user clicks the "Train Model" button
+        '''
+        self.train_button.setEnabled(False)
+        self.progress_bar.setRange(0,0)
+        # initialise the worker thread
+        self.worker_thread = WorkerThread(app=self.app, task='train')
+        self.worker_thread.task_finished.connect(self.on_finished)
+        # start the worker thread to train
+        self.worker_thread.start()
 
     def on_run_inference_button_clicked(self):
-        message_text, message_title = self.app.run_inference()
-        create_warning_box(message_text, message_title)
+        ''' 
+        Is called once user clicks the "Generate Labels" button
+        '''
+        self.inference_button.setEnabled(False)
+        self.progress_bar.setRange(0,0)
+        # initialise the worker thread
+        self.worker_thread = WorkerThread(app=self.app, task='inference')
+        self.worker_thread.task_finished.connect(self.on_finished)
+        # start the worker thread to run inference
+        self.worker_thread.start()
 
     def on_launch_napari_button_clicked(self):   
         ''' 
         Launches the napari window after the image is selected.
         '''
         if not self.app.cur_selected_img or '_seg.tiff' in self.app.cur_selected_img:
-            message_text = "Please first select an image you wish to visualise. The selected image must be an original images, not a mask."
-            create_warning_box(message_text, message_title="Warning")
+            message_text = "Please first select an image you wish to visualise. The selected image must be an original image, not a mask."
+            _ = self.create_warning_box(message_text, message_title="Warning")
         else:
             self.nap_win = NapariWindow(self.app)
             self.nap_win.show() 
 
+    def on_finished(self, result):
+        ''' 
+        Is called once the worker thread emits the on finished signal
+        '''
+        # Stop the pulsation
+        self.progress_bar.setRange(0,1) 
+        # Display message of result
+        message_text, message_title = result
+        _ = self.create_warning_box(message_text, message_title)
+        # Re-enable buttons
+        self.inference_button.setEnabled(True)
+        self.train_button.setEnabled(True)
+        # Delete the worker thread when it's done
+        self.worker_thread.quit()
+        self.worker_thread.wait()
+        self.worker_thread.deleteLater()
+        self.worker_thread = None  # Set to None to indicate it's no longer in use
+
+
 if __name__ == "__main__":
     import sys
     from PyQt5.QtWidgets import QApplication
-    from app import Application
-    from bentoml_model import BentomlModel
-    from fsimagestorage import FilesystemImageStorage
-    import settings
+    from dcp_client.app import Application
+    from dcp_client.utils.bentoml_model import BentomlModel
+    from dcp_client.utils.fsimagestorage import FilesystemImageStorage
+    from dcp_client.utils import settings
+    from dcp_client.utils.sync_src_dst import DataRSync
     settings.init()
     image_storage = FilesystemImageStorage()
     ml_model = BentomlModel()
+    data_sync = DataRSync(user_name="local",
+                          host_name="local",
+                          server_repo_path=None)
     app = QApplication(sys.argv)
     app_ = Application(ml_model=ml_model, 
+                       syncer=data_sync,
                        image_storage=image_storage, 
                        server_ip='0.0.0.0',
                        server_port=7010,
