@@ -36,9 +36,6 @@ class NapariWindow(MyWidget):
         for seg_file in self.app.seg_filepaths:
             self.viewer.add_labels(self.app.load_image(seg_file), name=get_path_stem(seg_file))
 
-        self.layer = self.viewer.layers[get_path_stem(self.app.seg_filepaths[0])]
-        self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
-
         self.changed = False
         self.event_coords = None
         self.active_mask_instance = None
@@ -47,6 +44,12 @@ class NapariWindow(MyWidget):
         
         layout = QGridLayout()
         layout.addWidget(main_window, 0, 0, 1, 4)
+
+        if len(self.app.seg_filepaths):
+            self.layer = self.viewer.layers[get_path_stem(self.app.seg_filepaths[0])]
+        else:
+            self.layer = self.viewer.layers[get_path_stem(self.app.cur_selected_img)]
+        self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
 
         # set first mask as active by default
         self.active_mask_index = 0
@@ -61,6 +64,9 @@ class NapariWindow(MyWidget):
         edges = Compute4Mask.find_edges(instance_mask=self.layer.data[0])
         self.layer.data = self.layer.data * (~edges).astype(int)
 
+        self.layer.mouse_drag_callbacks.append(self.copy_mask_callback)
+        self.layer.events.set_data.connect(lambda event: self.copy_mask_callback(self.layer, event))
+
         self.switch_to_active_mask()
 
         if self.layer.data.shape[0] >= 2:
@@ -68,24 +74,21 @@ class NapariWindow(MyWidget):
             message_label = QLabel('Choose an active mask')
             message_label.setAlignment(Qt.AlignRight)
             layout.addWidget(message_label, 1, 0)
-        
-        # Drop list to choose which is an active mask
             
-            self.mask_choice_dropdown = QComboBox()
-            self.mask_choice_dropdown.setEnabled(False)
-            self.mask_choice_dropdown.addItem('Instance Segmentation Mask', userData=0)
-            self.mask_choice_dropdown.addItem('Labels Mask', userData=1)
-            layout.addWidget(self.mask_choice_dropdown, 1, 1)
+            # Drop list to choose which is an active mask
+                
+        self.mask_choice_dropdown = QComboBox()
+        self.mask_choice_dropdown.setEnabled(False)
+        self.mask_choice_dropdown.addItem('Instance Segmentation Mask', userData=0)
+        self.mask_choice_dropdown.addItem('Labels Mask', userData=1)
+        layout.addWidget(self.mask_choice_dropdown, 1, 1)
 
-            # when user has chosens the mask, we don't want to change it anymore to avoid errors
-            lock_button = QPushButton("Confirm Final Choice")
-            lock_button.setEnabled(False)
-            lock_button.clicked.connect(self.set_active_mask)
+        # when user has chosens the mask, we don't want to change it anymore to avoid errors
+        lock_button = QPushButton("Confirm Final Choice")
+        lock_button.setEnabled(False)
+        lock_button.clicked.connect(self.set_active_mask)
 
-            layout.addWidget(lock_button, 1, 2)
-            self.layer.mouse_drag_callbacks.append(self.copy_mask_callback)
-            self.layer.events.set_data.connect(lambda event: self.copy_mask_callback(self.layer, event))
-
+        layout.addWidget(lock_button, 1, 2)
 
         add_to_inprogress_button = QPushButton('Move to \'Curatation in progress\' folder')
         layout.addWidget(add_to_inprogress_button, 2, 0, 1, 2)
@@ -106,7 +109,10 @@ class NapariWindow(MyWidget):
         - status (bool): If True, the widget will be enabled; if False, it will be disabled.
     
         """
-        getattr(self.qctrl, target_widget).setEnabled(status)
+        try:
+            getattr(self.qctrl, target_widget).setEnabled(status)
+        except:
+            pass
 
     def switch_to_active_mask(self):
         """

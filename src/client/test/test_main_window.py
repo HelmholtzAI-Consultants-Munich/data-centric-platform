@@ -147,7 +147,6 @@ def test_launch_napari_button_click(qtbot, app):
                      Qt.LeftButton, 
                      pos=pos)
     app.on_item_eval_selected(index)
-    app.seg_filepaths = ['train_data_path/astronaut.png']
     # Now click the view button
     qtbot.mouseClick(app.launch_nap_button, Qt.LeftButton)
     # Assert that the napari window has launched
