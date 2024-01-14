@@ -36,6 +36,9 @@ class NapariWindow(MyWidget):
         for seg_file in self.app.seg_filepaths:
             self.viewer.add_labels(self.app.load_image(seg_file), name=get_path_stem(seg_file))
 
+        self.layer = self.viewer.layers[get_path_stem(self.app.seg_filepaths[0])]
+        self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
+
         self.changed = False
         self.event_coords = None
         self.active_mask_instance = None
@@ -49,54 +52,50 @@ class NapariWindow(MyWidget):
         self.active_mask_index = 0
 
         # unique labels
-        if len(self.app.seg_filepaths):
-            
-            self.layer = self.viewer.layers[get_path_stem(self.app.seg_filepaths[0])]
-            self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
-            self.instances = Compute4Mask.get_unique_objects(self.layer.data[self.active_mask_index])
-            
-            # for copying contours
-            self.instances_updated = set()
-
-            # For each instance find the contours and set the color of it to 0 to be invisible
-            edges = Compute4Mask.find_edges(instance_mask=self.layer.data[0])
-            self.layer.data = self.layer.data * (~edges).astype(int)
-
-            self.switch_to_active_mask()
-
-            if self.layer.data.shape[0] >= 2:
-                # User hint
-                message_label = QLabel('Choose an active mask')
-                message_label.setAlignment(Qt.AlignRight)
-                layout.addWidget(message_label, 1, 0)
-            
-            # Drop list to choose which is an active mask
-                
-                self.mask_choice_dropdown = QComboBox()
-                self.mask_choice_dropdown.setEnabled(False)
-                self.mask_choice_dropdown.addItem('Instance Segmentation Mask', userData=0)
-                self.mask_choice_dropdown.addItem('Labels Mask', userData=1)
-                layout.addWidget(self.mask_choice_dropdown, 1, 1)
-
-                # when user has chosens the mask, we don't want to change it anymore to avoid errors
-                lock_button = QPushButton("Confirm Final Choice")
-                lock_button.setEnabled(False)
-                lock_button.clicked.connect(self.set_active_mask)
-
-                layout.addWidget(lock_button, 1, 2)
-                self.layer.mouse_drag_callbacks.append(self.copy_mask_callback)
-                self.layer.events.set_data.connect(lambda event: self.copy_mask_callback(self.layer, event))
-
-
-            add_to_inprogress_button = QPushButton('Move to \'Curatation in progress\' folder')
-            layout.addWidget(add_to_inprogress_button, 2, 0, 1, 2)
-            add_to_inprogress_button.clicked.connect(self.on_add_to_inprogress_button_clicked)
+        self.instances = Compute4Mask.get_unique_objects(self.layer.data[self.active_mask_index])
         
-            add_to_curated_button = QPushButton('Move to \'Curated dataset\' folder')
-            layout.addWidget(add_to_curated_button, 2, 2, 1, 2)
-            add_to_curated_button.clicked.connect(self.on_add_to_curated_button_clicked)
+        # for copying contours
+        self.instances_updated = set()
 
-            self.setLayout(layout)
+        # For each instance find the contours and set the color of it to 0 to be invisible
+        edges = Compute4Mask.find_edges(instance_mask=self.layer.data[0])
+        self.layer.data = self.layer.data * (~edges).astype(int)
+
+        self.switch_to_active_mask()
+
+        if self.layer.data.shape[0] >= 2:
+            # User hint
+            message_label = QLabel('Choose an active mask')
+            message_label.setAlignment(Qt.AlignRight)
+            layout.addWidget(message_label, 1, 0)
+        
+        # Drop list to choose which is an active mask
+            
+            self.mask_choice_dropdown = QComboBox()
+            self.mask_choice_dropdown.setEnabled(False)
+            self.mask_choice_dropdown.addItem('Instance Segmentation Mask', userData=0)
+            self.mask_choice_dropdown.addItem('Labels Mask', userData=1)
+            layout.addWidget(self.mask_choice_dropdown, 1, 1)
+
+            # when user has chosens the mask, we don't want to change it anymore to avoid errors
+            lock_button = QPushButton("Confirm Final Choice")
+            lock_button.setEnabled(False)
+            lock_button.clicked.connect(self.set_active_mask)
+
+            layout.addWidget(lock_button, 1, 2)
+            self.layer.mouse_drag_callbacks.append(self.copy_mask_callback)
+            self.layer.events.set_data.connect(lambda event: self.copy_mask_callback(self.layer, event))
+
+
+        add_to_inprogress_button = QPushButton('Move to \'Curatation in progress\' folder')
+        layout.addWidget(add_to_inprogress_button, 2, 0, 1, 2)
+        add_to_inprogress_button.clicked.connect(self.on_add_to_inprogress_button_clicked)
+    
+        add_to_curated_button = QPushButton('Move to \'Curated dataset\' folder')
+        layout.addWidget(add_to_curated_button, 2, 2, 1, 2)
+        add_to_curated_button.clicked.connect(self.on_add_to_curated_button_clicked)
+
+        self.setLayout(layout)
 
     def switch_controls(self, target_widget, status: bool):
         """

@@ -139,7 +139,8 @@ def test_launch_napari_button_click_without_selection(qtbot, app):
 
 def test_launch_napari_button_click(qtbot, app):
     settings.accepted_types = setup_global_variable
-    # Simulate selection of an image to view before clivking on view button
+    app.seg_filepaths = 'train_data_path/astronaut.png'
+    # Simulate selection of an image to view before clicking on view button
     index = app.list_view_eval.indexAt(app.list_view_eval.viewport().rect().topLeft())
     pos = app.list_view_eval.visualRect(index).center()
     # Simulate file click
