@@ -7,4 +7,4 @@ pytest>=7.4.3
 numpy>=1.24.4
 scikit-learn>=1.2.2
 SimpleITK>=2.2.1
-pyradiomics==3.0.1a1
+pyradiomics
