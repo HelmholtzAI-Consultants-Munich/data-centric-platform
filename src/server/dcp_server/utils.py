@@ -263,6 +263,17 @@ def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, 
 
 
 def get_shape_features(img, msk):
+    """
+    Calculate shape-based radiomic features from an image within the region defined by the mask.
+
+    Args:
+    - img (np.ndarray): The input image.
+    - msk (np.ndarray): The mask corresponding to the image.
+
+    Returns:
+    - np.ndarray: An array containing the calculated shape-based radiomic features, such as:
+    Elongation, Sphericity, Perimeter surface.
+    """
 
     msk = 255 * ((msk) > 0).astype(np.uint8)
 
@@ -276,6 +287,18 @@ def get_shape_features(img, msk):
     return np.array(list(shape_features.values()))
 
 def extract_intensity_features(image, mask):
+    """
+    Extract intensity-based features from an image within the region defined by the mask.
+
+    Args:
+    - image (np.ndarray): The input image.
+    - mask (np.ndarray): The mask defining the region of interest.
+
+    Returns:
+    - np.ndarray: An array containing the extracted intensity-based features:
+      median intensity, mean intensity, 25th/75th percentile intensity within the masked region.
+    
+    """
    
     features = {}
    
