@@ -53,6 +53,10 @@ def crop_centered_padded_patch(x: np.ndarray,
         c (tuple): The coordinates (row, column) at the center of the patch.
         p (tuple): The size of the patch to be cropped (height, width).
         l (int): The instance label of the mask at the patch
+        mask (np.ndarray, optional): The mask array that asociated with the array x; 
+        mask is used during training to mask out non-central elements; 
+        for RandomForest, it is used to calculate pyradiomics features.
+        noise_intensity (float, optional): Intensity of noise to be added to the background. 
 
     Returns:
         np.ndarray: The cropped patch with applied padding.
@@ -71,12 +75,8 @@ def crop_centered_padded_patch(x: np.ndarray,
     if mask is not None:
         mask_ = mask.max(-1) if len(mask.shape) >= 3 else mask
         # Zero out values in the patch where the mask is not equal to the central label
-        # m = (mask_ != central_label) & (mask_ > 0)
         m = (mask_ != l) & (mask_ > 0)
-        # print(m.shape, x.shape)
         x[m] = 0
-        # m_broadcasted = np.broadcast_to(m[:, :, None], x.shape)  
-        # x[:,m_broadcasted] = 0
         if noise_intensity is not None:
             x[m] = np.random.normal(scale=noise_intensity, size=x[m].shape)
             mask[m] = 0

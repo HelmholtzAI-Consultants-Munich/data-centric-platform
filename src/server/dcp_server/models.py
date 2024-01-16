@@ -357,6 +357,7 @@ class CellClassifierShallowModel:
         y_hat_proba = self.model.predict_proba(X_train)
 
         self.metric = f1_score(y_train, y_hat, average='micro')
+        # Binary Cross Entropy Loss
         self.loss = log_loss(y_train, y_hat_proba)
 
     
