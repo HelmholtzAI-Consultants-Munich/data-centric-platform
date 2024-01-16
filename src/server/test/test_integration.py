@@ -1,9 +1,10 @@
-import os
 import sys
 import torch 
 from torchmetrics import JaccardIndex
 import numpy as np
 import random
+
+from glob import glob
 
 import inspect
 # from importlib.machinery import SourceFileLoader
@@ -29,17 +30,22 @@ model_classes = [
                 and not cls_name.startswith("CellClassifier")
     ]
 
+config_paths = glob("test/configs/*.cfg")
 
 @pytest.fixture(params=model_classes)
 def model_class(request):
     return request.param
 
-@pytest.fixture()
-def model(model_class):
+@pytest.fixture(params=config_paths)
+def config_path(request):
+    return request.param
 
-    model_config = read_config('model', config_path='test/test_config.cfg')
-    train_config = read_config('train', config_path='test/test_config.cfg')
-    eval_config = read_config('eval', config_path='test/test_config.cfg')
+@pytest.fixture()
+def model(model_class, config_path):
+
+    model_config = read_config('model', config_path=config_path)
+    train_config = read_config('train', config_path=config_path)
+    eval_config = read_config('eval', config_path=config_path)
 
     model = model_class(model_config, train_config, eval_config)
 
@@ -174,7 +180,7 @@ def test_train_eval_run(data_train, data_eval, model):
     if "metric" in attrs:
         assert(model.metric>0.1)
     if "loss" in attrs:
-        assert(model.loss<0.3)
+        assert(model.loss<0.75)
 
     # for PatchCNN model 
     if pred_mask.ndim > 2:

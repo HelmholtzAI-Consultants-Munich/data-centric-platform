@@ -3,6 +3,7 @@ import torch
 from torch import nn
 from torch.optim import Adam
 from torch.utils.data import TensorDataset, DataLoader
+from torchmetrics import F1Score
 from copy import deepcopy
 from tqdm import tqdm
 import numpy as np
@@ -158,6 +159,8 @@ class CellClassifierFCNN(nn.Module):
         self.final_conv = nn.Conv2d(128, self.num_classes, 1)
         self.pooling = nn.AdaptiveMaxPool2d(1)
 
+        self.metric_fn = F1Score(num_classes=self.num_classes, task="multiclass") 
+
     def update_configs(self, train_config, eval_config):
         self.train_config = train_config
         self.eval_config = eval_config
@@ -204,7 +207,7 @@ class CellClassifierFCNN(nn.Module):
         # TODO check if we should replace self.parameters with super.parameters()
         
         for _ in tqdm(range(epochs), desc="Running CellClassifierFCNN training"):
-            self.loss = 0
+            self.loss, self.metric = 0, 0
             for data in train_dataloader:
                 imgs, labels = data
 
@@ -216,7 +219,10 @@ class CellClassifierFCNN(nn.Module):
                 optimizer.step()
                 self.loss += l.item()
 
+                self.metric += self.metric_fn(preds, labels)
+
             self.loss /= len(train_dataloader) 
+            self.metric /= len(train_dataloader)
     
     def eval(self, img):
         """
@@ -331,7 +337,7 @@ class CellposePatchCNN(nn.Module):
                 
                 # Assign predicted class to corresponding location in final_mask
                 patch_class = patch_class.item() if isinstance(patch_class, torch.Tensor) else patch_class
-                class_mask[instance_mask==instance_labels[idx]] = patch_class.item() + 1
+                class_mask[instance_mask==instance_labels[idx]] = patch_class + 1
             # Apply mask to final_mask, retaining only regions where cellpose_mask is greater than 0
             #class_mask = class_mask * (instance_mask > 0)#.long())
             final_mask = np.stack((instance_mask, class_mask), axis=self.eval_config['mask_channel_axis']).astype(np.uint16) # size 2xHxW
@@ -357,7 +363,7 @@ class CellClassifierShallowModel:
         y_hat_proba = self.model.predict_proba(X_train)
 
         self.metric = f1_score(y_train, y_hat, average='micro')
-        # Binary Cross Entropy Loss
+        # Binary Cross Entrop Loss
         self.loss = log_loss(y_train, y_hat_proba)
 
     

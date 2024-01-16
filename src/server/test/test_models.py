@@ -23,7 +23,7 @@ def test_eval_rf_not_fitted():
     model_rf = models.CellClassifierShallowModel(model_config,train_config,eval_config)
 
     X_test = np.array([[1, 2, 3]]) 
-    # if we don't fit the model than the model returns zeros
+    # if we don't fit the model then the model returns zeros
     assert np.all(model_rf.eval(X_test)== np.zeros(X_test.shape))
 
 def test_update_configs():
@@ -42,4 +42,14 @@ def test_update_configs():
     assert model.train_config == new_train_config
     assert model.eval_config == new_eval_config
 
+def test_fcnn():
+
+    model_config = read_config('model', config_path='test/test_config.cfg')
+    train_config = read_config('train', config_path='test/test_config.cfg')
+    eval_config = read_config('eval', config_path='test/test_config.cfg')
+
+    model_config["classifier"]["model_class"] = "CellClassifierFCNN"
+    model = models.CellClassifierFCNN(model_config, train_config, eval_config)
+
     
+
