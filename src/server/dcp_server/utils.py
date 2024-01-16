@@ -73,15 +73,16 @@ def crop_centered_padded_patch(x: np.ndarray,
         # Zero out values in the patch where the mask is not equal to the central label
         # m = (mask_ != central_label) & (mask_ > 0)
         m = (mask_ != l) & (mask_ > 0)
+        # print(m.shape, x.shape)
         x[m] = 0
+        # m_broadcasted = np.broadcast_to(m[:, :, None], x.shape)  
+        # x[:,m_broadcasted] = 0
         if noise_intensity is not None:
             x[m] = np.random.normal(scale=noise_intensity, size=x[m].shape)
-            if mask is not None:
-                mask[m] = 0
-
-    patch = x[max(top, 0):min(bottom, x.shape[0]), max(left, 0):min(right, x.shape[1]), :]
-    if mask is not None:
+            mask[m] = 0
         mask = mask[max(top, 0):min(bottom, x.shape[0]), max(left, 0):min(right, x.shape[1]), :]
+
+    patch = x[max(top, 0):min(bottom, x.shape[0]), max(left, 0):min(right, x.shape[1]), :]    
     # Calculate the required padding amounts
     size_x, size_y = x.shape[1], x.shape[0]
 
@@ -239,7 +240,6 @@ def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, 
     the max cell size to define the patch size. All patches and masks should then be returned
     in the same format as imgs and masks (same type, i.e. check if tensor or np.array and same 
     convention of dims, e.g.  CxHxW)
-    include_mask(bool) : Flag indicating whether to include the mask along with patches. 
     '''
 
     if max_patch_size is None:

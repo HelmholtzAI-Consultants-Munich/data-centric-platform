@@ -12,6 +12,7 @@ from sklearn.metrics import f1_score, log_loss
 from sklearn.exceptions import NotFittedError
 
 from cellpose.metrics import aggregated_jaccard_index
+from cellpose.transforms import reshape_and_normalize_data
 
 #from segment_anything import SamPredictor, sam_model_registry
 #from segment_anything.automatic_mask_generator import SamAutomaticMaskGenerator
@@ -42,6 +43,21 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         self.mkldnn = False # otherwise we get error with saving model
         self.train_config = train_config
         self.eval_config = eval_config
+        self.loss_fun = nn.BCEWithLogitsLoss()
+
+    def eval_logits(self, imgs):
+        """
+        Evaluate the logits for a given set of images.
+        """
+
+        x_test = reshape_and_normalize_data(imgs, channels=[0, 0])
+
+        img_tensor = torch.tensor(x_test[0])
+        model = self.net.eval()
+        img_tensor = img_tensor.unsqueeze(0) if img_tensor.ndim == 3 else img_tensor 
+        img_logits = model(img_tensor)[0].squeeze()[:,2,...].detach().numpy()
+
+        return img_logits
 
     def update_configs(self, train_config, eval_config):
         self.train_config = train_config
@@ -76,9 +92,17 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
 
         super().train(train_data=deepcopy(imgs), train_labels=masks, **self.train_config["segmentor"])
         
-        pred_masks = [self.eval(img) for img in masks]
+        logits = self.eval_logits(imgs)
+
+        pred_masks = [self.eval(img) for img in imgs]
         self.metric = np.mean(aggregated_jaccard_index(masks, pred_masks))
-        # self.loss = self.loss_fn(masks, pred_masks)
+
+        masks = torch.tensor(np.array(masks).astype(np.float32)>0).long().float()
+        pred_masks = torch.tensor(np.array(pred_masks).astype(np.float32)>0).float()
+
+        print(logits.shape, masks.shape)
+
+        self.loss = self.loss_fun(torch.tensor(logits).float(), masks)
     
     def masks_to_outlines(self, mask):
         """ get outlines of masks as a 0-1 array
@@ -258,9 +282,11 @@ class CellposePatchCNN(nn.Module):
         # train cellpose
         masks = np.array(masks) 
         masks_instances = list(masks[:,0,...]) #[mask.sum(-1) for mask in masks] if masks[0].ndim == 3 else masks
-        self.segmentor.train(imgs, masks_instances)
+
+        self.segmentor.train(deepcopy(imgs), masks_instances)
         # create patch dataset to train classifier
         masks_classes = list(masks[:,1,...]) #[((mask > 0) * np.arange(1, 4)).sum(-1) for mask in masks]
+        
         patches, patch_masks, labels = create_patch_dataset(imgs,
                                                masks_classes,
                                                masks_instances,
