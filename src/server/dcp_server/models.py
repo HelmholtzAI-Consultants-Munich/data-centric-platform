@@ -100,8 +100,6 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         masks = torch.tensor(np.array(masks).astype(np.float32)>0).long().float()
         pred_masks = torch.tensor(np.array(pred_masks).astype(np.float32)>0).float()
 
-        print(logits.shape, masks.shape)
-
         self.loss = self.loss_fun(torch.tensor(logits).float(), masks)
     
     def masks_to_outlines(self, mask):
@@ -322,10 +320,15 @@ class CellposePatchCNN(nn.Module):
                                                                max_patch_size,
                                                                noise_intensity=noise_intensity)
             if self.classifier_class == "RandomForest":
-                patches = create_dataset_for_rf(patches, patch_masks)
+                features = create_dataset_for_rf(patches, patch_masks)
             # loop over patches and create classification mask
-            for idx, patch in enumerate(patches):
-                patch_class = self.classifier.eval(patch) # patch size should be HxWxC, e.g. 64,64,3
+            for idx in range(len(patches)):
+                if self.classifier_class == "RandomForest":
+                    patch_class = self.classifier.eval(features[idx])
+                else:
+                    # patch size should be HxWxC, e.g. 64,64,3
+                    patch_class = self.classifier.eval(patches[idx])
+                
                 # Assign predicted class to corresponding location in final_mask
                 patch_class = patch_class.item() if isinstance(patch_class, torch.Tensor) else patch_class
                 class_mask[instance_mask==instance_labels[idx]] = patch_class.item() + 1
