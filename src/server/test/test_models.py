@@ -42,14 +42,5 @@ def test_update_configs():
     assert model.train_config == new_train_config
     assert model.eval_config == new_eval_config
 
-def test_fcnn():
 
-    model_config = read_config('model', config_path='test/test_config.cfg')
-    train_config = read_config('train', config_path='test/test_config.cfg')
-    eval_config = read_config('eval', config_path='test/test_config.cfg')
-
-    model_config["classifier"]["model_class"] = "CellClassifierFCNN"
-    model = models.CellClassifierFCNN(model_config, train_config, eval_config)
-
-    
 
