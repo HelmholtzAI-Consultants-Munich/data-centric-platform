@@ -16,9 +16,9 @@ self.classifier = CellClassifierShallowModel(self.model_config,
 
 def test_eval_rf_not_fitted():
 
-    model_config = read_config('model', config_path='test/test_config.cfg')
-    train_config = read_config('train', config_path='test/test_config.cfg')
-    eval_config = read_config('eval', config_path='test/test_config.cfg')
+    model_config = read_config('model', config_path='test/test_config_RF.cfg')
+    train_config = read_config('train', config_path='test/test_config_RF.cfg')
+    eval_config = read_config('eval', config_path='test/test_config_RF.cfg')
     
     model_rf = models.CellClassifierShallowModel(model_config,train_config,eval_config)
 
@@ -28,9 +28,9 @@ def test_eval_rf_not_fitted():
 
 def test_update_configs():
 
-    model_config = read_config('model', config_path='test/test_config.cfg')
-    train_config = read_config('train', config_path='test/test_config.cfg')
-    eval_config = read_config('eval', config_path='test/test_config.cfg')
+    model_config = read_config('model', config_path='test/test_config_RF.cfg')
+    train_config = read_config('train', config_path='test/test_config_RF.cfg')
+    eval_config = read_config('eval', config_path='test/test_config_RF.cfg')
     
     model = models.CustomCellposeModel(model_config,train_config,eval_config)
 
