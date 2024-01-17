@@ -3,6 +3,7 @@ import sys
 sys.path.append('../')
 
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QWidget, QMessageBox
 
 from dcp_client.gui.welcome_window import WelcomeWindow
 from dcp_client.app import Application
@@ -32,7 +33,22 @@ def test_welcome_window_initialization(app):
     assert app.val_textbox.text() == ""
     assert app.inprogr_textbox.text() == ""
     assert app.train_textbox.text() == ""
-    
+
+def test_warning_for_same_paths(qtbot, app, monkeypatch):
+    app.app.eval_data_path = "/same/path"
+    app.app.train_data_path = "/same/path"
+    app.app.inprogr_data_path = "/same/path"
+
+    # Define a custom exec method that always returns QMessageBox.Ok
+    def custom_exec(self):
+        return QMessageBox.Ok
+
+    monkeypatch.setattr(QMessageBox, 'exec', custom_exec)
+    qtbot.mouseClick(app.start_button, Qt.LeftButton) 
+
+    assert app.create_warning_box
+    assert app.message_text == "All directory names must be distinct."
+
 ''''
 # TODO wait for github respose
 def test_browse_eval_clicked(qtbot, app, monkeypatch):
