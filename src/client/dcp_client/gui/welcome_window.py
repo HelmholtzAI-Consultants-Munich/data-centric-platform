@@ -145,9 +145,11 @@ class WelcomeWindow(MyWidget):
         '''
         Starts the main window after the user clicks 'Start' and only if both evaluation and train directories are chosen and all unique. 
         '''
-        if self.app.inprogr_data_path == self.app.train_data_path == self.app.eval_data_path:
+        
+        if len({self.app.inprogr_data_path, self.app.train_data_path, self.app.eval_data_path})<3:
             self.message_text = "All directory names must be distinct."
             _ = self.create_warning_box(self.message_text, message_title="Warning")
+
 
         elif self.app.train_data_path and self.app.eval_data_path:
             self.hide()

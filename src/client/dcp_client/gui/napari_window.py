@@ -149,6 +149,49 @@ class NapariWindow(MyWidget):
         if self.active_mask_index == 1:
             self.switch_to_non_active_mask()
 
+    def save_click_coordinates(self,event_position):
+        """
+        Save click coordinates
+        """
+
+        c, event_x, event_y = Compute4Mask.get_rounded_pos(event_position)
+        self.event_coords = (c, event_x, event_y)
+        return self.event_coords
+
+    def switch_user_mask(self):
+
+        if self.viewer.dims.current_step[0] == self.active_mask_index:
+            self.switch_to_active_mask()
+        else:
+            self.switch_to_non_active_mask() 
+
+    def get_position_label(self, source_mask, mask_fill=None):
+            
+        c, event_x, event_y = self.event_coords 
+
+        if mask_fill is not None:
+            labels, counts = Compute4Mask.get_unique_counts_for_mask(source_mask, c, mask_fill)
+        else:
+            # When clicking, the mouse provides a continuous position.
+            # To identify the color placement, we examine nearby positions within one pixel [idx_x - 1, idx_x + 1] and [idx_y - 1, idx_y + 1].
+            labels, counts = Compute4Mask.get_unique_counts_around_event(source_mask, c, event_x, event_y) 
+            
+        # index of the most common color in the area around the click excluding 0 
+        idx = Compute4Mask.argmax(counts)
+        # the most common color in the area around the click 
+        label = labels[idx]
+
+        return label
+
+    def update_source_mask(self, source_mask, mask_fill, c, label, label_seg):
+
+        if not label in self.instances:
+            source_mask[abs(c - 1)][mask_fill] = label
+        else:
+            source_mask[abs(c - 1)][mask_fill] = label_seg
+
+        return source_mask
+    
    
     def copy_mask_callback(self, layer, event):
         """
@@ -161,53 +204,23 @@ class NapariWindow(MyWidget):
         source_mask = layer.data
 
         if event.type == "mouse_press":
-            # assert 0 == 1
-            c, event_x, event_y = Compute4Mask.get_rounded_pos(event.position)
-            self.event_coords = (c, event_x, event_y)
-
-           
+            self.save_click_coordinates(event.position)   
         elif event.type == "set_data":
-            
-            assert 0 == 1
-
-            if self.viewer.dims.current_step[0] == self.active_mask_index:
-                self.switch_to_active_mask()
-            else:
-                self.switch_to_non_active_mask()
-
+            self.switch_user_mask()
             if self.event_coords is not None:
-
                 c, event_x, event_y = self.event_coords
-                
                 if c == self.active_mask_index:
                     
-                    # When clicking, the mouse provides a continuous position.
-                    # To identify the color placement, we examine nearby positions within one pixel [idx_x - 1, idx_x + 1] and [idx_y - 1, idx_y + 1].
+                    # get the mask of the instance
+                    label = self.get_position_label(source_mask)
+                    mask_fill = source_mask[c] == label
+                    label_seg = self.get_position_label(source_mask, mask_fill=mask_fill)
+                    # Find the color of the label mask at the given point
+                    # Determine the most common color in the label mask
 
-                    labels, counts = Compute4Mask.get_unique_counts_around_event(source_mask, c, event_x, event_y)
-
-                    if labels.size > 0:
-                     
-                        # index of the most common color in the area around the click excluding 0 
-                        idx = Compute4Mask.argmax(counts)
-                        # the most common color in the area around the click 
-                        label = labels[idx]
-                        # get the mask of the instance
-                        mask_fill = source_mask[c] == label
-
-                        # Find the color of the label mask at the given point
-                        # Determine the most common color in the label mask
-                        labels_seg, counts_seg = Compute4Mask.get_unique_counts_for_mask(source_mask, c, mask_fill)
-                        idx_seg = Compute4Mask.argmax(counts_seg)
-                        label_seg = labels_seg[idx_seg]
-
-                        # If a new color is used, then it is copied to a label mask
-                        # Otherwise, we copy the existing color from the label mask 
-                        
-                        if not label in self.instances:
-                            source_mask[abs(c - 1)][mask_fill] = label
-                        else:
-                            source_mask[abs(c - 1)][mask_fill] = label_seg
+                    # If a new color is used, then it is copied to a label mask
+                    # Otherwise, we copy the existing color from the label mask 
+                    self.update_source_mask(source_mask, mask_fill, c, label, label_seg)
 
                 else:
                     # the only action to be applied to the instance mask is erasing.

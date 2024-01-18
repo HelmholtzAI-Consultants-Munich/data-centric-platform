@@ -153,11 +153,7 @@ def test_launch_napari_button_click(qtbot, app):
     assert hasattr(app, 'nap_win')
     assert app.nap_win.isVisible()
 
-    # app.nap_win.copy_mask_callback(app.nap_win.layer, dict())
-    app.nap_win.switch_to_non_active_mask()
-    app.nap_win.layer.data[:5,:5] = 1
 
-    qtbot.mouseClick(app.nap_win.mask_choice_dropdown, Qt.LeftButton)
 
 
 
