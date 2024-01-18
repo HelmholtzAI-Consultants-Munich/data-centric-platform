@@ -49,6 +49,19 @@ def test_warning_for_same_paths(qtbot, app, monkeypatch):
     assert app.create_warning_box
     assert app.message_text == "All directory names must be distinct."
 
+def test_on_text_changed(qtbot, app):
+    app.app.train_data_path = "/initial/train/path"
+    app.app.eval_data_path = "/initial/eval/path"
+    app.app.inprogr_data_path = "/initial/inprogress/path"
+
+    app.on_text_changed(field_obj=None, field_name="train", text="/new/train/path")
+    assert app.app.train_data_path == "/new/train/path"
+
+    app.on_text_changed(field_obj=None, field_name="eval", text="/new/eval/path")
+    assert app.app.eval_data_path == "/new/eval/path"
+
+    app.on_text_changed(field_obj=None, field_name="inprogress", text="/new/inprogress/path")
+    assert app.app.inprogr_data_path == "/new/inprogress/path"
 ''''
 # TODO wait for github respose
 def test_browse_eval_clicked(qtbot, app, monkeypatch):
