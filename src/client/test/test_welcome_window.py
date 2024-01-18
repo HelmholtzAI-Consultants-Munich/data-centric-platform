@@ -22,7 +22,7 @@ def app(qtbot):
     rsyncer = DataRSync(user_name="local", host_name="local", server_repo_path='.')
     application = Application(BentomlModel(), rsyncer, FilesystemImageStorage(), "0.0.0.0", 7010)
     # Create an instance of WelcomeWindow
-    #q_app = QApplication([])
+    # q_app = QApplication([])
     widget = WelcomeWindow(application)
     qtbot.addWidget(widget)
     yield widget
@@ -53,7 +53,6 @@ def test_on_text_changed(qtbot, app):
     app.app.train_data_path = "/initial/train/path"
     app.app.eval_data_path = "/initial/eval/path"
     app.app.inprogr_data_path = "/initial/inprogress/path"
-
 
     app.on_text_changed(field_obj=app.train_textbox, field_name="train", text="/new/train/path")
     assert app.app.train_data_path == "/new/train/path"
