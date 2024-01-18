@@ -54,13 +54,14 @@ def test_on_text_changed(qtbot, app):
     app.app.eval_data_path = "/initial/eval/path"
     app.app.inprogr_data_path = "/initial/inprogress/path"
 
-    app.on_text_changed(field_obj=None, field_name="train", text="/new/train/path")
+
+    app.on_text_changed(field_obj=app.train_textbox, field_name="train", text="/new/train/path")
     assert app.app.train_data_path == "/new/train/path"
 
-    app.on_text_changed(field_obj=None, field_name="eval", text="/new/eval/path")
+    app.on_text_changed(field_obj=app.val_textbox, field_name="eval", text="/new/eval/path")
     assert app.app.eval_data_path == "/new/eval/path"
 
-    app.on_text_changed(field_obj=None, field_name="inprogress", text="/new/inprogress/path")
+    app.on_text_changed(field_obj=app.inprogr_textbox, field_name="inprogress", text="/new/inprogress/path")
     assert app.app.inprogr_data_path == "/new/inprogress/path"
 ''''
 # TODO wait for github respose
