@@ -151,7 +151,11 @@ class NapariWindow(MyWidget):
 
     def save_click_coordinates(self,event_position):
         """
-        Save click coordinates
+        Save coordinates of the rounded position of a click event.
+        Parameters:
+        - event_position (tuple): A tuple representing the position of the click event.
+        Returns:
+        - tuple: The saved click coordinates in the format (c, event_x, event_y).
         """
 
         c, event_x, event_y = Compute4Mask.get_rounded_pos(event_position)
@@ -159,13 +163,21 @@ class NapariWindow(MyWidget):
         return self.event_coords
 
     def switch_user_mask(self):
-
+        """
+        Switch between active and non-active masks.
+        By default, the first mask is set as the active mask.
+        This function is useful when determining which buttons should be activated and
+        which should be locked
+        """
         if self.viewer.dims.current_step[0] == self.active_mask_index:
             self.switch_to_active_mask()
         else:
             self.switch_to_non_active_mask() 
 
     def get_position_label(self, source_mask, mask_fill=None):
+        """
+        Retrieve the most common color label in the specified position or surrounding area.
+        """
             
         c, event_x, event_y = self.event_coords 
 
@@ -184,7 +196,20 @@ class NapariWindow(MyWidget):
         return label
 
     def update_source_mask(self, source_mask, mask_fill, c, label, label_seg):
+        """
+        Copy the color to the label mask.
 
+        Parameters:
+        - source_mask (numpy.ndarray): The original source mask to be updated.
+        - mask_fill (numpy.ndarray): Boolean mask indicating the area to be updated.
+        - c (int): Index of the active mask.
+        - label (int): The new color.
+        - label_seg (int): The existing color.
+
+        If a new color is used, it is copied to a label mask; 
+        otherwise, the existing color is copied from the label mask.
+
+        """
         if not label in self.instances:
             source_mask[abs(c - 1)][mask_fill] = label
         else:
@@ -208,16 +233,16 @@ class NapariWindow(MyWidget):
         elif event.type == "set_data":
             self.switch_user_mask()
             if self.event_coords is not None:
-                c, event_x, event_y = self.event_coords
+                c, _, _ = self.event_coords
                 if c == self.active_mask_index:
                     
                     # get the mask of the instance
                     label = self.get_position_label(source_mask)
                     mask_fill = source_mask[c] == label
-                    label_seg = self.get_position_label(source_mask, mask_fill=mask_fill)
                     # Find the color of the label mask at the given point
                     # Determine the most common color in the label mask
-
+                    label_seg = self.get_position_label(source_mask, mask_fill=mask_fill)
+                    
                     # If a new color is used, then it is copied to a label mask
                     # Otherwise, we copy the existing color from the label mask 
                     self.update_source_mask(source_mask, mask_fill, c, label, label_seg)
