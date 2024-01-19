@@ -108,7 +108,7 @@ class Compute4Mask:
     @staticmethod
     def argmax (counts):
        
-       return np.argmax(counts)
+       return np.argmax(counts) if len(counts) > 0 else None
     
     @staticmethod
     def get_unique_counts_around_event(source_mask, c, event_x, event_y):

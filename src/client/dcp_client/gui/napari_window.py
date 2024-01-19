@@ -191,7 +191,7 @@ class NapariWindow(MyWidget):
         # index of the most common color in the area around the click excluding 0 
         idx = Compute4Mask.argmax(counts)
         # the most common color in the area around the click 
-        label = labels[idx]
+        label = labels[idx] if idx is not None else 0
 
         return label
 

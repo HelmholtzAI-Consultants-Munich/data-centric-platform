@@ -6,6 +6,7 @@ from dcp_client.app import ImageStorage
 class FilesystemImageStorage(ImageStorage):
 
     def load_image(self, from_directory, cur_selected_img):
+        print("from directory", from_directory, "cur selected img", cur_selected_img)
         # Read the selected image and read the segmentation if any:
         return imread(os.path.join(from_directory, cur_selected_img))
     
