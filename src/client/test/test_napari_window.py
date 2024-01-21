@@ -44,7 +44,7 @@ def napari_window(qtbot):
         os.mkdir('eval_data_path')
         imsave('eval_data_path/cat.png', img3)
         imsave('eval_data_path/cat_seg.png', img3)
-
+    
     imsave('eval_data_path/cat_test.png', img3)
     imsave('eval_data_path/cat_test_seg.png', img3)
 
