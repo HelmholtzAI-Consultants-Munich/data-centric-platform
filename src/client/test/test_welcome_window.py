@@ -25,7 +25,7 @@ def app(qtbot):
     # q_app = QApplication([])
     widget = WelcomeWindow(application)
     qtbot.addWidget(widget)
-    yield widget
+    yield widget 
     widget.close()
 
 def test_welcome_window_initialization(app):
@@ -119,6 +119,10 @@ def test_start_main_not_selected(qtbot, app):
 
 def test_start_main(qtbot, app, setup_global_variable):
     settings.accepted_types = setup_global_variable
+
+    # app.app.cur_selected_path = app.app.eval_data_path
+    # app.app.cur_selected_img = 'cat.png'
+
     # Set some paths for testing
     app.app.eval_data_path = "/path/to/eval"
     app.app.train_data_path = "/path/to/train"

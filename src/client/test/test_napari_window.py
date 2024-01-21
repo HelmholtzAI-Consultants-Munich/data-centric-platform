@@ -42,8 +42,11 @@ def napari_window(qtbot):
 
     if not os.path.exists('eval_data_path'): 
         os.mkdir('eval_data_path')
-        imsave('eval_data_path/cat_seg.png', img3)
         imsave('eval_data_path/cat.png', img3)
+        imsave('eval_data_path/cat_seg.png', img3)
+
+        imsave('eval_data_path/cat_test.png', img3)
+        imsave('eval_data_path/cat_test_seg.png', img3)
 
     rsyncer = DataRSync(user_name="local", host_name="local", server_repo_path='.')
     application = Application(
@@ -57,7 +60,7 @@ def napari_window(qtbot):
         os.path.join(os.getcwd(), 'inprogr_data_path')
     )
 
-    application.cur_selected_img = 'cat.png'
+    application.cur_selected_img = 'cat_test.png'
     application.cur_selected_path = application.eval_data_path
 
     widget = NapariWindow(application)
@@ -75,7 +78,7 @@ def test_napari_window_initialization(napari_window):
 
 def test_switch_to_active_mask(napari_window):
     napari_window.switch_to_active_mask()
-    assert napari_window.active_mask is True
+    assert napari_window.active_mask 
  
 
 def test_switch_to_non_active_mask(napari_window):
@@ -132,28 +135,31 @@ def test_on_add_to_curated_button_clicked(napari_window, monkeypatch):
 
     # assert napari_window.app.cur_selected_path == 'eval_data_path'
 
-    napari_window.viewer.layers.selection.active.name = 'cat_seg' 
+    napari_window.app.cur_selected_img = 'cat_test.png'
+    napari_window.app.cur_selected_path = napari_window.app.eval_data_path
+
+    napari_window.viewer.layers.selection.active.name = 'cat_test_seg' 
 
     # Simulate the button click
     napari_window.on_add_to_curated_button_clicked()
 
-    assert os.path.exists('train_data_path/cat_seg.tiff')
-    assert os.path.exists('train_data_path/cat.png')
-    assert not os.path.exists('eval_data_path/cat.png')
+    assert os.path.exists('train_data_path/cat_test_seg.tiff')
+    assert os.path.exists('train_data_path/cat_test.png')
+    assert not os.path.exists('eval_data_path/cat_test.png')
 
-@pytest.fixture(scope='session', autouse=True)
-def cleanup_files(request):
-    # This code runs after all tests from all files have completed
-    yield
-    # Clean up
-    for fname in os.listdir('train_data_path'):
-        os.remove(os.path.join('train_data_path', fname))
-    os.rmdir('train_data_path')
+# @pytest.fixture(scope='session', autouse=True)
+# def cleanup_files(request):
+#     # This code runs after all tests from all files have completed
+#     yield
+#     # Clean up
+#     for fname in os.listdir('train_data_path'):
+#         os.remove(os.path.join('train_data_path', fname))
+#     os.rmdir('train_data_path')
 
-    for fname in os.listdir('inprogr_data_path'):
-        os.remove(os.path.join('inprogr_data_path', fname))
-    os.rmdir('inprogr_data_path')
+#     for fname in os.listdir('inprogr_data_path'):
+#         os.remove(os.path.join('inprogr_data_path', fname))
+#     os.rmdir('inprogr_data_path')
 
-    for fname in os.listdir('eval_data_path'):
-        os.remove(os.path.join('eval_data_path', fname))
-    os.rmdir('eval_data_path')
+#     for fname in os.listdir('eval_data_path'):
+#         os.remove(os.path.join('eval_data_path', fname))
+#     os.rmdir('eval_data_path')

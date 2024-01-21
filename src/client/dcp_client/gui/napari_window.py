@@ -83,7 +83,7 @@ class NapariWindow(MyWidget):
         self.mask_choice_dropdown.addItem('Labels Mask', userData=1)
         layout.addWidget(self.mask_choice_dropdown, 1, 1)
 
-        # when user has chosens the mask, we don't want to change it anymore to avoid errors
+        # when user has chosen the mask, we don't want to change it anymore to avoid errors
         lock_button = QPushButton("Confirm Final Choice")
         lock_button.setEnabled(False)
         lock_button.clicked.connect(self.set_active_mask)
