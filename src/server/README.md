@@ -19,7 +19,11 @@ Simply run:
 ```
 python dcp_server/main.py
 ```
-Once the server is running, you can verify it is working by visiting http://localhost:7010/ in your web browser.
+Once the server is running, you can verify Models
+The current models are currently integrated into DCP:
+
+CellPose --> for instance segmentation tasks
+CellposePatchCNN --> for panoptic segmentation tasks: includes the Cellpose model for instance segmentation followed by a patch wise CNN model on the predicted instances for obtaining class labels it is working by visiting http://localhost:7010/ in your web browser.
 
 ## Customization (for developers)
 
@@ -52,10 +56,29 @@ The config file has to have the five main parts. All the ```marked``` arguments 
 
 To make it easier for you we provide you with two config files: ```config.cfg``` is set up to work for a panoptic segmentation task, while ```config_instance.cfg``` for instance segmentation. Make sure to rename the config you wish to use to ```config.cfg```. The default is panoptic segmentation. 
 
+
 ## Models
-The current models are currently integrated into DCP:
-* CellPose --> for instance segmentation tasks
-* CellposePatchCNN --> for panoptic segmentation tasks: includes the Cellpose model for instance segmentation followed by a patch wise CNN model on the predicted instances for obtaining class labels
+
+The following models are currently integrated into DCP:
+
+- **CellPose**: Used for instance segmentation tasks.
+
+- **Cellpose+Classifier**: Designed for panoptic segmentation tasks. This model incorporates the Cellpose model for instance segmentation, followed by a classifier. Two classifiers currently available:
+
+  - **FCNN (Fully Convolutional Neural Network)**: Operates directly on the patches or optionally on patches+masks.
+  
+  - **Random Forest**: Operates on the level of radiomic and intensity features extracted from the patches.
+
+- **UNet**: Employed for semantic segmentation tasks. The UNet model is equipped with four layers, and  currently supports only input images with both width and height dimensions divisible by 16.
+
+
+
+
+
+
+
+
+
 
 ## Running with Docker [DO NOT USE UNTIL ISSUE IS SOLVED]
 
