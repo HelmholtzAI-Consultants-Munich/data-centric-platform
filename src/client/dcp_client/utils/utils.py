@@ -67,6 +67,8 @@ class Compute4Mask:
     def find_edges(instance_mask, idx=None):
         '''
         Find edges in the instance mask.
+        This function is used to identify the edges of the objects to prevent 
+        problem of the merged objects in napari window (mask).
 
         Parameters:
         - instance_mask (numpy.ndarray): The instance mask array.
