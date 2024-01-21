@@ -2,6 +2,7 @@ import os
 
 from skimage import data
 from skimage.io import imsave
+import numpy as np
 
 import pytest
 from napari.qt import QtViewer
@@ -46,7 +47,10 @@ def napari_window(qtbot):
         FilesystemImageStorage(), 
         "0.0.0.0", 
         7010,
-        os.path.join(os.getcwd(), 'eval_data_path')
+        os.path.join(os.getcwd(), 'eval_data_path'),
+        os.path.join(os.getcwd(), 'train_data_path'),
+        os.path.join(os.getcwd(), 'inprog_data_path')
+
     )
 
     application.cur_selected_img = 'cat.png'
@@ -102,5 +106,15 @@ def test_get_position_label(napari_window):
     result = napari_window.get_position_label(napari_window.layer.data)
     assert result is not None
   
+
+def test_update_source_mask_new_color(napari_window):
+    source_mask = np.zeros((1, 3, 3))  
+    mask_fill = np.ones((3, 3), dtype=bool)  
+    c = 1
+    label = 5
+    label_seg = 10
+
+    result = napari_window.update_source_mask(source_mask, mask_fill, c, label, label_seg)
+    assert np.array_equal(result, 5*np.ones_like(result))
 
 
