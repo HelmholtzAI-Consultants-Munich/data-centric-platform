@@ -312,3 +312,4 @@ class NapariWindow(MyWidget):
         
         self.viewer.close()
         self.close()
+        

@@ -32,12 +32,17 @@ def napari_window(qtbot):
     img2 = data.coffee()
     img3 = data.cat()
 
-    if not os.path.exists('in_prog'): 
-        os.mkdir('in_prog')
-        imsave('in_prog/coffee.png', img2)
+    if not os.path.exists('train_data_path'): 
+        os.mkdir('train_data_path')
+        imsave('train_data_path/astronaut.png', img1)
+
+    if not os.path.exists('inprogr_data_path'): 
+        os.mkdir('inprogr_data_path')
+        imsave('inprogr_data_path/coffee.png', img2)
 
     if not os.path.exists('eval_data_path'): 
         os.mkdir('eval_data_path')
+        imsave('eval_data_path/cat_seg.png', img3)
         imsave('eval_data_path/cat.png', img3)
 
     rsyncer = DataRSync(user_name="local", host_name="local", server_repo_path='.')
@@ -49,17 +54,18 @@ def napari_window(qtbot):
         7010,
         os.path.join(os.getcwd(), 'eval_data_path'),
         os.path.join(os.getcwd(), 'train_data_path'),
-        os.path.join(os.getcwd(), 'inprog_data_path')
-
+        os.path.join(os.getcwd(), 'inprogr_data_path')
     )
 
     application.cur_selected_img = 'cat.png'
-    application.cur_selected_path = 'eval_data_path'
+    application.cur_selected_path = application.eval_data_path
 
     widget = NapariWindow(application)
     qtbot.addWidget(widget) 
     yield widget 
     widget.close()
+
+    
 
 
 def test_napari_window_initialization(napari_window):
@@ -95,10 +101,9 @@ def test_save_click_coordinates(napari_window):
   
 
 def test_switch_user_mask(napari_window):
-  
-    # napari_window.viewer.dims.current_step[0] = 1
+
     napari_window.switch_user_mask()
-    assert napari_window.active_mask is False
+    assert napari_window.active_mask is True
 
 
 def test_get_position_label(napari_window):
@@ -118,3 +123,37 @@ def test_update_source_mask_new_color(napari_window):
     assert np.array_equal(result, 5*np.ones_like(result))
 
 
+def test_on_add_to_curated_button_clicked(napari_window, monkeypatch):
+    # Mock the create_warning_box method
+    def mock_create_warning_box(message_text, message_title):
+        return None  
+
+    monkeypatch.setattr(napari_window, 'create_warning_box', mock_create_warning_box)
+
+    # assert napari_window.app.cur_selected_path == 'eval_data_path'
+
+    napari_window.viewer.layers.selection.active.name = 'cat_seg' 
+
+    # Simulate the button click
+    napari_window.on_add_to_curated_button_clicked()
+
+    assert os.path.exists('train_data_path/cat_seg.tiff')
+    assert os.path.exists('train_data_path/cat.png')
+    assert not os.path.exists('eval_data_path/cat.png')
+
+@pytest.fixture(scope='session', autouse=True)
+def cleanup_files(request):
+    # This code runs after all tests from all files have completed
+    yield
+    # Clean up
+    for fname in os.listdir('train_data_path'):
+        os.remove(os.path.join('train_data_path', fname))
+    os.rmdir('train_data_path')
+
+    for fname in os.listdir('inprogr_data_path'):
+        os.remove(os.path.join('inprogr_data_path', fname))
+    os.rmdir('inprogr_data_path')
+
+    for fname in os.listdir('eval_data_path'):
+        os.remove(os.path.join('eval_data_path', fname))
+    os.rmdir('eval_data_path')
