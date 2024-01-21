@@ -62,7 +62,7 @@ class Application:
         self.inprogr_data_path = inprogr_data_path
         self.cur_selected_img = ''
         self.cur_selected_path = ''
-        self.seg_filepaths = []
+        self.seg_filepaths = [] 
 
     def upload_data_to_server(self):
         """

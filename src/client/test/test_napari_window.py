@@ -45,8 +45,8 @@ def napari_window(qtbot):
         imsave('eval_data_path/cat.png', img3)
         imsave('eval_data_path/cat_seg.png', img3)
 
-        imsave('eval_data_path/cat_test.png', img3)
-        imsave('eval_data_path/cat_test_seg.png', img3)
+    imsave('eval_data_path/cat_test.png', img3)
+    imsave('eval_data_path/cat_test_seg.png', img3)
 
     rsyncer = DataRSync(user_name="local", host_name="local", server_repo_path='.')
     application = Application(
