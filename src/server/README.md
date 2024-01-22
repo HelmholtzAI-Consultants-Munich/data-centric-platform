@@ -25,37 +25,70 @@ The current models are currently integrated into DCP:
 CellPose --> for instance segmentation tasks
 CellposePatchCNN --> for panoptic segmentation tasks: includes the Cellpose model for instance segmentation followed by a patch wise CNN model on the predicted instances for obtaining class labels it is working by visiting http://localhost:7010/ in your web browser.
 
+
 ## Customization (for developers)
 
 All service configurations are set in the _config.cfg_ file. Please, obey the [formal JSON format](https://www.json.org/json-en.html).
 
 The config file has to have the five main parts. All the ```marked``` arguments are mandatory:
 
- - ``` setup ``` 
-    - ```segmentation ``` - segmentation type from the segmentationclasses.py. Currently, only **GeneralSegmentation** is available (MitoProjectSegmentation and GFPProjectSegmentation are stale). 
-    - ```accepted_types``` - types of images currently accepted for the analysis
-    - ```seg_name_string``` - end string for masks to run on (All the segmentations of the image should contain this string - used to save and search for segmentations of the images)
-- ```service```
-    - ```model_to_use``` - name of the model class from the models.py you want to use. Currently, available models are:
-      -  **CustomCellposeModel**: Inherits [CellposeModel](https://cellpose.readthedocs.io/en/latest/api.html#cellposemodel) class
-      -  **CellposePatchCNN**: Includes a segmentor and a clasifier. Currently segmentor can only be ```CustomCellposeModel```, and classifier is ```CellClassifierFCNN```. The model sequentially runs the segmentor and then classifier, on patches of the objects to classify them.
-    - ```save_model_path``` - name for the trained model which will be saved after calling the (re)train from service - is saved under ```bentoml/models```
-    - ```runner_name``` -  name of the runner for the bentoml service 
-    - ```service_name``` - name for the bentoml service
-    - ```port``` - on which port to start the service
-- ```model``` - configuration for the model instatiation. Here, pass any arguments you need or want to change. Take care that the names of the arguments are the same as of original model class' _init()_ function!
-  - ```segmentor```: model configuration for the segmentor. Currently takes argumnets used in the init of CellposeModel, see [here](https://cellpose.readthedocs.io/en/latest/api.html#cellposemodel).
-  - ```classifier```: model configuration for classifier, see _init()_ of ```CellClassifierFCNN``` 
-- ```train``` - configuration for the model training. Take care that the names of the arguments are the same as of original model's _train()_ function!
-  - ```segmentor```: If using cellpose - the _train()_ function arguments can be found [here](https://cellpose.readthedocs.io/en/latest/api.html#id7). Here, pass any arguments you need or want to change or leave empty {}, then default arguments will be used.
-  - ```classifier```: train configuration for classifier, see _train()_ of ```CellClassifierFCNN``` 
-- ```eval``` - configuration for the model evaluation.. Take care that the names of the arguments are the same as of original model's _eval()_ function! 
-  - ```segmentor```: If using cellpose - the _eval()_ function arguments can be found [here](https://cellpose.readthedocs.io/en/latest/api.html#id3). Here, pass any arguments you need or want to change or leave empty {}, then default arguments will be used.
-  - ```classifier```: train configuration for classifier, see _eval()_ of ```CellClassifierFCNN```.
-  - ```mask_channel_axis```: If a multi-class instance segmentation model has been used, then the masks returned by the model should have two channels, one for the instance segmentation results and one indicating the obects class. This variable indicated at which dim the channel axis should be stored. Currently should be kept at 0, as this is the only way the masks can be visualised correcly by napari in the client.
+### Setup
+
+- **`segmentation`**
+  - Segmentation type from `segmentationclasses.py`. Currently, only **GeneralSegmentation** is available (MitoProjectSegmentation and GFPProjectSegmentation are stale).
+  
+- **`accepted_types`**
+  - Types of images currently accepted for analysis.
+  
+- **`seg_name_string`**
+  - End string for masks to run on. All segmentations of the image should contain this string - used to save and search for segmentations of the images.
+
+### Service
+
+- **`model_to_use`**
+  - Name of the model class from `models.py` you want to use. Currently available models:
+    - **CustomCellposeModel**: Inherits [CellposeModel](https://cellpose.readthedocs.io/en/latest/api.html#cellposemodel) class
+    - **CellposePatchCNN**: Includes a segmentor and a classifier. Currently, the segmentor can only be `CustomCellposeModel`, and the classifier is `CellClassifierFCNN` or `RandomForest`. The model sequentially runs the segmentor and then classifier on patches of the objects to classify them.
+    
+- **`save_model_path`**
+  - Name for the trained model, which will be saved after calling the (re)train from service - saved under `bentoml/models`.
+  
+- **`runner_name`**
+  - Name of the runner for the BentoML service.
+  
+- **`service_name`**
+  - Name for the BentoML service.
+  
+- **`port`**
+  - On which port to start the service.
+ 
+### Model
+
+- Configuration for the model instantiation. Pass any arguments you need or want to change. Ensure that the names of the arguments are the same as the original model class' `__init__()` function!
+  
+  - **`segmentor`**: Model configuration for the segmentor. Currently takes arguments used in the init of CellposeModel, see [here](https://cellpose.readthedocs.io/en/latest/api.html#cellposemodel).
+  
+  - **`classifier`**: Model configuration for classifier, see _init()_ of `CellClassifierFCNN`.
+
+### Train
+
+- Configuration for the model training. Ensure that the names of the arguments are the same as the original model's `train()` function!
+  
+  - **segmentor**: If using Cellpose, the `train()` function arguments can be found [here](https://cellpose.readthedocs.io/en/latest/api.html#id7). Pass any arguments you need or want to change or leave empty `{}`, then default arguments will be used.
+  
+  - **classifier**: Train configuration for the classifier, see _train()_  of `CellClassifierFCNN`.
+
+### Evaluation
+
+- Configuration for the model evaluation. Ensure that the names of the arguments are the same as the original model's _eval()_ function!
+  
+  - **segmentor**: If using Cellpose, the _eval()_ function arguments can be found [here](https://cellpose.readthedocs.io/en/latest/api.html#id3). Pass any arguments you need or want to change or leave empty `{}`, then default arguments will be used.
+  
+  - **classifier**: Train configuration for the classifier, see _eval()_ of `CellClassifierFCNN`.
+  
+  - **mask_channel_axis**: If a multi-class instance segmentation model has been used, then the masks returned by the model should have two channels, one for the instance segmentation results and one indicating the objects class. This variable indicates at which dimension the channel axis should be stored. Currently should be kept at `0`, as this is the only way the masks can be visualized correctly by Napari in the client.
 
 To make it easier for you we provide you with two config files: ```config.cfg``` is set up to work for a panoptic segmentation task, while ```config_instance.cfg``` for instance segmentation. Make sure to rename the config you wish to use to ```config.cfg```. The default is panoptic segmentation. 
-
 
 ## Models
 
