@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import  QFileIconProvider
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap, QIcon
 import numpy as np
-from skimage.feature import canny, peak_local_max
+from skimage.feature import canny
 from skimage.morphology import closing, square
 
 from pathlib import Path, PurePath
