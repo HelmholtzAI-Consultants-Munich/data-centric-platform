@@ -19,7 +19,7 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
     """Custom cellpose model inheriting the attributes and functions from the original CellposeModel and implementing
     additional attributes and methods needed for this project.
     """    
-    def __init__(self, model_config, train_config, eval_config):
+    def __init__(self, model_config, train_config, eval_config, model_name):
         """Constructs all the necessary attributes for the CustomCellposeModel. 
         The model inherits all attributes from the parent class, the init allows to pass any other argument that the parent class accepts.
         Please, visit here https://cellpose.readthedocs.io/en/latest/api.html#id4 for more details on arguments accepted. 
@@ -39,6 +39,7 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         self.mkldnn = False # otherwise we get error with saving model
         self.train_config = train_config
         self.eval_config = eval_config
+        self.model_name = model_name
 
     def update_configs(self, train_config, eval_config):
         self.train_config = train_config
@@ -65,7 +66,7 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         :type masks: List[np.ndarray]
         """  
 
-        if not isinstance(masks, np.ndarray):
+        if not isinstance(masks, np.ndarray): # TODO Remove: all these should be taken care of in fsimagestorage
             masks = np.array(masks) 
             
         if masks[0].shape[0] == 2:
@@ -74,7 +75,7 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         super().train(train_data=deepcopy(imgs), train_labels=masks, **self.train_config["segmentor"])
         
         pred_masks = [self.eval(img) for img in masks]
-        self.metric = np.mean(aggregated_jaccard_index(masks, pred_masks))
+        self.metric = np.mean(aggregated_jaccard_index(masks, pred_masks)) # TODO move metric computation
         # self.loss = self.loss_fn(masks, pred_masks)
     
     def masks_to_outlines(self, mask):
@@ -215,12 +216,13 @@ class CellposePatchCNN(nn.Module):
     Cellpose & patches of cells and then cnn to classify each patch
     """
     
-    def __init__(self, model_config, train_config, eval_config):
+    def __init__(self, model_config, train_config, eval_config, model_name):
         super().__init__()
 
         self.model_config = model_config
         self.train_config = train_config
         self.eval_config = eval_config
+        self.model_name = model_name
 
         # Initialize the cellpose model and the classifier
         self.segmentor = CustomCellposeModel(self.model_config, 
@@ -325,12 +327,13 @@ class UNet(nn.Module):
             return self.conv(x)
     
 
-    def __init__(self, model_config, train_config, eval_config):
+    def __init__(self, model_config, train_config, eval_config, model_name):
 
         super().__init__()
         self.model_config = model_config
         self.train_config = train_config
         self.eval_config = eval_config
+        self.model_name = model_name
 
         self.in_channels = self.model_config["unet"]["in_channels"]
         self.out_channels = self.model_config["unet"]["out_channels"]
@@ -387,7 +390,6 @@ class UNet(nn.Module):
         batch_size = self.train_config["unet"]['batch_size']
 
         # Convert input images and labels to tensors
-
         # normalize images 
         imgs = [(img-np.min(img))/(np.max(img)-np.min(img)) for img in imgs]
         # convert to tensor
