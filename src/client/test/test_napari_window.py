@@ -5,13 +5,9 @@ from skimage.io import imsave
 import numpy as np
 
 import pytest
-from napari.qt import QtViewer
 from dcp_client.app import Application
 from dcp_client.gui.napari_window import NapariWindow
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QWidget, QMessageBox
 
-from dcp_client.gui.welcome_window import WelcomeWindow
 from dcp_client.app import Application
 from dcp_client.utils.bentoml_model import BentomlModel
 from dcp_client.utils.fsimagestorage import FilesystemImageStorage
@@ -36,9 +32,9 @@ def napari_window(qtbot):
         os.mkdir('train_data_path')
         imsave('train_data_path/astronaut.png', img1)
 
-    if not os.path.exists('inprogr_data_path'): 
-        os.mkdir('inprogr_data_path')
-        imsave('inprogr_data_path/coffee.png', img2)
+    if not os.path.exists('in_prog'): 
+        os.mkdir('in_prog')
+        imsave('in_prog/coffee.png', img2)
 
     if not os.path.exists('eval_data_path'): 
         os.mkdir('eval_data_path')
@@ -57,7 +53,7 @@ def napari_window(qtbot):
         7010,
         os.path.join(os.getcwd(), 'eval_data_path'),
         os.path.join(os.getcwd(), 'train_data_path'),
-        os.path.join(os.getcwd(), 'inprogr_data_path')
+        os.path.join(os.getcwd(), 'in_prog')
     )
 
     application.cur_selected_img = 'cat_test.png'
@@ -68,9 +64,6 @@ def napari_window(qtbot):
     yield widget 
     widget.close()
 
-    
-
-
 def test_napari_window_initialization(napari_window):
     assert napari_window.viewer is not None
     assert napari_window.qctrl is not None
@@ -79,12 +72,10 @@ def test_napari_window_initialization(napari_window):
 def test_switch_to_active_mask(napari_window):
     napari_window.switch_to_active_mask()
     assert napari_window.active_mask 
- 
 
 def test_switch_to_non_active_mask(napari_window):
     napari_window.switch_to_non_active_mask()
     assert napari_window.active_mask is False
-   
 
 def test_set_active_mask(napari_window):
     napari_window.active_mask_index = 0
@@ -156,9 +147,9 @@ def test_on_add_to_curated_button_clicked(napari_window, monkeypatch):
 #         os.remove(os.path.join('train_data_path', fname))
 #     os.rmdir('train_data_path')
 
-#     for fname in os.listdir('inprogr_data_path'):
-#         os.remove(os.path.join('inprogr_data_path', fname))
-#     os.rmdir('inprogr_data_path')
+#     for fname in os.listdir('in_prog'):
+#         os.remove(os.path.join('in_prog', fname))
+#     os.rmdir('in_prog')
 
 #     for fname in os.listdir('eval_data_path'):
 #         os.remove(os.path.join('eval_data_path', fname))
