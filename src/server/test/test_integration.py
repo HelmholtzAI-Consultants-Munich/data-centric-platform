@@ -1,12 +1,11 @@
-import os
 import sys
+import inspect
+
+import random
+import numpy as np
+
 import torch 
 from torchmetrics import JaccardIndex
-import numpy as np
-import random
-
-import inspect
-# from importlib.machinery import SourceFileLoader
 
 sys.path.append(".")
 
@@ -41,13 +40,12 @@ def model(model_class):
     train_config = read_config('train', config_path='test/test_config.cfg')
     eval_config = read_config('eval', config_path='test/test_config.cfg')
 
-    model = model_class(model_config, train_config, eval_config)
+    model = model_class(model_config, train_config, eval_config, str(model_class))
 
     return model
 
 @pytest.fixture
 def data_train():
-    # the size of the image should be divisable by 16 
     images, masks = get_synthetic_dataset(num_samples=4, canvas_size=(512,768))
     masks = [np.array(mask) for mask in masks]
     masks_instances = [mask.sum(-1) for mask in masks]

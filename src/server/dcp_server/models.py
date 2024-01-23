@@ -227,7 +227,8 @@ class CellposePatchCNN(nn.Module):
         # Initialize the cellpose model and the classifier
         self.segmentor = CustomCellposeModel(self.model_config, 
                                              self.train_config,
-                                             self.eval_config)
+                                             self.eval_config,
+                                             "Cellpose")
         self.classifier = CellClassifierFCNN(self.model_config,
                                              self.train_config,
                                              self.eval_config)
@@ -334,10 +335,14 @@ class UNet(nn.Module):
         self.train_config = train_config
         self.eval_config = eval_config
         self.model_name = model_name
-
+        '''
         self.in_channels = self.model_config["unet"]["in_channels"]
         self.out_channels = self.model_config["unet"]["out_channels"]
         self.features = self.model_config["unet"]["features"]
+        '''
+        self.in_channels = self.model_config["classifier"]["in_channels"]
+        self.out_channels = self.model_config["classifier"]["num_classes"] + 1
+        self.features = self.model_config["classifier"]["features"]
 
         self.encoder = nn.ModuleList()
         self.decoder = nn.ModuleList()
@@ -385,9 +390,9 @@ class UNet(nn.Module):
 
     def train(self, imgs, masks):
 
-        lr = self.train_config["unet"]['lr']
-        epochs = self.train_config["unet"]['n_epochs']
-        batch_size = self.train_config["unet"]['batch_size']
+        lr = self.train_config["classifier"]['lr']
+        epochs = self.train_config["classifier"]['n_epochs']
+        batch_size = self.train_config["classifier"]['batch_size']
 
         # Convert input images and labels to tensors
         # normalize images 
