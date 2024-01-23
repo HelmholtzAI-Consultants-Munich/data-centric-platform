@@ -1,10 +1,9 @@
 from __future__ import annotations
 from typing import List, TYPE_CHECKING
 
-from qtpy.QtWidgets import QWidget, QPushButton, QComboBox, QLabel, QGridLayout
+from qtpy.QtWidgets import QPushButton, QComboBox, QLabel, QGridLayout
 from qtpy.QtCore import Qt
 import napari
-from napari.qt import thread_worker
 from dcp_client.utils.utils import Compute4Mask
 
 
