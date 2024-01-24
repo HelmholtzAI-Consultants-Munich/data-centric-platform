@@ -13,8 +13,7 @@ from sklearn.metrics import f1_score, log_loss
 from sklearn.exceptions import NotFittedError
 
 from cellpose.metrics import aggregated_jaccard_index
-from cellpose.transforms import reshape_and_normalize_data
-
+from cellpose.dynamics import labels_to_flows
 #from segment_anything import SamPredictor, sam_model_registry
 #from segment_anything.automatic_mask_generator import SamAutomaticMaskGenerator
 
@@ -44,21 +43,8 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         self.mkldnn = False # otherwise we get error with saving model
         self.train_config = train_config
         self.eval_config = eval_config
-        self.loss_fun = nn.BCEWithLogitsLoss()
+        self.loss = 1e6
 
-    def eval_logits(self, imgs):
-        """
-        Evaluate the logits for a given set of images.
-        """
-
-        x_test = reshape_and_normalize_data(imgs, channels=[0, 0])
-
-        img_tensor = torch.tensor(x_test[0])
-        model = self.net.eval()
-        img_tensor = img_tensor.unsqueeze(0) if img_tensor.ndim == 3 else img_tensor 
-        img_logits = model(img_tensor)[0].squeeze()[:,2,...].detach().numpy()
-
-        return img_logits
 
     def update_configs(self, train_config, eval_config):
         self.train_config = train_config
@@ -84,24 +70,30 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         :param masks: masks of the given images (training labels)
         :type masks: List[np.ndarray]
         """  
-
-        if not isinstance(masks, np.ndarray):
-            masks = np.array(masks) 
             
         if masks[0].shape[0] == 2:
             masks = list(masks[:,0,...]) 
-
         super().train(train_data=deepcopy(imgs), train_labels=masks, **self.train_config["segmentor"])
+
+        # compute loss and metric
+        true_bin_masks = [mask>0 for mask in masks] # get binary masks
+        true_flows = labels_to_flows(masks) # get cellpose flows
+        # get predicted flows and cell probability
+        pred_masks = []
+        pred_flows = []
+        true_lbl = []
+        for idx, img in enumerate(imgs):
+            mask, flows, _ = super().eval(x=img, **self.eval_config["segmentor"])
+            pred_masks.append(mask)
+            pred_flows.append(np.stack([flows[1][0], flows[1][1], flows[2]])) # stack cell probability map, horizontal and vertical flow
+            true_lbl.append(np.stack([true_bin_masks[idx], true_flows[idx][2], true_flows[idx][3]]))
         
-        logits = self.eval_logits(imgs)
-
-        pred_masks = [self.eval(img) for img in imgs]
+        true_lbl = np.stack(true_lbl)
+        pred_flows=np.stack(pred_flows)
+        pred_flows = torch.from_numpy(pred_flows).float().to('cpu')
+        # compute loss, combination of mse for flows and bce for cell probability
+        self.loss = self.loss_fn(true_lbl, pred_flows) 
         self.metric = np.mean(aggregated_jaccard_index(masks, pred_masks))
-
-        masks = torch.tensor(np.array(masks).astype(np.float32)>0).long().float()
-        pred_masks = torch.tensor(np.array(pred_masks).astype(np.float32)>0).float()
-
-        self.loss = self.loss_fun(torch.tensor(logits).float(), masks)
     
     def masks_to_outlines(self, mask):
         """ get outlines of masks as a 0-1 array
@@ -286,28 +278,25 @@ class CellposePatchCNN(nn.Module):
         # train cellpose
         masks = np.array(masks) 
         masks_instances = list(masks[:,0,...]) #[mask.sum(-1) for mask in masks] if masks[0].ndim == 3 else masks
-
         self.segmentor.train(deepcopy(imgs), masks_instances)
         # create patch dataset to train classifier
         masks_classes = list(masks[:,1,...]) #[((mask > 0) * np.arange(1, 4)).sum(-1) for mask in masks]
-        
         patches, patch_masks, labels = create_patch_dataset(imgs,
-                                               masks_classes,
-                                               masks_instances,
-                                               noise_intensity = self.train_config["classifier"]["train_data"]["noise_intensity"],
-                                               max_patch_size = self.train_config["classifier"]["train_data"]["patch_size"])
-        
+                                                            masks_classes,
+                                                            masks_instances,
+                                                            noise_intensity = self.train_config["classifier"]["train_data"]["noise_intensity"],
+                                                            max_patch_size = self.train_config["classifier"]["train_data"]["patch_size"])
+        x = patches
         if self.classifier_class == "RandomForest":
-            features = create_dataset_for_rf(patches, patch_masks)
-            self.classifier.train(features, labels)
-        else:
-            self.classifier.train(patches, labels)
+            x = create_dataset_for_rf(patches, patch_masks)
         # train classifier
+        self.classifier.train(x, labels)
+        # and compute metric and loss
         self.metric = (self.segmentor.metric + self.classifier.metric) / 2
-        self.loss = self.classifier.loss
+        self.loss = (self.segmentor.loss + self.classifier.loss)/2
 
     def eval(self, img):
-        # TBD we assume image is either 2D [H, W] (see fsimage storage)
+        # TBD we assume image is 2D [H, W] (see fsimage storage)
         # The final mask which is returned should have 
         # first channel the output of cellpose and the rest are the class channels
         with torch.no_grad():
@@ -325,21 +314,16 @@ class CellposePatchCNN(nn.Module):
                                                                instance_mask,
                                                                max_patch_size,
                                                                noise_intensity=noise_intensity)
+            x = patches
             if self.classifier_class == "RandomForest":
-                features = create_dataset_for_rf(patches, patch_masks)
+                x = create_dataset_for_rf(patches, patch_masks)
             # loop over patches and create classification mask
-            for idx in range(len(patches)):
-                if self.classifier_class == "RandomForest":
-                    patch_class = self.classifier.eval(features[idx])
-                else:
-                    # patch size should be HxWxC, e.g. 64,64,3
-                    patch_class = self.classifier.eval(patches[idx])
-                
+            for idx in range(len(x)):
+                patch_class = self.classifier.eval(x[idx])
                 # Assign predicted class to corresponding location in final_mask
                 patch_class = patch_class.item() if isinstance(patch_class, torch.Tensor) else patch_class
                 class_mask[instance_mask==instance_labels[idx]] = patch_class + 1
             # Apply mask to final_mask, retaining only regions where cellpose_mask is greater than 0
-            #class_mask = class_mask * (instance_mask > 0)#.long())
             final_mask = np.stack((instance_mask, class_mask), axis=self.eval_config['mask_channel_axis']).astype(np.uint16) # size 2xHxW
         
         return final_mask
@@ -352,7 +336,7 @@ class CellClassifierShallowModel:
         self.train_config = train_config
         self.eval_config = eval_config
 
-        self.model = RandomForestClassifier()
+        self.model = RandomForestClassifier() # TODO chnage config so RandomForestClassifier accepts input params
 
    
     def train(self, X_train, y_train):
