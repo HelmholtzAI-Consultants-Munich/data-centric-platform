@@ -20,17 +20,18 @@ setup_config = read_config('setup', config_path = 'config.cfg')
 
 # instantiate the model
 
-model_class = getattr(models_module, service_config['model_to_use'])
-model = model_class(model_config = model_config, train_config = train_config, eval_config = eval_config)
+model_class = getattr(models_module, setup_config['model_to_use'])
+model = model_class(model_config = model_config, train_config = train_config, eval_config = eval_config, model_name=setup_config['model_to_use'])
 custom_model_runner = t.cast(
     "CustomRunner", bentoml.Runner(CustomRunnable, name=service_config['runner_name'],
-                                       runnable_init_params={"model": model, "save_model_path": service_config['save_model_path']})
+                                       runnable_init_params={"model": model, "save_model_path": service_config['bento_model_path']})
 )
 # instantiate the segmentation type
 segm_class = getattr(segmentation_module, setup_config['segmentation'])
-segmentation = segm_class(imagestorage=FilesystemImageStorage(data_config['data_root']), 
-                                   runner = custom_model_runner,
-                                   model = model)
+fsimagestorage = FilesystemImageStorage(data_config['data_root'], setup_config['model_to_use'])
+segmentation = segm_class(imagestorage=fsimagestorage, 
+                          runner = custom_model_runner,
+                          model = model)
 
 
 # Call the service

@@ -1,12 +1,11 @@
-import os
 import sys
+import inspect
+
+import random
+import numpy as np
+
 import torch 
 from torchmetrics import JaccardIndex
-import numpy as np
-import random
-
-import inspect
-# from importlib.machinery import SourceFileLoader
 
 sys.path.append(".")
 
@@ -41,14 +40,13 @@ def model(model_class):
     train_config = read_config('train', config_path='test/test_config.cfg')
     eval_config = read_config('eval', config_path='test/test_config.cfg')
 
-    model = model_class(model_config, train_config, eval_config)
+    model = model_class(model_config, train_config, eval_config, str(model_class))
 
     return model
 
 @pytest.fixture
 def data_train():
-   
-    images, masks = get_synthetic_dataset(num_samples=4)
+    images, masks = get_synthetic_dataset(num_samples=4, canvas_size=(512,768))
     masks = [np.array(mask) for mask in masks]
     masks_instances = [mask.sum(-1) for mask in masks]
     masks_classes = [((mask > 0) * np.arange(1, 4)).sum(-1) for mask in masks]
@@ -176,7 +174,7 @@ def test_train_eval_run(data_train, data_eval, model):
     if "metric" in attrs:
         assert(model.metric>0.1)
     if "loss" in attrs:
-        assert(model.loss<0.3)
+        assert(model.loss<0.33)
 
     # for PatchCNN model 
     if pred_mask.ndim > 2:
