@@ -1,18 +1,8 @@
-import numpy as np
 import pytest
-# from models import CellClassifierShallowModel 
-from sklearn.exceptions import NotFittedError
+import numpy as np
 
 import dcp_server.models as models
 from dcp_server.utils import read_config
-from synthetic_dataset import get_synthetic_dataset
-
-
-"""
-self.classifier = CellClassifierShallowModel(self.model_config,
-                                             self.train_config,
-                                             self.eval_config)
-"""
 
 def test_eval_rf_not_fitted():
 
