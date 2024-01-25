@@ -22,7 +22,7 @@ def test_update_configs():
     train_config = read_config('train', config_path='test/configs/test_config_RF.cfg')
     eval_config = read_config('eval', config_path='test/configs/test_config_RF.cfg')
     
-    model = models.CustomCellposeModel(model_config,train_config,eval_config)
+    model = models.CustomCellposeModel(model_config,train_config,eval_config, "Cellpose")
 
     new_train_config = {"param1": "value1"}
     new_eval_config = {"param2": "value2"}
