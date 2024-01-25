@@ -1,10 +1,11 @@
+wheel==0.42.0
 cellpose>=2.2
 bentoml==1.0.16
 scikit-image>=0.19.3
 torchmetrics>=0.11.4
 torch>=2.1.0
 pytest>=7.4.3
+numpy
 scikit-learn>=1.2.2
 SimpleITK>=2.2.1
-numpy
 pyradiomics>=3.0.1
