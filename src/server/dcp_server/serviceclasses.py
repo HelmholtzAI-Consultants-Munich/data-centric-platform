@@ -26,7 +26,7 @@ class CustomRunnable(bentoml.Runnable):
         self.model = model
         self.save_model_path = save_model_path
         # update with the latest model if it already exists to continue training from there?
-        # self.check_and_load_model()
+        self.check_and_load_model()
 
     @bentoml.Runnable.method(batchable=False)
     def evaluate(self, img: np.ndarray) -> np.ndarray:
