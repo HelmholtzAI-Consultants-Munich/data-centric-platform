@@ -107,7 +107,7 @@ def generate_dataset(num_samples, objects, canvas_size, max_object_counts=None, 
     Args:
         num_samples (int): The number of samples to generate.
         objects (list): List of object descriptions.
-        canvas_size (int): Size of the canvas to place objects on.
+        canvas_size (tuple): Size of the canvas to place objects on.
         max_object_counts (list, optional): Maximum object counts for each class. Default is None.
         noise_intensity (float, optional): intensity of the additional noise to the image
 
@@ -128,8 +128,8 @@ def generate_dataset(num_samples, objects, canvas_size, max_object_counts=None, 
         max_object_counts = [10] * len(object_images)
 
     for _ in range(num_samples):
-        canvas = np.zeros((canvas_size, canvas_size, num_of_img_channels), dtype=np.uint8)
-        mask = np.zeros((canvas_size, canvas_size, len(object_images)), dtype=np.uint8)
+        canvas = np.zeros((canvas_size[0], canvas_size[1], num_of_img_channels), dtype=np.uint8)
+        mask = np.zeros((canvas_size[0], canvas_size[1], len(object_images)), dtype=np.uint8)
 
         for object_index, object_img in enumerate(object_images):
 
@@ -138,7 +138,8 @@ def generate_dataset(num_samples, objects, canvas_size, max_object_counts=None, 
 
             for _ in range(object_count):
                 
-                object_size = random.randint(canvas_size//20, canvas_size//5)
+                canvas_range = max(canvas_size)
+                object_size = random.randint(canvas_range//20, canvas_range//5)
 
                 object_img_resized = cv2.resize(object_img, (object_size, object_size))
                 # object_img_resized =  (object_img_resized>0).astype(np.uint8)*(255 - object_size)
@@ -172,13 +173,13 @@ def generate_dataset(num_samples, objects, canvas_size, max_object_counts=None, 
                     object_mask[object_img_resized[:, :, -1] > 0] = object_index + 1
 
 
-                x = random.randint(0, canvas_size - object_size_x)
-                y = random.randint(0, canvas_size - object_size_y)
+                x = random.randint(0, canvas_size[1] - object_size_x)
+                y = random.randint(0, canvas_size[0] - object_size_y)
 
                 intersecting_mask = mask[y:y + object_size_y, x:x + object_size_x].max(axis=-1)
                 if (intersecting_mask > 0).any():
                     continue  # Skip if there is an intersection with objects from other classes
-
+                
                 assert mask[y:y + object_size_y, x:x + object_size_x, object_index].shape == object_mask.shape
 
                 canvas[y:y + object_size_y, x:x + object_size_x] = object_img_transformed
@@ -191,11 +192,11 @@ def generate_dataset(num_samples, objects, canvas_size, max_object_counts=None, 
         if noise_intensity is not None:
 
             if num_of_img_channels == 1:
-                noise = np.random.normal(scale=noise_intensity, size=(canvas_size, canvas_size, 1))
+                noise = np.random.normal(scale=noise_intensity, size=(canvas_size[0], canvas_size[1], 1))
                 # noise = random_noise(canvas, mode='speckle', mean=noise_intensity)
               
             else:
-                noise = np.random.normal(scale=noise_intensity, size=(canvas_size, canvas_size, num_of_img_channels))
+                noise = np.random.normal(scale=noise_intensity, size=(canvas_size[0], canvas_size[1], num_of_img_channels))
             noisy_canvas = canvas + noise.astype(np.uint8)
 
             dataset_images.append(noisy_canvas.squeeze(2))           
@@ -217,7 +218,7 @@ def generate_dataset(num_samples, objects, canvas_size, max_object_counts=None, 
 
     return dataset_images, dataset_masks
 
-def get_synthetic_dataset(num_samples, canvas_size=512, max_object_counts=[15, 15, 15]):
+def get_synthetic_dataset(num_samples, canvas_size=(512,512), max_object_counts=[15, 15, 15]):
    
     objects = [
     {
@@ -237,5 +238,6 @@ def get_synthetic_dataset(num_samples, canvas_size=512, max_object_counts=[15, 1
         'intensity' : [0.67, 1.0]
     },
     ]
+    
     images, masks = generate_dataset(num_samples, objects, canvas_size=canvas_size, max_object_counts=max_object_counts, noise_intensity=5, max_rotation_angle=30)
     return images, masks

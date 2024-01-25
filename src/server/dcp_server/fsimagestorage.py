@@ -1,7 +1,8 @@
+import os
+import numpy as np
 from skimage.io import imread, imsave
 from skimage.transform import resize, rescale
-import os
-from skimage.color import rgb2gray
+
 from dcp_server import utils
 
 # Import configuration
@@ -10,8 +11,9 @@ setup_config = utils.read_config('setup', config_path = 'config.cfg')
 class FilesystemImageStorage():
     """Class used to deal with everything related to image storing and processing - loading, saving, transforming...
     """    
-    def __init__(self, data_root):
+    def __init__(self, data_root, model_used):
         self.root_dir = data_root
+        self.model_used = model_used
     
     def load_image(self, cur_selected_img, is_gray=True):
         """Load the image (using skiimage)
@@ -143,16 +145,22 @@ class FilesystemImageStorage():
         :type channel_ax: int
         :return: rescaled image
         :rtype: ndarray
-        """        
-        max_dim  = max(height, width)
-        rescale_factor = max_dim/512
-        return rescale(img, 1/rescale_factor, order=order, channel_axis=channel_ax)
+        """    
+        if self.model_used == "UNet":
+            height_pad = (height//16 + 1)*16 - height
+            width_pad = (width//16 + 1)*16 - width
+            return np.pad(img, ((0, height_pad),(0, width_pad)))
+        else:
+            # Cellpose segmentation runs best with 512 size? TODO: check
+            max_dim  = max(height, width)
+            rescale_factor = max_dim/512
+            return rescale(img, 1/rescale_factor, order=order, channel_axis=channel_ax)
     
-    def resize_image(self, img, height, width, channel_ax=None, order=2):
-        """resize image
+    def resize_mask(self, mask, height, width, channel_ax=None, order=2):
+        """resize the mask so it matches the original image size
 
-        :param img: image
-        :type img: ndarray
+        :param mask: image
+        :type mask: ndarray
         :param height: height of the image
         :type height: int
         :param width: width of the image
@@ -161,13 +169,30 @@ class FilesystemImageStorage():
         :type order: int
         :return: resized image
         :rtype: ndarray
-        """ 
-        if channel_ax is not None:
-            n_channel_dim = img.shape[channel_ax]
-            output_size = [height, width]
-            output_size.insert(channel_ax, n_channel_dim)
-        else: output_size = [height, width]
-        return resize(img, output_size, order=order)
+        """
+
+        if self.model_used == "UNet":
+            # we assume an order C, H, W
+            if channel_ax is not None and channel_ax==0:
+                height_pad = mask.shape[1] - height
+                width_pad = mask.shape[2]- width
+                return mask[:, :-height_pad, :-width_pad]
+            elif channel_ax is not None and channel_ax==2:
+                height_pad = mask.shape[0] - height
+                width_pad = mask.shape[1]- width
+                return mask[:-height_pad, :-width_pad, :]
+            elif channel_ax is not None and channel_ax==1:
+                height_pad = mask.shape[2] - height
+                width_pad = mask.shape[0]- width
+                return mask[:-width_pad, :, :-height_pad]
+
+        else: 
+            if channel_ax is not None:
+                n_channel_dim = mask.shape[channel_ax]
+                output_size = [height, width]
+                output_size.insert(channel_ax, n_channel_dim)
+            else: output_size = [height, width]
+            return resize(mask, output_size, order=order)
     
     def prepare_images_and_masks_for_training(self, train_img_mask_pairs):
         """Image and mask processing for training.
@@ -180,6 +205,14 @@ class FilesystemImageStorage():
         imgs=[]
         masks=[]
         for img_file, mask_file in train_img_mask_pairs:
-            imgs.append(self.load_image(img_file))
-            masks.append(imread(mask_file))
+            img = self.load_image(img_file)
+            mask = imread(mask_file)
+            if self.model_used == "UNet":
+                # Unet only accepts image sizes divisable by 16
+                height_pad = (img.shape[0]//16 + 1)*16 - img.shape[0]
+                width_pad = (img.shape[1]//16 + 1)*16 - img.shape[1]
+                img = np.pad(img, ((0, height_pad),(0, width_pad)))
+                mask = np.pad(mask, ((0, 0), (0, height_pad),(0, width_pad)))
+            imgs.append(img)
+            masks.append(mask)
         return imgs, masks
