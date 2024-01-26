@@ -1,6 +1,7 @@
 import asyncio
 from typing import Optional
 from bentoml.client import Client as BentoClient
+from bentoml.exceptions import BentoMLException
 
 from dcp_client.app import Model
 
@@ -24,15 +25,19 @@ class BentomlModel(Model):
         return bool(self.client)
 
     async def _run_train(self, data_path):
-        response = await self.client.async_train(data_path)
-        return response
+        try:
+            response = await self.client.async_train(data_path)
+            return response
+        except BentoMLException: return None
 
     def run_train(self, data_path):
         return asyncio.run(self._run_train(data_path))
 
     async def _run_inference(self, data_path):
-        response = await self.client.async_segment_image(data_path)
-        return response
+        try:
+            response = await self.client.async_segment_image(data_path)
+            return response
+        except BentoMLException: return None
     
     def run_inference(self, data_path):
         list_of_files_not_suported = asyncio.run(self._run_inference(data_path))

@@ -65,30 +65,44 @@ class Application:
         self.seg_filepaths = []
 
     def upload_data_to_server(self):
+        """
+        Uploads the train and eval data to the server.
+        """
         self.syncer.first_sync(path=self.train_data_path)
         self.syncer.first_sync(path=self.eval_data_path)
+
+    def try_server_connection(self):
+        """
+        Checks if the ml model is connected to server and attempts to connect if not.
+        """
+        connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
+        return connection_success
     
     def run_train(self):
         """ Checks if the ml model is connected to the server, connects if not (and if possible), and trains the model with all data available in train_data_path """
-        if not self.ml_model.is_connected:
-            connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
-            if not connection_success: return "Connection could not be established. Please check if the server is running and try again."
+        if not self.ml_model.is_connected and not self.try_server_connection(): 
+            message_title = "Warning"
+            message_text = "Connection could not be established. Please check if the server is running and try again."
+            return message_text, message_title
         # if syncer.host name is None then local machine is used to train
+        message_title = "Information"
         if self.syncer.host_name=="local": 
-            return self.ml_model.run_train(self.train_data_path)
+            message_text = self.ml_model.run_train(self.train_data_path)
         else:
             srv_relative_path = self.syncer.sync(src='client', dst='server', path=self.train_data_path)
-            return self.ml_model.run_train(srv_relative_path)
-            
+            message_text = self.ml_model.run_train(srv_relative_path)
+        if message_text is None: 
+            message_text = "An error has occured on the server. Please check your image data and configurations. If the problem persists contact your software provider."
+            message_title = "Error"
+        return message_text, message_title
     
     def run_inference(self):
         """ Checks if the ml model is connected to the server, connects if not (and if possible), and runs inference on all images in eval_data_path """
-        if not self.ml_model.is_connected:
-            connection_success = self.ml_model.connect(ip=self.server_ip, port=self.server_port)
-            if not connection_success: 
-                message_text = "Connection could not be established. Please check if the server is running and try again."
-                return message_text, "Warning"
-
+        if not self.ml_model.is_connected and not self.try_server_connection(): 
+            message_title = "Warning"
+            message_text = "Connection could not be established. Please check if the server is running and try again."
+            return message_text, message_title
+        
         if self.syncer.host_name=="local":
             # model serving directly from local
             list_of_files_not_suported = self.ml_model.run_inference(self.eval_data_path)       
@@ -98,16 +112,19 @@ class Application:
             list_of_files_not_suported = self.ml_model.run_inference(srv_relative_path)
             # sync data so that client gets new masks          
             _ = self.syncer.sync(src='server', dst='client', path=self.eval_data_path)
-
         # check if serving could not be performed for some files and prepare message
-        list_of_files_not_suported = list(list_of_files_not_suported)
-        if len(list_of_files_not_suported) > 0:
-            message_text = "Image types not supported. Only 2D and 3D image shapes currently supported. 3D stacks must be of type grayscale. \
-            Currently supported image file formats are: " + ", ".join(settings.accepted_types)+ ". The files that were not supported are: " + ", ".join(list_of_files_not_suported)
-            message_title = "Warning"
+        if list_of_files_not_suported is None: 
+            message_text = "An error has occured on the server. Please check your image data and configurations. If the problem persists contact your software provider."
+            message_title = "Error"
         else:
-            message_text = "Success! Masks generated for all images"
-            message_title="Success"
+            list_of_files_not_suported = list(list_of_files_not_suported)
+            if len(list_of_files_not_suported) > 0:
+                message_text = "Image types not supported. Only 2D and 3D image shapes currently supported. 3D stacks must be of type grayscale. \
+                Currently supported image file formats are: " + ", ".join(settings.accepted_types)+ ". The files that were not supported are: " + ", ".join(list_of_files_not_suported)
+                message_title = "Warning"
+            else:
+                message_text = "Success! Masks generated for all images"
+                message_title = "Information"
         return message_text, message_title
 
     def load_image(self, image_name=None):
