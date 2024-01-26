@@ -1,8 +1,11 @@
 from pathlib import Path
 import json
+from copy import deepcopy
 import numpy as np
-from scipy.ndimage import find_objects, center_of_mass
+from scipy.ndimage import find_objects
 from skimage import measure
+import SimpleITK as sitk
+from radiomics import  shape2D
 
 def read_config(name, config_path = 'config.cfg') -> dict:   
     """Reads the configuration file
@@ -35,71 +38,89 @@ def join_path(root_dir, filepath): return str(Path(root_dir, filepath))
 def get_file_extension(file): return str(Path(file).suffix)
 
 
-def crop_centered_padded_patch(x: np.ndarray, 
-                               c, 
-                               p, 
-                               l,
+def crop_centered_padded_patch(img: np.ndarray, 
+                               patch_center_xy, 
+                               patch_size, 
+                               obj_label,
                                mask: np.ndarray=None,
                                noise_intensity=None) -> np.ndarray:
     """
     Crop a patch from an array `x` centered at coordinates `c` with size `p`, and apply padding if necessary.
 
     Args:
-        x (np.ndarray): The input array from which the patch will be cropped.
-        c (tuple): The coordinates (row, column) at the center of the patch.
-        p (tuple): The size of the patch to be cropped (height, width).
-        l (int): The instance label of the mask at the patch
+        img (np.ndarray): The input array from which the patch will be cropped.
+        patch_center_xy (tuple): The coordinates (row, column) at the center of the patch.
+        patch_size (tuple): The size of the patch to be cropped (height, width).
+        obj_label (int): The instance label of the mask at the patch
+        mask (np.ndarray, optional): The mask array that asociated with the array x; 
+                                    mask is used during training to mask out non-central elements; 
+                                    for RandomForest, it is used to calculate pyradiomics features.
+        noise_intensity (float, optional): Intensity of noise to be added to the background. 
 
     Returns:
         np.ndarray: The cropped patch with applied padding.
     """           
 
-    height, width = p  # Size of the patch
-
-    # Calculate the boundaries of the patch
-    top = c[0] - height // 2
-    bottom = top + height
+    height, width = patch_size  # Size of the patch
+    img_height, img_width = img.shape[0], img.shape[1] # Size of the input image
     
-    left = c[1] - width // 2
+    # Calculate the boundaries of the patch
+    top = patch_center_xy[0] - height // 2
+    bottom = top + height
+    left = patch_center_xy[1] - width // 2
     right = left + width
 
     # Crop the patch from the input array
     if mask is not None:
         mask_ = mask.max(-1) if len(mask.shape) >= 3 else mask
         # Zero out values in the patch where the mask is not equal to the central label
-        # m = (mask_ != central_label) & (mask_ > 0)
-        m = (mask_ != l) & (mask_ > 0)
-        x[m] = 0
-        if noise_intensity is not None:
-            x[m] = np.random.normal(scale=noise_intensity, size=x[m].shape)
+        mask_other_objs = (mask_ != obj_label) & (mask_ > 0)
+        img[mask_other_objs] = 0
+        # Add random noise at locations where other objects are present if noise_intensity is given
+        if noise_intensity is not None: img[mask_other_objs] = np.random.normal(scale=noise_intensity, size=img[mask_other_objs].shape)
+        mask[mask_other_objs] = 0
+        # crop the mask
+        mask = mask[max(top, 0):min(bottom, img_height), max(left, 0):min(right, img_width), :]
 
-    patch = x[max(top, 0):min(bottom, x.shape[0]), max(left, 0):min(right, x.shape[1]), :]
-
-    # Calculate the required padding amounts
-    size_x, size_y = x.shape[1], x.shape[0]
-
-    # Apply padding if necessary
+    patch = img[max(top, 0):min(bottom, img_height), max(left, 0):min(right, img_width), :]    
+    # Calculate the required padding amounts and apply padding if necessary
     if left < 0: 
         patch = np.hstack((
             np.random.normal(scale=noise_intensity, size=(patch.shape[0], abs(left), patch.shape[2])).astype(np.uint8),
             patch))
+        if mask is not None: 
+            mask = np.hstack((
+            np.zeros((mask.shape[0], abs(left), mask.shape[2])).astype(np.uint8),
+            mask))
     # Apply padding on the right side if necessary
-    if right > size_x: 
+    if right > img_width: 
         patch = np.hstack((
             patch,
-            np.random.normal(scale=noise_intensity, size=(patch.shape[0], (right - size_x), patch.shape[2])).astype(np.uint8)))
+            np.random.normal(scale=noise_intensity, size=(patch.shape[0], (right - img_width), patch.shape[2])).astype(np.uint8)))
+        if mask is not None: 
+            mask = np.hstack((
+            mask,
+            np.zeros((mask.shape[0], (right - img_width), mask.shape[2])).astype(np.uint8)))
     # Apply padding on the top side if necessary
     if top < 0: 
         patch = np.vstack((
             np.random.normal(scale=noise_intensity, size=(abs(top), patch.shape[1], patch.shape[2])).astype(np.uint8),
             patch))
+        if mask is not None: 
+            mask = np.vstack((
+            np.zeros((abs(top), mask.shape[1], mask.shape[2])).astype(np.uint8),
+            mask))
     # Apply padding on the bottom side if necessary
-    if bottom > size_y: 
+    if bottom > img_height: 
         patch = np.vstack((
             patch, 
-            np.random.normal(scale=noise_intensity, size=(bottom - size_y, patch.shape[1], patch.shape[2])).astype(np.uint8)))
-
-    return patch 
+            np.random.normal(scale=noise_intensity, size=(bottom - img_height, patch.shape[1], patch.shape[2])).astype(np.uint8)))
+        if mask is not None: 
+            mask = np.vstack((
+            mask, 
+            np.zeros((bottom - img_height, mask.shape[1], mask.shape[2])).astype(np.uint8)))
+    
+    return patch, mask 
 
 
 def get_center_of_mass_and_label(mask: np.ndarray) -> np.ndarray:
@@ -146,30 +167,31 @@ def get_centered_patches(img,
 
     '''
 
-    patches, instance_labels, class_labels  = [], [], []
+    patches, patch_masks, instance_labels, class_labels  = [], [], [], []
     # if image is 2D add an additional dim for channels
     if img.ndim<3: img = img[:, :, np.newaxis]
     if mask.ndim<3: mask = mask[:, :, np.newaxis]
     # compute center of mass of objects
     centers_of_mass, instance_labels = get_center_of_mass_and_label(mask)
     # Crop patches around each center of mass
-    for c, l in zip(centers_of_mass, instance_labels):
+    for c, obj_label in zip(centers_of_mass, instance_labels):
         c_x, c_y = c
-        patch = crop_centered_padded_patch(img.copy(),
+        patch, patch_mask = crop_centered_padded_patch(img.copy(),
                                             (c_x, c_y),
                                             (p_size, p_size),
-                                            l,
-                                            mask=mask,
+                                            obj_label,
+                                            mask=deepcopy(mask),
                                             noise_intensity=noise_intensity)
         patches.append(patch)
+        patch_masks.append(patch_mask)
         if mask_class is not None:
             # get the class instance for the specific object
-            instance_labels.append(l)
-            class_l = int(np.unique(mask_class[mask[:,:,0]==l]))
+            instance_labels.append(obj_label)
+            class_l = int(np.unique(mask_class[mask[:,:,0]==obj_label]))
             #-1 because labels from mask start from 1, we want classes to start from 0
             class_labels.append(class_l-1)
         
-    return patches, instance_labels, class_labels
+    return patches, patch_masks, instance_labels, class_labels
 
 def get_objects(mask):
     return find_objects(mask)
@@ -218,15 +240,95 @@ def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, 
         max_patch_size = np.max([find_max_patch_size(mask) for mask in masks_instances])
         
 
-    patches, labels = [], []
+    patches, patch_masks, labels = [], [], []
     for img, mask_class, mask_instance in zip(imgs,  masks_classes, masks_instances):
         # mask_instance has dimension WxH
         # mask_class has dimension WxH
-        patch, _, label = get_centered_patches(img,
+        patch, patch_mask, _, label = get_centered_patches(img,
                                             mask_instance,
                                             max_patch_size, 
                                             noise_intensity=noise_intensity,
-                                            mask_class=mask_class)
+                                            mask_class=mask_class,
+                                            )
         patches.extend(patch)
+        patch_masks.extend(patch_mask)
         labels.extend(label) 
-    return patches, labels
+    return patches, patch_masks, labels
+
+
+def get_shape_features(img, mask):
+    """
+    Calculate shape-based radiomic features from an image within the region defined by the mask.
+
+    Args:
+    - img (np.ndarray): The input image.
+    - mask (np.ndarray): The mask corresponding to the image.
+
+    Returns:
+    - np.ndarray: An array containing the calculated shape-based radiomic features, such as:
+    Elongation, Sphericity, Perimeter surface.
+    """
+
+    mask = 255 * ((mask) > 0).astype(np.uint8)
+
+    image = sitk.GetImageFromArray(img.squeeze())
+    roi_mask = sitk.GetImageFromArray(mask.squeeze())
+
+    shape_calculator = shape2D.RadiomicsShape2D(inputImage=image, inputMask=roi_mask, label=255)
+    # Calculate the shape-based radiomic features
+    shape_features = shape_calculator.execute()
+
+    return np.array(list(shape_features.values()))
+
+def extract_intensity_features(image, mask):
+    """
+    Extract intensity-based features from an image within the region defined by the mask.
+
+    Args:
+    - image (np.ndarray): The input image.
+    - mask (np.ndarray): The mask defining the region of interest.
+
+    Returns:
+    - np.ndarray: An array containing the extracted intensity-based features:
+      median intensity, mean intensity, 25th/75th percentile intensity within the masked region.
+    
+    """
+   
+    features = {}
+   
+    # Ensure the image and mask have the same dimensions
+
+    if image.shape != mask.shape:
+        raise ValueError("Image and mask must have the same dimensions")
+
+    masked_image = image[(mask>0)]
+    # features["min_intensity"] = np.min(masked_image)
+    # features["max_intensity"] = np.max(masked_image)
+    features["median_intensity"] = np.median(masked_image)
+    features["mean_intensity"] = np.mean(masked_image)
+    features["25th_percentile_intensity"] = np.percentile(masked_image, 25)
+    features["75th_percentile_intensity"] = np.percentile(masked_image, 75)
+    
+    return np.array(list(features.values()))
+
+def create_dataset_for_rf(imgs, masks):
+    """
+    Extract intensity-based features from an image within the region defined by the mask.
+
+    Args:
+    - imgs (List): A list of all input images.
+    - mask (List): A list of all corresponding masks defining the region of interest.
+
+    Returns:
+    - List: A list of arrays containing shape and intensity-based features
+        
+    """
+    X = []
+    for img, mask in zip(imgs, masks):
+
+        shape_features = get_shape_features(img, mask)
+        intensity_features = extract_intensity_features(img, mask)
+        features_list = np.concatenate((shape_features, intensity_features), axis=0)
+        X.append(features_list)
+      
+    return X
