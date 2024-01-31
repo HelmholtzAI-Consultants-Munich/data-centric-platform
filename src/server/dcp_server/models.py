@@ -270,6 +270,8 @@ class CellposePatchCNN(nn.Module):
             self.classifier = CellClassifierShallowModel(self.model_config,
                                                          self.train_config,
                                                          self.eval_config)
+            # make sure include mask is set to False if we are using the random forest model 
+            self.include_mask = False 
             
     def update_configs(self, train_config, eval_config):
         self.train_config = train_config
