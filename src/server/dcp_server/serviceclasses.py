@@ -48,7 +48,7 @@ class CustomRunnable(bentoml.Runnable):
     def check_and_load_model(self):
         bento_model_list = [model.tag.name for model in bentoml.models.list()]
         if self.save_model_path in bento_model_list:
-            loaded_model = bentoml.pytorch.load_model(self.save_model_path+":latest")
+            loaded_model = bentoml.picklable_model.load_model(self.save_model_path+":latest")
             assert loaded_model.__class__.__name__ == self.model.__class__.__name__, 'Check your config, loaded model and model to use not the same!'
             self.model = loaded_model
 
@@ -65,11 +65,15 @@ class CustomRunnable(bentoml.Runnable):
         """        
         self.model.train(imgs, masks)
         # Save the bentoml model
-        #bentoml.picklable_model.save_model(self.save_model_path, self.model) 
-        bentoml.pytorch.save_model(self.save_model_path,   # Model name in the local Model Store
-                                   self.model,  # Model instance being saved
-                                   external_modules=[DCPModels]
-                                   )
+        bentoml.picklable_model.save_model(
+            self.save_model_path, 
+            self.model,
+            external_modules=[DCPModels],
+        ) 
+        # bentoml.pytorch.save_model(self.save_model_path,   # Model name in the local Model Store
+        #                            self.model,  # Model instance being saved
+        #                            external_modules=[DCPModels]
+        #                            )
 
         return self.save_model_path
 
