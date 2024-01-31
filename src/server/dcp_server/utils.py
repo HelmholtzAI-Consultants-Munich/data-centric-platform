@@ -4,6 +4,7 @@ from copy import deepcopy
 import numpy as np
 from scipy.ndimage import find_objects
 from skimage import measure
+from copy import deepcopy
 import SimpleITK as sitk
 from radiomics import  shape2D
 
@@ -154,16 +155,19 @@ def get_centered_patches(img,
                          mask,
                          p_size: int,
                          noise_intensity=5,
-                         mask_class=None):
+                         mask_class=None,
+                         include_mask=False):
 
     ''' 
     Extracts centered patches from the input image based on the centers of objects identified in the mask.
 
     Args:
-        img: The input image.
-        mask: The mask representing the objects in the image.
+        img (np.array): The input image.
+        mask (np.array): The mask representing the objects in the image.
         p_size (int): The size of the patches to extract.
-        noise_intensity: The intensity of noise to add to the patches.
+        noise_intensity (float): The intensity of noise to add to the patches.
+        mask_class (int): The class represented in the patch
+        include_mask (bool): Whether or not to include mask as input argument to model
 
     '''
 
@@ -182,6 +186,10 @@ def get_centered_patches(img,
                                             obj_label,
                                             mask=deepcopy(mask),
                                             noise_intensity=noise_intensity)
+        if include_mask:
+            patch_mask = 255 * (patch_mask > 0).astype(np.uint8)
+            patch = np.concatenate((patch, patch_mask), axis=-1)
+            
         patches.append(patch)
         patch_masks.append(patch_mask)
         if mask_class is not None:
@@ -227,13 +235,14 @@ def find_max_patch_size(mask):
 
         return max_patch_size_edge
     
-def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, max_patch_size):
+def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, max_patch_size, include_mask):
     '''
     Splits img and masks into patches of equal size which are centered around the cells.
     If patch_size is not given, the algorithm should first run through all images to find the max cell size, and use
     the max cell size to define the patch size. All patches and masks should then be returned
     in the same format as imgs and masks (same type, i.e. check if tensor or np.array and same 
     convention of dims, e.g.  CxHxW)
+    include_mask(bool) : Flag indicating whether to include the mask along with patches. 
     '''
 
     if max_patch_size is None:
@@ -249,7 +258,7 @@ def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, 
                                             max_patch_size, 
                                             noise_intensity=noise_intensity,
                                             mask_class=mask_class,
-                                            )
+                                            include_mask = include_mask)
         patches.extend(patch)
         patch_masks.extend(patch_mask)
         labels.extend(label) 

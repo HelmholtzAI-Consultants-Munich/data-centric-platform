@@ -131,6 +131,9 @@ class CellClassifierFCNN(nn.Module):
 
         self.train_config = train_config["classifier"]
         self.eval_config = eval_config["classifier"]
+
+        self.include_mask = model_config["classifier"]["include_mask"]
+        self.in_channels = self.in_channels + 1 if self.include_mask else self.in_channels
         
         self.layer1 = nn.Sequential(
             nn.Conv2d(self.in_channels, 16, 3, 2, 5),
@@ -248,8 +251,8 @@ class CellposePatchCNN(nn.Module):
         self.model_config = model_config
         self.train_config = train_config
         self.eval_config = eval_config
+        self.include_mask = self.model_config["classifier"]["include_mask"]
         self.model_name = model_name
-
         self.classifier_class = self.model_config.get("classifier").get("model_class", "CellClassifierFCNN")
 
         # Initialize the cellpose model and the classifier
@@ -267,6 +270,8 @@ class CellposePatchCNN(nn.Module):
             self.classifier = CellClassifierShallowModel(self.model_config,
                                                          self.train_config,
                                                          self.eval_config)
+            # make sure include mask is set to False if we are using the random forest model 
+            self.include_mask = False 
             
     def update_configs(self, train_config, eval_config):
         self.train_config = train_config
@@ -291,7 +296,8 @@ class CellposePatchCNN(nn.Module):
                                                             masks_classes,
                                                             masks_instances,
                                                             noise_intensity = self.train_config["classifier"]["train_data"]["noise_intensity"],
-                                                            max_patch_size = self.train_config["classifier"]["train_data"]["patch_size"])
+                                                            max_patch_size = self.train_config["classifier"]["train_data"]["patch_size"],
+                                                            include_mask = self.include_mask)
         x = patches
         if self.classifier_class == "RandomForest":
             x = create_dataset_for_rf(patches, patch_masks)
@@ -319,7 +325,8 @@ class CellposePatchCNN(nn.Module):
             patches, patch_masks, instance_labels, _ = get_centered_patches(img,
                                                                instance_mask,
                                                                max_patch_size,
-                                                               noise_intensity=noise_intensity)
+                                                               noise_intensity=noise_intensity,
+                                                               include_mask=self.include_mask)
             x = patches
             if self.classifier_class == "RandomForest":
                 x = create_dataset_for_rf(patches, patch_masks)
