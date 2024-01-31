@@ -539,7 +539,79 @@ class UNet(nn.Module):
 
         return final_mask
 
+class CellposeMultichannel():
+    '''
+    Multichannel image segmentation model.
+    Run the separate cellpose model for each channel return the mask corresponding to each object type.
+
+    Args:
+        num_of_channels (int): Number of channels in the input image.
+        device: The device on which the models should run (e.g., 'cuda' for GPU or 'cpu' for CPU).
+
+    '''
+
+    def __init__(self, model_config, train_config, eval_config, model_name="Cellpose"):
+
+        self.model_config = model_config
+        self.train_config = train_config
+        self.eval_config = eval_config
+        self.model_name = model_name
+        self.num_of_channels = self.model_config["classifier"]["num_classes"]
+
+        self.cellpose_models = [
+            CustomCellposeModel(self.model_config, 
+                                self.train_config,
+                                self.eval_config,
+                                self.model_name
+            ) for _ in range(self.num_of_channels)
+        ]  
+
+    def train(self, imgs, masks):
+
+        for i in range(self.num_of_channels):
+
+            masks_class = []
+
+            for mask in masks:
+                mask_class = mask.copy()
+                mask_class[0][mask_class[1]!=(i+1)] = 0
+                masks_class.append(mask_class)
+
+            self.cellpose_models[i].train(imgs, masks_class)
+
+        self.metric = np.mean([self.cellpose_models[i].metric for i in range(self.num_of_channels)])
+        self.loss = np.mean([self.cellpose_models[i].loss for i in range(self.num_of_channels)])
+
+
+    def eval(self, img):
+
+        instance_masks, class_masks = [], []
+
+        instance_offset = 0
+
+        for i in range(self.num_of_channels):
+
+            res = self.cellpose_models[i].eval(img)
+            res[res>0] += instance_offset
+            instance_masks.append(res)
+
+            instance_offset = np.max(res)
+
+            label_mask = res.copy()
+            label_mask[res>0]=(i + 1)
+            class_masks.append(label_mask)
+
+        instance_mask, class_mask = sum(instance_masks), sum(class_masks)
+        final_mask = np.stack((instance_mask, class_mask), axis=self.eval_config['mask_channel_axis']).astype(np.uint16)
         
+        return final_mask
+
+
+    
+    #    return np.sum([self.cellpose_models[i].eval(img) for i in range(self.num_of_channels)])
+
+
+
 # class CustomSAMModel():
 # # https://github.com/facebookresearch/segment-anything/blob/main/notebooks/automatic_mask_generator_example.ipynb
 #     def __init__(self):
