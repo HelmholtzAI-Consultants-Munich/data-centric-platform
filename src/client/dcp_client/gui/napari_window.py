@@ -5,12 +5,12 @@ from qtpy.QtWidgets import QPushButton, QComboBox, QLabel, QGridLayout
 from qtpy.QtCore import Qt
 import napari
 from dcp_client.utils.utils import Compute4Mask
-
+from copy import deepcopy
 
 if TYPE_CHECKING:
     from dcp_client.app import Application
 
-from dcp_client.utils.utils import get_path_stem
+from dcp_client.utils.utils import get_path_stem, check_equal_arrays
 from dcp_client.gui._my_widget import MyWidget
 
 class NapariWindow(MyWidget):
@@ -35,60 +35,45 @@ class NapariWindow(MyWidget):
         for seg_file in self.app.seg_filepaths:
             self.viewer.add_labels(self.app.load_image(seg_file), name=get_path_stem(seg_file))
 
-        self.changed = False
-        self.event_coords = None
-        self.active_mask_instance = None
-
         main_window = self.viewer.window._qt_window
-        
         layout = QGridLayout()
         layout.addWidget(main_window, 0, 0, 1, 4)
 
+        # select the first seg as the currently selected layer if there are any segs
         if len(self.app.seg_filepaths):
             self.layer = self.viewer.layers[get_path_stem(self.app.seg_filepaths[0])]
-        else:
-            self.layer = self.viewer.layers[get_path_stem(self.app.cur_selected_img)]
-        self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
-
-        # set first mask as active by default
-        self.active_mask_index = 0
-
-        # unique labels
-        self.instances = Compute4Mask.get_unique_objects(self.layer.data[self.active_mask_index])
-        
-        # for copying contours
-        self.instances_updated = set()
-
-        # For each instance find the contours and set the color of it to 0 to be invisible
-        edges = Compute4Mask.find_edges(instance_mask=self.layer.data[0])
-        self.layer.data = self.layer.data * (~edges).astype(int)
-
-        self.layer.mouse_drag_callbacks.append(self.copy_mask_callback)
-        self.layer.events.set_data.connect(lambda event: self.copy_mask_callback(self.layer, event))
-
-        self.switch_to_active_mask()
-
-        if self.layer.data.shape[0] >= 2:
-            # User hint
-            message_label = QLabel('Choose an active mask')
-            message_label.setAlignment(Qt.AlignRight)
-            layout.addWidget(message_label, 1, 0)
-            
-            # Drop list to choose which is an active mask
+            self.viewer.layers.selection.events.changed.connect(self.on_seg_channel_changed)
+            # set first mask as active by default
+            self.active_mask_index = 0
+            self.viewer.dims.events.current_step.connect(self.axis_changed)
+            # get unique instance labels
+            self.original_instance_mask = deepcopy(self.layer.data[0])
+            self.instances = Compute4Mask.get_unique_objects(self.original_instance_mask)
+            self.original_class_mask = deepcopy(self.layer.data[1])
+            self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
+          
+            if self.layer.data.shape[0] >= 2:
+                # User hint
+                message_label = QLabel('Choose an active mask')
+                message_label.setAlignment(Qt.AlignRight)
+                layout.addWidget(message_label, 1, 0)
                 
-        self.mask_choice_dropdown = QComboBox()
-        self.mask_choice_dropdown.setEnabled(False)
-        self.mask_choice_dropdown.addItem('Instance Segmentation Mask', userData=0)
-        self.mask_choice_dropdown.addItem('Labels Mask', userData=1)
-        layout.addWidget(self.mask_choice_dropdown, 1, 1)
+                # Drop list to choose which is an active mask
+                self.mask_choice_dropdown = QComboBox()
+                self.mask_choice_dropdown.setEnabled(False)
+                self.mask_choice_dropdown.addItem('Instance Segmentation Mask', userData=0)
+                self.mask_choice_dropdown.addItem('Labels Mask', userData=1)
+                layout.addWidget(self.mask_choice_dropdown, 1, 1)
 
-        # when user has chosen the mask, we don't want to change it anymore to avoid errors
-        lock_button = QPushButton("Confirm Final Choice")
-        lock_button.setEnabled(False)
-        lock_button.clicked.connect(self.set_active_mask)
+                # when user has chosen the mask, we don't want to change it anymore to avoid errors
+                lock_button = QPushButton("Confirm Final Choice")
+                lock_button.setEnabled(False)
+                lock_button.clicked.connect(self.set_active_mask)
 
-        layout.addWidget(lock_button, 1, 2)
-
+                layout.addWidget(lock_button, 1, 2)
+        else:
+            self.layer = None
+        
         add_to_inprogress_button = QPushButton('Move to \'Curatation in progress\' folder')
         layout.addWidget(add_to_inprogress_button, 2, 0, 1, 2)
         add_to_inprogress_button.clicked.connect(self.on_add_to_inprogress_button_clicked)
@@ -98,6 +83,60 @@ class NapariWindow(MyWidget):
         add_to_curated_button.clicked.connect(self.on_add_to_curated_button_clicked)
 
         self.setLayout(layout)
+
+    def on_seg_channel_changed(self, event):
+        """
+        Is triggered each time the user selects a different layer in the viewer.
+        """
+        selected_layer_name = self.viewer.layers.selection.active.name
+        if type(self.viewer.layers[selected_layer_name]) == napari.layers.Image: pass
+        elif self.layer is not None: self.layer = self.viewer[selected_layer_name]
+
+    def axis_changed(self, event):
+        """
+        Is triggered each time the user switches the viewer between the mask channels. At this point the class mask 
+        needs to be updated according to the changes made tot the instance segmentation mask.
+        """
+        self.active_mask_index = self.viewer.dims.current_step[0]
+        if self.layer is not None: masks = deepcopy(self.layer.data)
+        # if user has switched to the instance mask
+        if self.active_mask_index==0: 
+            #if (self.layer is not None) and (not np.array_equal(masks[1], self.original_class_mask)): self.update_instance_mask(masks[0], masks[1])
+            self.switch_to_instance_mask()
+        # else if user has switched to the class mask
+        elif self.active_mask_index==1: 
+            if (self.layer is not None) and (not check_equal_arrays(masks[0], self.original_instance_mask)): self.update_labels_mask(masks[0], masks[1])
+            self.switch_to_labels_mask()
+
+    def switch_to_instance_mask(self):
+        """
+        Switch the application to the active mask mode by enabling 'paint_button', 'erase_button' 
+        and 'fill_button'.
+        """
+        self.switch_controls("paint_button", True)
+        self.switch_controls("erase_button", True)
+        self.switch_controls("fill_button", True)
+
+    def switch_to_labels_mask(self):
+        """
+        Switch the application to non-active mask mode by enabling 'fill_button' and disabling 'paint_button' and 'erase_button'.
+        """
+        #self.viewer.mode="PAN_ZOOM" # TODO if eraser or paint is previousy selected you can still use it in class mask
+        self.switch_controls("paint_button", False)
+        self.switch_controls("erase_button", False)
+        self.switch_controls("fill_button", True) 
+
+    def update_labels_mask(self, instance_mask, labels_mask):
+        """
+        If the instance mask has changed since the last switch between channels the class mask needs to be updated accordingly.
+        """
+        new_labels_mask = Compute4Mask.compute_new_labels_mask(labels_mask, instance_mask, self.original_instance_mask, self.instances)
+        contours_mask = Compute4Mask.get_contours(instance_mask)
+        instance_mask[contours_mask==1] = 0
+        self.original_instance_mask = instance_mask
+        self.instances = Compute4Mask.get_unique_objects(self.original_instance_mask)
+        self.layer.data[1] = new_labels_mask
+        self.layer.refresh()
 
     def switch_controls(self, target_widget, status: bool):
         """
@@ -112,145 +151,6 @@ class NapariWindow(MyWidget):
             getattr(self.qctrl, target_widget).setEnabled(status)
         except:
             pass
-
-    def switch_to_active_mask(self):
-        """
-        Switch the application to the active mask mode by enabling 'paint_button', 'erase_button' 
-        and 'fill_button'.
-        """
-
-        self.switch_controls("paint_button", True)
-        self.switch_controls("erase_button", True)
-        self.switch_controls("fill_button", True)
-
-        self.active_mask = True
-    
-    def switch_to_non_active_mask(self):
-        """
-        Switch the application to non-active mask mode by enabling 'fill_button' and disabling 'paint_button' and 'erase_button'.
-        """
-
-        self.instances = Compute4Mask.get_unique_objects(self.layer.data[self.active_mask_index])
-
-
-        self.switch_controls("paint_button", False)
-        self.switch_controls("erase_button", False)
-        self.switch_controls("fill_button", True) 
-
-        self.active_mask = False
-
-    def set_active_mask(self):
-        """
-        Sets the active mask index based on the drop down list, by default 
-        instance segmentation mask is an active mask with index 0.
-        If the active mask index is 1, it switches to non-active mask mode.
-        """
-        if self.active_mask_index == 1:
-            self.switch_to_non_active_mask()
-
-    def save_click_coordinates(self,event_position):
-        """
-        Save coordinates of the rounded position of a click event.
-        Parameters:
-        - event_position (tuple): A tuple representing the position of the click event.
-        Returns:
-        - tuple: The saved click coordinates in the format (c, event_x, event_y).
-        """
-
-        c, event_x, event_y = Compute4Mask.get_rounded_pos(event_position)
-        self.event_coords = (c, event_x, event_y)
-        return self.event_coords
-
-    def switch_user_mask(self):
-        """
-        Switch between active and non-active masks.
-        By default, the first mask is set as the active mask.
-        This function is useful when determining which buttons should be activated and
-        which should be locked
-        """
-        if self.viewer.dims.current_step[0] == self.active_mask_index:
-            self.switch_to_active_mask()
-        else:
-            self.switch_to_non_active_mask() 
-
-    def get_position_label(self, source_mask, mask_fill=None):
-        """
-        Retrieve the most common color label in the specified position or surrounding area.
-        """
-            
-        c, event_x, event_y = self.event_coords 
-
-        if mask_fill is not None:
-            labels, counts = Compute4Mask.get_unique_counts_for_mask(source_mask, c, mask_fill)
-        else:
-            # When clicking, the mouse provides a continuous position.
-            # To identify the color placement, we examine nearby positions within one pixel [idx_x - 1, idx_x + 1] and [idx_y - 1, idx_y + 1].
-            labels, counts = Compute4Mask.get_unique_counts_around_event(source_mask, c, event_x, event_y) 
-            
-        # index of the most common color in the area around the click excluding 0 
-        idx = Compute4Mask.argmax(counts)
-        # the most common color in the area around the click 
-        label = labels[idx] if idx is not None else 0
-
-        return label
-
-    def update_source_mask(self, source_mask, mask_fill, c, label, label_seg):
-        """
-        Copy the color to the label mask.
-
-        Parameters:
-        - source_mask (numpy.ndarray): The original source mask to be updated.
-        - mask_fill (numpy.ndarray): Boolean mask indicating the area to be updated.
-        - c (int): Index of the active mask.
-        - label (int): The new color.
-        - label_seg (int): The existing color.
-
-        If a new color is used, it is copied to a label mask; 
-        otherwise, the existing color is copied from the label mask.
-
-        """
-        if not label in self.instances:
-            source_mask[abs(c - 1)][mask_fill] = label
-        else:
-            source_mask[abs(c - 1)][mask_fill] = label_seg
-
-        return source_mask
-    
-   
-    def copy_mask_callback(self, layer, event):
-        """
-        Handles mouse press and set data events to copy masks based on the active mask index.
-        Parameters:
-            - layer: The layer object associated with the mask.
-            - event: The event triggering the callback.
-        """
-
-        source_mask = layer.data
-
-        if event.type == "mouse_press":
-            self.save_click_coordinates(event.position)   
-        elif event.type == "set_data":
-            self.switch_user_mask()
-            if self.event_coords is not None:
-                c, _, _ = self.event_coords
-                if c == self.active_mask_index:
-                    
-                    # get the mask of the instance
-                    label = self.get_position_label(source_mask)
-                    mask_fill = source_mask[c] == label
-                    # Find the color of the label mask at the given point
-                    # Determine the most common color in the label mask
-                    label_seg = self.get_position_label(source_mask, mask_fill=mask_fill)
-                    
-                    # If a new color is used, then it is copied to a label mask
-                    # Otherwise, we copy the existing color from the label mask 
-                    self.update_source_mask(source_mask, mask_fill, c, label, label_seg)
-
-                else:
-                    # the only action to be applied to the instance mask is erasing.
-                    mask_fill = source_mask[abs(c - 1)] == 0
-                    source_mask[c][mask_fill] = 0
-
 
     def on_add_to_curated_button_clicked(self):
         '''
