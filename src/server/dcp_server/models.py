@@ -50,7 +50,11 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
     def update_configs(self, train_config, eval_config):
         self.train_config = train_config
         self.eval_config = eval_config
-        
+
+    def eval_probas(self, img):
+
+        return super().eval(x=img, **self.eval_config["segmentor"])[1][2]
+
     def eval(self, img):
         """Evaluate the model - find mask of the given image
         Calls the original eval function. 
@@ -585,7 +589,7 @@ class CellposeMultichannel():
 
     def eval(self, img):
 
-        instance_masks, class_masks = [], []
+        instance_masks, class_masks, class_probas = [], [], []
 
         instance_offset = 0
 
@@ -601,7 +605,18 @@ class CellposeMultichannel():
             label_mask[res>0]=(i + 1)
             class_masks.append(label_mask)
 
-        instance_mask, class_mask = sum(instance_masks), sum(class_masks)
+            class_proba = self.cellpose_models[i].eval_probas(img)
+            class_probas.append(class_proba)
+
+        instance_mask = sum(instance_masks)
+        class_probas = np.argmax(np.stack(class_probas), axis=0)
+
+        # merge the outputs of the n models
+        class_masks = np.stack(class_masks)
+        indexes = class_probas*class_probas.size + np.arange(class_probas.size).reshape(class_probas.shape)
+        indexes = np.unravel_index(indexes, class_masks.shape)
+        class_mask = class_masks[indexes]
+
         final_mask = np.stack((instance_mask, class_mask), axis=self.eval_config['mask_channel_axis']).astype(np.uint16)
         
         return final_mask
