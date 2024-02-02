@@ -89,7 +89,38 @@ class Compute4Mask:
         return contour_mask
     
     @staticmethod
+    def compute_new_instance_mask(labels_mask, instance_mask):
+        '''
+        Given an updated labels mask, update also the instance mask accordingly. So far the user can only remove an entire object in the labels mask view.
+        Therefore the instance mask can only change by entirely removing an object.
+
+        Parameters:
+        - labels_mask (numpy.ndarray): The labels mask array, with changes made by the user.
+        - instance_mask (numpy.ndarray): The existing instance mask, which needs to be updated.
+        Returns:
+        - instance_mask (numpy.ndarray): The updated instance mask.
+        '''
+        instance_ids = Compute4Mask.get_unique_objects(instance_mask)
+        for instance_id in instance_ids:
+            unique_items_in_class_mask = list(np.unique(labels_mask[instance_mask==instance_id]))
+            if len(unique_items_in_class_mask)==1 and unique_items_in_class_mask[0]==0:
+                instance_mask[instance_mask==instance_id] = 0
+        return instance_mask
+
+
+    @staticmethod
     def compute_new_labels_mask(labels_mask, instance_mask, original_instance_mask, old_instances):
+        '''
+        Given the existing labels mask, the updated instance mask is used to update the labels mask.
+
+        Parameters:
+        - labels_mask (numpy.ndarray): The existing labels mask, which needs to be updated.
+        - instance_mask (numpy.ndarray): The instance mask array, with changes made by the user.
+        - original_instance_mask (numpy.ndarray): The instance mask array, before the changes made by the user.
+        - old_instances (List): A list of the instance label ids in original_instance_mask.
+        Returns:
+        - new_labels_mask (numpy.ndarray): The new labels mask, with updated changes according to those the user has made in the instance mask.
+        '''
         new_labels_mask = np.zeros_like(labels_mask)
         for instance_id in np.unique(instance_mask):
             where_instance = np.where(instance_mask==instance_id)
@@ -116,77 +147,11 @@ class Compute4Mask:
         contours_mask = Compute4Mask.get_contours(instance_mask)
         new_labels_mask[contours_mask==1] = 0
         return new_labels_mask
-    
-    '''     
+       
     @staticmethod
     def get_unique_objects(active_mask):
         """
         Get unique objects from the active mask.
         """
-
         return list(np.unique(active_mask)[1:])
     
-    @staticmethod
-    def find_edges(instance_mask, idx=None):
-        """
-        Find edges in the instance mask.
-        This function is used to identify the edges of the objects to prevent 
-        problem of the merged objects in napari window (mask).
-
-        Parameters:
-        - instance_mask (numpy.ndarray): The instance mask array.
-        - idx (list, optional): Indices of specific labels to get contours.
-
-        Returns:
-        - numpy.ndarray: Array representing edges in the instance segmentation mask.
-        """
-        if idx is not None and not isinstance(idx, list):
-            idx = [idx]
-
-        instances = np.unique(instance_mask)[1:]
-        edges = np.zeros_like(instance_mask).astype(int)
-
-        if len(instances):
-            for i in instances:
-                if idx is None or i in idx:
-        
-                    mask_instance = (instance_mask == i).astype(np.uint8)
-
-                    edge_mask = 255 * (canny(255 * (mask_instance)) > 0).astype(np.uint8)
-                    edges = closing(edges, square(5))
-                    edges = edges + edge_mask
-
-            # if masks are intersecting then we want to count it only once
-            edges = edges > 0
-            
-            return edges
-        
-    @staticmethod    
-    def get_rounded_pos(event_position):
-        """
-        Get rounded position from the event position.
-        """
-
-        c, event_x, event_y = event_position
-        return int(c), int(np.round(event_x)), int(np.round(event_y))
-    
-    @staticmethod
-    def argmax (counts):
-       return np.argmax(counts) if len(counts) > 0 else None
-    
-    @staticmethod
-    def get_unique_counts_around_event(source_mask, channel_id, event_x, event_y):
-        """
-        Get unique counts around the specified event position in the source mask.
-        """
-        return np.unique(source_mask[channel_id, event_x - 1: event_x + 2, event_y - 1: event_y + 2], return_counts=True)
-    
-    @staticmethod
-    def get_unique_counts_for_mask(source_mask, channel_id, mask_fill):
-        """
-        Get unique counts for the specified mask in the source mask.
-        """
-        return np.unique(source_mask[abs(channel_id - 1)][mask_fill], return_counts=True) 
-
-    '''
-

@@ -41,7 +41,8 @@ class NapariWindow(MyWidget):
 
         # select the first seg as the currently selected layer if there are any segs
         if len(self.app.seg_filepaths):
-            self.layer = self.viewer.layers[get_path_stem(self.app.seg_filepaths[0])]
+            self.cur_selected_seg = self.viewer.layers.selection.active.name
+            self.layer = self.viewer.layers[self.cur_selected_seg]
             self.viewer.layers.selection.events.changed.connect(self.on_seg_channel_changed)
             # set first mask as active by default
             self.active_mask_index = 0
@@ -68,7 +69,7 @@ class NapariWindow(MyWidget):
                 # when user has chosen the mask, we don't want to change it anymore to avoid errors
                 lock_button = QPushButton("Confirm Final Choice")
                 lock_button.setEnabled(False)
-                lock_button.clicked.connect(self.set_active_mask)
+                lock_button.clicked.connect(self.set_editable_mask)
 
                 layout.addWidget(lock_button, 1, 2)
         else:
@@ -84,13 +85,25 @@ class NapariWindow(MyWidget):
 
         self.setLayout(layout)
 
+    def set_editable_mask(self):
+        """
+        This function is not implemented. In theory the use can choose between which mask to edit.
+        Currently painting and erasing is only possible on instance mask and in the class mask only
+        the class labels can be changed.
+        """
+        pass
+
+
     def on_seg_channel_changed(self, event):
         """
         Is triggered each time the user selects a different layer in the viewer.
         """
-        selected_layer_name = self.viewer.layers.selection.active.name
-        if type(self.viewer.layers[selected_layer_name]) == napari.layers.Image: pass
-        elif self.layer is not None: self.layer = self.viewer[selected_layer_name]
+        try:
+            self.cur_selected_seg = self.viewer.layers.selection.active.name
+            if type(self.viewer.layers[self.cur_selected_seg]) == napari.layers.Image: pass
+            elif self.layer is not None: self.layer = self.viewer.layers[self.cur_selected_seg]
+        # this will happen when user changes the name of the labels layer
+        except ValueError: pass
 
     def axis_changed(self, event):
         """
@@ -98,14 +111,14 @@ class NapariWindow(MyWidget):
         needs to be updated according to the changes made tot the instance segmentation mask.
         """
         self.active_mask_index = self.viewer.dims.current_step[0]
-        if self.layer is not None: masks = deepcopy(self.layer.data)
+        masks = deepcopy(self.layer.data)
         # if user has switched to the instance mask
         if self.active_mask_index==0: 
-            #if (self.layer is not None) and (not np.array_equal(masks[1], self.original_class_mask)): self.update_instance_mask(masks[0], masks[1])
+            if not check_equal_arrays(masks[1], self.original_class_mask): self.update_instance_mask(masks[0], masks[1])
             self.switch_to_instance_mask()
         # else if user has switched to the class mask
         elif self.active_mask_index==1: 
-            if (self.layer is not None) and (not check_equal_arrays(masks[0], self.original_instance_mask)): self.update_labels_mask(masks[0], masks[1])
+            if not check_equal_arrays(masks[0], self.original_instance_mask): self.update_labels_mask(masks[0], masks[1])
             self.switch_to_labels_mask()
 
     def switch_to_instance_mask(self):
@@ -121,14 +134,20 @@ class NapariWindow(MyWidget):
         """
         Switch the application to non-active mask mode by enabling 'fill_button' and disabling 'paint_button' and 'erase_button'.
         """
-        #self.viewer.mode="PAN_ZOOM" # TODO if eraser or paint is previousy selected you can still use it in class mask
-        self.switch_controls("paint_button", False)
-        self.switch_controls("erase_button", False)
+        self.viewer.layers[self.cur_selected_seg].mode = 'pan_zoom'
+        info_message_paint = "Painting objects is only possible in the instance layer for now."
+        info_message_erase = "Erasing objects is only possible in the instance layer for now."
+        self.switch_controls("paint_button", False, info_message_paint)
+        self.switch_controls("erase_button", False, info_message_erase)
         self.switch_controls("fill_button", True) 
 
     def update_labels_mask(self, instance_mask, labels_mask):
         """
         If the instance mask has changed since the last switch between channels the class mask needs to be updated accordingly.
+        
+        Parameters:
+        - instance_mask (numpy.ndarray): The updated instance mask, changed by the user.
+        - labels_mask (numpy.ndarray): The existing labels mask, which needs to be updated.
         """
         new_labels_mask = Compute4Mask.compute_new_labels_mask(labels_mask, instance_mask, self.original_instance_mask, self.instances)
         contours_mask = Compute4Mask.get_contours(instance_mask)
@@ -138,23 +157,38 @@ class NapariWindow(MyWidget):
         self.layer.data[1] = new_labels_mask
         self.layer.refresh()
 
-    def switch_controls(self, target_widget, status: bool):
+    def update_instance_mask(self, instance_mask, labels_mask):
+        """
+        If the labels mask has changed **only if an object has been removed** the instance mask is updated.
+        
+        Parameters:
+        - instance_mask (numpy.ndarray): The existing instance mask, which needs to be updated.
+        - labels_mask (numpy.ndarray): The updated labels mask, changed by the user.
+        """
+        self.original_instance_mask = Compute4Mask.compute_new_instance_mask(labels_mask, instance_mask)
+        self.instances = Compute4Mask.get_unique_objects(self.original_instance_mask)
+        self.layer.data[0] = self.original_instance_mask
+        self.layer.refresh()
+
+    def switch_controls(self, target_widget, status: bool, info_message=None):
         """
         Enable or disable a specific widget.
 
         Parameters:
         - target_widget (str): The name of the widget to be controlled within the QCtrl object.
         - status (bool): If True, the widget will be enabled; if False, it will be disabled.
-    
+        - info_message (str or None): Optionally add an info message when hovering over some widget.
         """
         try:
             getattr(self.qctrl, target_widget).setEnabled(status)
+            if info_message is not None:
+                getattr(self.qctrl, target_widget).setToolTip(info_message)
         except:
             pass
 
     def on_add_to_curated_button_clicked(self):
         '''
-        Defines what happens when the button is clicked.
+        Defines what happens when the "Move to curated dataset folder" button is clicked.
         '''
         if  self.app.cur_selected_path == str(self.app.train_data_path):
             message_text = "Image is already in the \'Curated data\' folder and should not be changed again"
@@ -165,7 +199,10 @@ class NapariWindow(MyWidget):
         cur_seg_selected = self.viewer.layers.selection.active.name
         # TODO if more than one item is selected this will break!
         if '_seg' not in cur_seg_selected:
-            message_text = "Please select the segmenation you wish to save from the layer list"
+            message_text = (
+            "Please select the segmenation you wish to save from the layer list."
+            "The labels layer should have the same name as the image to which it corresponds, followed by _seg."
+            )
             _ = self.create_warning_box(message_text, message_title="Warning")
             return
         
@@ -186,7 +223,7 @@ class NapariWindow(MyWidget):
 
     def on_add_to_inprogress_button_clicked(self):
         '''
-        Defines what happens when the button is clicked.
+        Defines what happens when the "Move to curation in progress folder" button is clicked.
         '''
         # TODO: Do we allow this? What if they moved it by mistake? User can always manually move from their folders?)
         if self.app.cur_selected_path == str(self.app.train_data_path):
@@ -198,7 +235,10 @@ class NapariWindow(MyWidget):
         cur_seg_selected = self.viewer.layers.selection.active.name
         # TODO if more than one item is selected this will break!
         if '_seg' not in cur_seg_selected:
-            message_text = "Please select the segmenation you wish to save from the layer list"
+            message_text = (
+            "Please select the segmenation you wish to save from the layer list."
+            "The labels layer should have the same name as the image to which it corresponds, followed by _seg."
+            )
             _ = self.create_warning_box(message_text, message_title="Warning")
             return
 
