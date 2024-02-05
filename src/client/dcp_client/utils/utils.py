@@ -73,20 +73,46 @@ class Compute4Mask:
         Returns:
         - contour_mask (numpy.ndarray): A binary mask where the contours of all objects in the instance segmentation mask are one and the rest is background.
         '''
-        labels = np.unique(instance_mask)[1:] # get object instance labels ignoring background
+        instance_ids = Compute4Mask.get_unique_objects(instance_mask) # get object instance labels ignoring background
         contour_mask= np.zeros_like(instance_mask)
-        for label in labels:
+        for instance_id in instance_ids:
+            # get a binary mask only of object
             single_obj_mask = np.zeros_like(instance_mask)
-            single_obj_mask[instance_mask==label] = 1
+            single_obj_mask[instance_mask==instance_id] = 1
+            # compute contours for mask
             contours = find_contours(single_obj_mask, 0.8)
+            # sometimes little dots appeas as additional contours so remove these
             if len(contours)>1: 
                 contour_sizes = [contour.shape[0] for contour in contours]
                 contour = contours[contour_sizes.index(max(contour_sizes))].astype(int)
             else: contour = contours[0]
-
+            # and draw onto contours mask
             rr, cc = polygon_perimeter(contour[:, 0], contour[:, 1], contour_mask.shape)
-            contour_mask[rr, cc] = 1
+            contour_mask[rr, cc] = instance_id
         return contour_mask
+    
+    @staticmethod
+    def add_contour(labels_mask, instance_mask, contours_mask):
+        '''
+        Add contours of objects to the labels mask.
+
+        Parameters:
+        - labels_mask (numpy.ndarray): The class mask array without the contour pixels annotated.
+        - instance_mask (numpy.ndarray): The instance mask array.
+        - contours_mask (numpy.ndarray): The contours mask array, where each contour holds the instance_id.
+
+        Returns:
+        - labels_mask (numpy.ndarray): The updated class mask including contours.
+        '''
+        instance_ids = Compute4Mask.get_unique_objects(instance_mask)
+        for instance_id in instance_ids:
+            where_instances = np.where(instance_mask==instance_id)
+            class_vals = Compute4Mask.get_unique_objects(labels_mask[where_instances])
+            if len(class_vals)==0: continue
+            else: 
+                labels_mask[np.where(contours_mask==instance_id)] = class_vals[-1]
+        return labels_mask
+
     
     @staticmethod
     def compute_new_instance_mask(labels_mask, instance_mask):
@@ -137,15 +163,13 @@ class Compute4Mask:
                 # if area was erased and object retains same class
                 if len(num_classes)==1: 
                     new_labels_mask[where_instance] = num_classes[0]
-                # area was added where there is background
+                # area was added where there is background or other class
                 else:
                     old_class_id = np.unique(labels_mask[where_instance_orig])
                     #assert len(old_class_id)==1
                     old_class_id = old_class_id[0]
                     new_labels_mask[where_instance] = old_class_id
-                    
-        contours_mask = Compute4Mask.get_contours(instance_mask)
-        new_labels_mask[contours_mask==1] = 0
+    
         return new_labels_mask
        
     @staticmethod

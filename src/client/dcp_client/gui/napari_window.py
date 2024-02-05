@@ -52,7 +52,10 @@ class NapariWindow(MyWidget):
             self.instances = Compute4Mask.get_unique_objects(self.original_instance_mask)
             self.original_class_mask = deepcopy(self.layer.data[1])
             self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
-          
+            # remove border from class mask
+            self.contours_mask = Compute4Mask.get_contours(self.original_instance_mask)
+            self.layer.data[1][self.contours_mask!=0] = 0
+
             if self.layer.data.shape[0] >= 2:
                 # User hint
                 message_label = QLabel('Choose an active mask')
@@ -114,11 +117,14 @@ class NapariWindow(MyWidget):
         masks = deepcopy(self.layer.data)
         # if user has switched to the instance mask
         if self.active_mask_index==0: 
-            if not check_equal_arrays(masks[1], self.original_class_mask): self.update_instance_mask(masks[0], masks[1])
+            class_mask_with_contours = Compute4Mask.add_contour(masks[1], masks[0], self.contours_mask)
+            if not check_equal_arrays(class_mask_with_contours.astype(bool), self.original_class_mask.astype(bool)):
+                self.update_instance_mask(masks[0], masks[1])
             self.switch_to_instance_mask()
         # else if user has switched to the class mask
         elif self.active_mask_index==1: 
-            if not check_equal_arrays(masks[0], self.original_instance_mask): self.update_labels_mask(masks[0], masks[1])
+            if not check_equal_arrays(masks[0], self.original_instance_mask): 
+                self.update_labels_mask(masks[0])
             self.switch_to_labels_mask()
 
     def switch_to_instance_mask(self):
@@ -141,7 +147,7 @@ class NapariWindow(MyWidget):
         self.switch_controls("erase_button", False, info_message_erase)
         self.switch_controls("fill_button", True) 
 
-    def update_labels_mask(self, instance_mask, labels_mask):
+    def update_labels_mask(self, instance_mask):
         """
         If the instance mask has changed since the last switch between channels the class mask needs to be updated accordingly.
         
@@ -149,12 +155,19 @@ class NapariWindow(MyWidget):
         - instance_mask (numpy.ndarray): The updated instance mask, changed by the user.
         - labels_mask (numpy.ndarray): The existing labels mask, which needs to be updated.
         """
-        new_labels_mask = Compute4Mask.compute_new_labels_mask(labels_mask, instance_mask, self.original_instance_mask, self.instances)
-        contours_mask = Compute4Mask.get_contours(instance_mask)
-        instance_mask[contours_mask==1] = 0
+        self.original_class_mask = Compute4Mask.compute_new_labels_mask(self.original_class_mask, 
+                                                                        instance_mask, 
+                                                                        self.original_instance_mask,
+                                                                        self.instances)
+        # update original instance mask and instances
         self.original_instance_mask = instance_mask
         self.instances = Compute4Mask.get_unique_objects(self.original_instance_mask)
-        self.layer.data[1] = new_labels_mask
+        # compute contours to remove from class mask visualisation
+        self.contours_mask = Compute4Mask.get_contours(instance_mask)
+        vis_labels_mask = deepcopy(self.original_class_mask)
+        vis_labels_mask[self.contours_mask!=0] = 0
+        # update the viewer
+        self.layer.data[1] = vis_labels_mask
         self.layer.refresh()
 
     def update_instance_mask(self, instance_mask, labels_mask):
@@ -165,8 +178,14 @@ class NapariWindow(MyWidget):
         - instance_mask (numpy.ndarray): The existing instance mask, which needs to be updated.
         - labels_mask (numpy.ndarray): The updated labels mask, changed by the user.
         """
-        self.original_instance_mask = Compute4Mask.compute_new_instance_mask(labels_mask, instance_mask)
+        # add contours back to labels mask
+        labels_mask = Compute4Mask.add_contour(labels_mask, instance_mask, self.contours_mask)
+        # and compute the updated instance mask
+        self.original_instance_mask = Compute4Mask.compute_new_instance_mask(labels_mask,
+                                                                             instance_mask)
         self.instances = Compute4Mask.get_unique_objects(self.original_instance_mask)
+        self.original_class_mask = labels_mask
+        # update the viewer
         self.layer.data[0] = self.original_instance_mask
         self.layer.refresh()
 
