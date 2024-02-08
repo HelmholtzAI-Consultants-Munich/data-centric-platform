@@ -212,7 +212,7 @@ class MainWindow(MyWidget):
             _ = self.create_warning_box(message_text, message_title="Warning")
         else:
             self.nap_win = NapariWindow(self.app)
-            self.nap_win.show()
+            self.nap_win.show() 
 
     def on_finished(self, result):
         ''' 
