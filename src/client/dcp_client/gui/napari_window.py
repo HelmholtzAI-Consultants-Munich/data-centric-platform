@@ -1,16 +1,14 @@
 from __future__ import annotations
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
+from copy import deepcopy
 
 from qtpy.QtWidgets import QPushButton, QComboBox, QLabel, QGridLayout
 from qtpy.QtCore import Qt
 import napari
-from dcp_client.utils.utils import Compute4Mask
-from copy import deepcopy
 
 if TYPE_CHECKING:
     from dcp_client.app import Application
-
-from dcp_client.utils.utils import get_path_stem, check_equal_arrays
+from dcp_client.utils.utils import get_path_stem, check_equal_arrays, Compute4Mask
 from dcp_client.gui._my_widget import MyWidget
 
 class NapariWindow(MyWidget):
@@ -28,11 +26,12 @@ class NapariWindow(MyWidget):
         # Load image and get corresponding segmentation filenames
         img = self.app.load_image()
         self.app.search_segs()
+        self.seg_files = self.app.seg_filepaths.copy()
 
         # Set the viewer
         self.viewer = napari.Viewer(show=False)
         self.viewer.add_image(img, name=get_path_stem(self.app.cur_selected_img))
-        for seg_file in self.app.seg_filepaths:
+        for seg_file in self.seg_files:
             self.viewer.add_labels(self.app.load_image(seg_file), name=get_path_stem(seg_file))
 
         main_window = self.viewer.window._qt_window
@@ -40,21 +39,29 @@ class NapariWindow(MyWidget):
         layout.addWidget(main_window, 0, 0, 1, 4)
 
         # select the first seg as the currently selected layer if there are any segs
-        if len(self.app.seg_filepaths):
+        if len(self.seg_files):
             self.cur_selected_seg = self.viewer.layers.selection.active.name
             self.layer = self.viewer.layers[self.cur_selected_seg]
             self.viewer.layers.selection.events.changed.connect(self.on_seg_channel_changed)
             # set first mask as active by default
             self.active_mask_index = 0
             self.viewer.dims.events.current_step.connect(self.axis_changed)
-            # get unique instance labels
-            self.original_instance_mask = deepcopy(self.layer.data[0])
-            self.instances = Compute4Mask.get_unique_objects(self.original_instance_mask)
-            self.original_class_mask = deepcopy(self.layer.data[1])
+            self.original_instance_mask = {}
+            self.original_class_mask = {}
+            self.instances = {}
+            self.contours_mask = {}
+            for seg_file in self.seg_files:
+                layer_name = get_path_stem(seg_file)
+                # get unique instance labels for each seg
+                self.original_instance_mask[layer_name] = deepcopy(self.viewer.layers[layer_name].data[0])
+                self.original_class_mask[layer_name] = deepcopy(self.viewer.layers[layer_name].data[1])
+                # compute unique instance ids
+                self.instances[layer_name] = Compute4Mask.get_unique_objects(self.original_instance_mask[layer_name])
+                # remove border from class mask
+                self.contours_mask[layer_name] = Compute4Mask.get_contours(self.original_instance_mask[layer_name])
+                self.viewer.layers[layer_name].data[1][self.contours_mask[layer_name]!=0] = 0
+            
             self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
-            # remove border from class mask
-            self.contours_mask = Compute4Mask.get_contours(self.original_instance_mask)
-            self.layer.data[1][self.contours_mask!=0] = 0
 
             if self.layer.data.shape[0] >= 2:
                 # User hint
@@ -77,11 +84,12 @@ class NapariWindow(MyWidget):
                 layout.addWidget(lock_button, 1, 2)
         else:
             self.layer = None
-        
+
+        # add buttons for moving images to other dirs
         add_to_inprogress_button = QPushButton('Move to \'Curatation in progress\' folder')
         layout.addWidget(add_to_inprogress_button, 2, 0, 1, 2)
         add_to_inprogress_button.clicked.connect(self.on_add_to_inprogress_button_clicked)
-    
+
         add_to_curated_button = QPushButton('Move to \'Curated dataset\' folder')
         layout.addWidget(add_to_curated_button, 2, 2, 1, 2)
         add_to_curated_button.clicked.connect(self.on_add_to_curated_button_clicked)
@@ -96,18 +104,18 @@ class NapariWindow(MyWidget):
         """
         pass
 
-
     def on_seg_channel_changed(self, event):
         """
         Is triggered each time the user selects a different layer in the viewer.
         """
-        try:
-            self.cur_selected_seg = self.viewer.layers.selection.active.name
+        if (act := self.viewer.layers.selection.active) is not None:
+            # updater cur_selected_seg with the new selection from the user
+            self.cur_selected_seg = act.name
             if type(self.viewer.layers[self.cur_selected_seg]) == napari.layers.Image: pass
-            elif self.layer is not None: self.layer = self.viewer.layers[self.cur_selected_seg]
-        # this will happen when user changes the name of the labels layer
-        except ValueError: pass
-
+            # set self.layer to new selection from user
+            elif self.layer is not None: self.layer = self.viewer.layers[self.cur_selected_seg] 
+        else: pass
+            
     def axis_changed(self, event):
         """
         Is triggered each time the user switches the viewer between the mask channels. At this point the class mask 
@@ -117,13 +125,13 @@ class NapariWindow(MyWidget):
         masks = deepcopy(self.layer.data)
         # if user has switched to the instance mask
         if self.active_mask_index==0: 
-            class_mask_with_contours = Compute4Mask.add_contour(masks[1], masks[0], self.contours_mask)
-            if not check_equal_arrays(class_mask_with_contours.astype(bool), self.original_class_mask.astype(bool)):
+            class_mask_with_contours = Compute4Mask.add_contour(masks[1], masks[0], self.contours_mask[self.cur_selected_seg])
+            if not check_equal_arrays(class_mask_with_contours.astype(bool), self.original_class_mask[self.cur_selected_seg].astype(bool)):
                 self.update_instance_mask(masks[0], masks[1])
             self.switch_to_instance_mask()
         # else if user has switched to the class mask
         elif self.active_mask_index==1: 
-            if not check_equal_arrays(masks[0], self.original_instance_mask): 
+            if not check_equal_arrays(masks[0], self.original_instance_mask[self.cur_selected_seg]): 
                 self.update_labels_mask(masks[0])
             self.switch_to_labels_mask()
 
@@ -140,7 +148,8 @@ class NapariWindow(MyWidget):
         """
         Switch the application to non-active mask mode by enabling 'fill_button' and disabling 'paint_button' and 'erase_button'.
         """
-        self.viewer.layers[self.cur_selected_seg].mode = 'pan_zoom'
+        if self.cur_selected_seg in [layer.name for layer in self.viewer.layers]:
+            self.viewer.layers[self.cur_selected_seg].mode = 'pan_zoom'
         info_message_paint = "Painting objects is only possible in the instance layer for now."
         info_message_erase = "Erasing objects is only possible in the instance layer for now."
         self.switch_controls("paint_button", False, info_message_paint)
@@ -155,17 +164,17 @@ class NapariWindow(MyWidget):
         - instance_mask (numpy.ndarray): The updated instance mask, changed by the user.
         - labels_mask (numpy.ndarray): The existing labels mask, which needs to be updated.
         """
-        self.original_class_mask = Compute4Mask.compute_new_labels_mask(self.original_class_mask, 
+        self.original_class_mask[self.cur_selected_seg] = Compute4Mask.compute_new_labels_mask(self.original_class_mask[self.cur_selected_seg], 
                                                                         instance_mask, 
-                                                                        self.original_instance_mask,
-                                                                        self.instances)
+                                                                        self.original_instance_mask[self.cur_selected_seg],
+                                                                        self.instances[self.cur_selected_seg])
         # update original instance mask and instances
-        self.original_instance_mask = instance_mask
-        self.instances = Compute4Mask.get_unique_objects(self.original_instance_mask)
+        self.original_instance_mask[self.cur_selected_seg] = instance_mask
+        self.instances[self.cur_selected_seg] = Compute4Mask.get_unique_objects(self.original_instance_mask[self.cur_selected_seg])
         # compute contours to remove from class mask visualisation
-        self.contours_mask = Compute4Mask.get_contours(instance_mask)
-        vis_labels_mask = deepcopy(self.original_class_mask)
-        vis_labels_mask[self.contours_mask!=0] = 0
+        self.contours_mask[self.cur_selected_seg] = Compute4Mask.get_contours(instance_mask)
+        vis_labels_mask = deepcopy(self.original_class_mask[self.cur_selected_seg])
+        vis_labels_mask[self.contours_mask[self.cur_selected_seg]!=0] = 0
         # update the viewer
         self.layer.data[1] = vis_labels_mask
         self.layer.refresh()
@@ -179,14 +188,14 @@ class NapariWindow(MyWidget):
         - labels_mask (numpy.ndarray): The updated labels mask, changed by the user.
         """
         # add contours back to labels mask
-        labels_mask = Compute4Mask.add_contour(labels_mask, instance_mask, self.contours_mask)
+        labels_mask = Compute4Mask.add_contour(labels_mask, instance_mask, self.contours_mask[self.cur_selected_seg])
         # and compute the updated instance mask
-        self.original_instance_mask = Compute4Mask.compute_new_instance_mask(labels_mask,
+        self.original_instance_mask[self.cur_selected_seg] = Compute4Mask.compute_new_instance_mask(labels_mask,
                                                                              instance_mask)
-        self.instances = Compute4Mask.get_unique_objects(self.original_instance_mask)
-        self.original_class_mask = labels_mask
+        self.instances[self.cur_selected_seg] = Compute4Mask.get_unique_objects(self.original_instance_mask[self.cur_selected_seg])
+        self.original_class_mask[self.cur_selected_seg] = labels_mask
         # update the viewer
-        self.layer.data[0] = self.original_instance_mask
+        self.layer.data[0] = self.original_instance_mask[self.cur_selected_seg]
         self.layer.refresh()
 
     def switch_controls(self, target_widget, status: bool, info_message=None):
@@ -215,26 +224,25 @@ class NapariWindow(MyWidget):
             return
         
         # take the name of the currently selected layer (by the user)
-        cur_seg_selected = self.viewer.layers.selection.active.name
+        seg_name_to_save = self.viewer.layers.selection.active.name
         # TODO if more than one item is selected this will break!
-        if '_seg' not in cur_seg_selected:
+        if '_seg' not in seg_name_to_save:
             message_text = (
             "Please select the segmenation you wish to save from the layer list."
             "The labels layer should have the same name as the image to which it corresponds, followed by _seg."
             )
             _ = self.create_warning_box(message_text, message_title="Warning")
             return
-        
-        seg = self.viewer.layers[cur_seg_selected].data
 
         # Move original image
         self.app.move_images(self.app.train_data_path)
-
+        
         # Save the (changed) seg
-        self.app.save_image(self.app.train_data_path, cur_seg_selected+'.tiff', seg)
+        seg = self.viewer.layers[seg_name_to_save].data
+        self.app.save_image(self.app.train_data_path, seg_name_to_save+'.tiff', seg)
 
         # We remove seg from the current directory if it exists (both eval and inprogr allowed)
-        self.app.delete_images(self.app.seg_filepaths)
+        self.app.delete_images(self.seg_files)
         # TODO Create the Archive folder for the rest? Or move them as well? 
 
         self.viewer.close()
@@ -251,9 +259,9 @@ class NapariWindow(MyWidget):
             return
         
         # take the name of the currently selected layer (by the user)
-        cur_seg_selected = self.viewer.layers.selection.active.name
+        seg_name_to_save = self.viewer.layers.selection.active.name
         # TODO if more than one item is selected this will break!
-        if '_seg' not in cur_seg_selected:
+        if '_seg' not in seg_name_to_save:
             message_text = (
             "Please select the segmenation you wish to save from the layer list."
             "The labels layer should have the same name as the image to which it corresponds, followed by _seg."
@@ -263,11 +271,10 @@ class NapariWindow(MyWidget):
 
         # Move original image
         self.app.move_images(self.app.inprogr_data_path, move_segs=True)
-
         # Save the (changed) seg - this will overwrite existing seg if seg name hasn't been changed in viewer
-        seg = self.viewer.layers[cur_seg_selected].data
-        self.app.save_image(self.app.inprogr_data_path, cur_seg_selected+'.tiff', seg)
+        seg = self.viewer.layers[seg_name_to_save].data
+        self.app.save_image(self.app.inprogr_data_path, seg_name_to_save+'.tiff', seg)
         
         self.viewer.close()
         self.close()
-        
+    
