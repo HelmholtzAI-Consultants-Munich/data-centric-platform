@@ -49,6 +49,7 @@ jobs:
           pip install pytest-xvfb
           pip install coverage
           pip install -e ".[testing]"
+          pip install matplotlib
         working-directory: src/client
 
       - name: Install server dependencies (for communication tests)
