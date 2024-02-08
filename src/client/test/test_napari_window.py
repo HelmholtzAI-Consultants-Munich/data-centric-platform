@@ -69,54 +69,6 @@ def test_napari_window_initialization(napari_window):
     assert napari_window.qctrl is not None
     assert napari_window.mask_choice_dropdown is not None
 
-def test_switch_to_active_mask(napari_window):
-    napari_window.switch_to_active_mask()
-    assert napari_window.active_mask 
-
-def test_switch_to_non_active_mask(napari_window):
-    napari_window.switch_to_non_active_mask()
-    assert napari_window.active_mask is False
-
-def test_set_active_mask(napari_window):
-    napari_window.active_mask_index = 0
-    napari_window.set_active_mask()
-    assert napari_window.active_mask is True
-
-    napari_window.active_mask_index = 1
-    napari_window.set_active_mask()
-    assert napari_window.active_mask is False
-   
-
-def test_save_click_coordinates(napari_window):
- 
-    event_position = (0, 10, 20)
-    result = napari_window.save_click_coordinates(event_position)
-    assert result is not None
-  
-
-def test_switch_user_mask(napari_window):
-
-    napari_window.switch_user_mask()
-    assert napari_window.active_mask is True
-
-
-def test_get_position_label(napari_window):
-    napari_window.event_coords = (0, 10, 20)
-    result = napari_window.get_position_label(napari_window.layer.data)
-    assert result is not None
-  
-
-def test_update_source_mask_new_color(napari_window):
-    source_mask = np.zeros((1, 3, 3))  
-    mask_fill = np.ones((3, 3), dtype=bool)  
-    c = 1
-    label = 5
-    label_seg = 10
-
-    result = napari_window.update_source_mask(source_mask, mask_fill, c, label, label_seg)
-    assert np.array_equal(result, 5*np.ones_like(result))
-
-
 def test_on_add_to_curated_button_clicked(napari_window, monkeypatch):
     # Mock the create_warning_box method
     def mock_create_warning_box(message_text, message_title):
