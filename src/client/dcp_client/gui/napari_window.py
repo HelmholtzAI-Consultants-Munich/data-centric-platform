@@ -239,6 +239,8 @@ class NapariWindow(MyWidget):
         
         # Save the (changed) seg
         seg = self.viewer.layers[seg_name_to_save].data
+        contours = Compute4Mask.get_contours(seg[0])
+        seg[1] = Compute4Mask.add_contour(seg[1], seg[0], contours)
         self.app.save_image(self.app.train_data_path, seg_name_to_save+'.tiff', seg)
 
         # We remove seg from the current directory if it exists (both eval and inprogr allowed)
@@ -273,6 +275,8 @@ class NapariWindow(MyWidget):
         self.app.move_images(self.app.inprogr_data_path, move_segs=True)
         # Save the (changed) seg - this will overwrite existing seg if seg name hasn't been changed in viewer
         seg = self.viewer.layers[seg_name_to_save].data
+        contours = Compute4Mask.get_contours(seg[0])
+        seg[1] = Compute4Mask.add_contour(seg[1], seg[0], contours)
         self.app.save_image(self.app.inprogr_data_path, seg_name_to_save+'.tiff', seg)
         
         self.viewer.close()
