@@ -14,9 +14,15 @@ np.random.seed(seed_value)
 
 
 def assign_unique_colors(labels, colors):
-    '''
-    Assigns unique colors to each label in the given label array.
-    '''
+    """Assigns unique colors to each label in the given label array.
+
+    :param labels: The array containing labels.
+    :type labels: numpy.ndarray
+    :param colors: The list of colors to assign to each label.
+    :type colors: list
+    :return: A dictionary containing the color assignment for each unique label.
+    :rtype: dict
+    """
     unique_labels = np.unique(labels)
     # Create a dictionary to store the color assignment for each label
     label_colors = {}
@@ -36,9 +42,20 @@ def assign_unique_colors(labels, colors):
     return label_colors
 
 def custom_label2rgb(labels, colors=['red', 'green', 'blue'], bg_label=0, alpha=0.5):
-    '''
+    """
     Converts a label array to an RGB image using assigned colors for each label.
-    '''
+
+    :param labels: The array containing labels.
+    :type labels: numpy.ndarray
+    :param colors: The list of colors to assign to each label. Defaults to ['red', 'green', 'blue'].
+    :type colors: list, optional
+    :param bg_label: The label representing the background. Defaults to 0.
+    :type bg_label: int, optional
+    :param alpha: The transparency level of the colors. Defaults to 0.5.
+    :type alpha: float, optional
+    :return: The RGB image representing the labels with assigned colors.
+    :rtype: numpy.ndarray
+    """
 
     label_colors = assign_unique_colors(labels, colors)
 
@@ -53,14 +70,18 @@ def custom_label2rgb(labels, colors=['red', 'green', 'blue'], bg_label=0, alpha=
     return rgb_image
 
 def add_padding_for_rotation(image, angle):
-    '''
+    """
     Apply padding and rotation to an image. 
+
     The purpose of this function is to ensure that the rotated image fits within its original dimensions by adding padding, preventing any parts of the image from being cropped.
 
-    Args:
-        image (numpy.ndarray): The input image.
-        angle (float): The rotation angle in degrees.
-    '''
+    :param image: The input image.
+    :type image: numpy.ndarray
+    :param angle: The rotation angle in degrees.
+    :type angle: float
+    :return: The rotated and padded image.
+    :rtype: numpy.ndarray
+    """
 
     # Calculate rotated bounding box
     h, w = image.shape[:2]
@@ -86,9 +107,14 @@ def add_padding_for_rotation(image, angle):
     return rotated_image
 
 def get_object_images(objects):
-    '''
+    """
     Load object images from file paths.
-    '''
+
+    :param objects: A list of dictionaries containing information about the objects such as name, path, intensity 
+    :type objects: list[dict]
+    :return: A list of object images loaded from the specified file paths.
+    :rtype: list[numpy.ndarray]
+    """
 
     object_images = []
 
@@ -101,17 +127,24 @@ def get_object_images(objects):
     return object_images
 
 def generate_dataset(num_samples, objects, canvas_size, max_object_counts=None, noise_intensity=None, max_rotation_angle=None):
-    '''
+    """
     Generate a synthetic dataset with images and masks.
 
-    Args:
-        num_samples (int): The number of samples to generate.
-        objects (list): List of object descriptions.
-        canvas_size (tuple): Size of the canvas to place objects on.
-        max_object_counts (list, optional): Maximum object counts for each class. Default is None.
-        noise_intensity (float, optional): intensity of the additional noise to the image
-
-    '''
+    :param num_samples: The number of samples to generate.
+    :type num_samples: int
+    :param objects: List of object descriptions.
+    :type objects: list
+    :param canvas_size: Size of the canvas to place objects on.
+    :type canvas_size: tuple
+    :param max_object_counts: Maximum object counts for each class. Default is None.
+    :type max_object_counts: list, optional
+    :param noise_intensity: Intensity of the additional noise to the image. Default is None.
+    :type noise_intensity: float, optional
+    :param max_rotation_angle: Maximum rotation angle in degrees. Default is None.
+    :type max_rotation_angle: float, optional
+    :return: A tuple containing the generated images and masks.
+    :rtype: tuple
+    """
 
     dataset_images = []
     dataset_masks = []
@@ -219,7 +252,17 @@ def generate_dataset(num_samples, objects, canvas_size, max_object_counts=None, 
     return dataset_images, dataset_masks
 
 def get_synthetic_dataset(num_samples, canvas_size=(512,512), max_object_counts=[15, 15, 15]):
-   
+    """Generates a synthetic dataset with images and masks.
+
+    :param num_samples: The number of samples to generate.
+    :type num_samples: int
+    :param canvas_size: Size of the canvas to place objects on. Default is (512, 512).
+    :type canvas_size: tuple, optional
+    :param max_object_counts: Maximum object counts for each class. Default is [15, 15, 15].
+    :type max_object_counts: list, optional
+    :return: A tuple containing the generated images and masks.
+    :rtype: tuple
+    """
     objects = [
     {
         
