@@ -48,11 +48,18 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         self.model_name = model_name
 
     def update_configs(self, train_config, eval_config):
+        """Updates the training and evaluation configurations.
+
+        :param train_config: Dictionary containing the training configuration.
+        :type train_config: dict
+        :param eval_config: Dictionary containing the evaluation configuration.
+        :type eval_config: dict
+        """
         self.train_config = train_config
         self.eval_config = eval_config
         
     def eval(self, img):
-        """Evaluate the model - find mask of the given image
+        """Evaluates the model - find mask of the given image
         Calls the original eval function. 
 
         :param img: image to evaluate on
@@ -100,7 +107,7 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         self.metric = np.mean(aggregated_jaccard_index(masks, pred_masks))
     
     def masks_to_outlines(self, mask):
-        """ get outlines of masks as a 0-1 array
+        """Gets outlines of masks as a 0-1 array
         Calls the original cellpose.utils.masks_to_outlines function
 
         :param mask: int, 2D or 3D array, mask of an image
@@ -113,17 +120,23 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
 
 class CellClassifierFCNN(nn.Module):
     
-    '''
-    Fully convolutional classifier for cell images. NOTE -> This model cannot be used as a standalone model in DCP
+    """Fully convolutional classifier for cell images. 
 
-    Args:
-        model_config (dict): Model configuration.
-        train_config (dict): Training configuration.
-        eval_config (dict): Evaluation configuration.
-        
-    '''
+    .. note::
+    This model cannot be used as a standalone model in DCP
+    """
 
     def __init__(self, model_config, train_config, eval_config):
+        """
+        Constructs all the necessary attributes for the CellClassifierFCNN
+
+        :param model_config: Model configuration.
+        :type model_config: dict
+        :param train_config: Training configuration.
+        :type train_config: dict
+        :param eval_config: Evaluation configuration.
+        :type eval_config: dict
+        """
         super().__init__()
 
         self.in_channels = model_config["classifier"].get("in_channels",1)
@@ -161,11 +174,24 @@ class CellClassifierFCNN(nn.Module):
         self.metric_fn = F1Score(num_classes=self.num_classes, task="multiclass") 
 
     def update_configs(self, train_config, eval_config):
+        """Updates the training and evaluation configurations.
+
+        :param train_config: Dictionary containing the training configuration.
+        :type train_config: dict
+        :param eval_config: Dictionary containing the evaluation configuration.
+        :type eval_config: dict
+        """
         self.train_config = train_config
         self.eval_config = eval_config
 
     def forward(self, x):
+        """Performs forward pass of the CellClassifierFCNN.
 
+        :param x: Input tensor.
+        :type x: torch.Tensor
+        :return: Output tensor after passing through the network.
+        :rtype: torch.Tensor
+        """
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
@@ -176,10 +202,12 @@ class CellClassifierFCNN(nn.Module):
         return x
 
     def train (self, imgs, labels):        
-        """
-            input:
-            1) imgs - List[np.ndarray[np.uint8]] with shape (3, dx, dy)
-            2) labels - List[int]
+        """Trains the given model
+
+        :param imgs: List of input images with shape (3, dx, dy).
+        :type imgs: List[np.ndarray[np.uint8]]
+        :param labels: List of classification labels.
+        :type labels: List[int]
         """
 
         lr = self.train_config['lr']
@@ -224,12 +252,13 @@ class CellClassifierFCNN(nn.Module):
             self.metric /= len(train_dataloader)
     
     def eval(self, img):
+        """Evaluates the model on the provided image and return the predicted label.
+
+        :param img: Input image for evaluation.
+        :type img: np.ndarray[np.uint8]
+        :return: y_hat - predicted label.
+        :rtype: torch.Tensor
         """
-        Evaluate the model on the provided image and return the predicted label.
-            Input:
-            img: np.ndarray[np.uint8]
-            Output: y_hat - The predicted label
-        """ 
         # normalise
         img = (img-np.min(img))/(np.max(img)-np.min(img))
         # convert to tensor
@@ -246,6 +275,17 @@ class CellposePatchCNN(nn.Module):
     """
     
     def __init__(self, model_config, train_config, eval_config, model_name):
+        """Constructs all the necessary attributes for the CellposePatchCNN
+
+        :param model_config: Model configuration.
+        :type model_config: dict
+        :param train_config: Training configuration.
+        :type train_config: dict
+        :param eval_config: Evaluation configuration.
+        :type eval_config: dict
+        :param model_name: Name of the model.
+        :type model_name: str
+        """
         super().__init__()
 
         self.model_config = model_config
@@ -274,6 +314,13 @@ class CellposePatchCNN(nn.Module):
             self.include_mask = False 
             
     def update_configs(self, train_config, eval_config):
+        """Update the training and evaluation configurations.
+
+        :param train_config: Dictionary containing the training configuration.
+        :type train_config: dict
+        :param eval_config: Dictionary containing the evaluation configuration.
+        :type eval_config: dict
+        """
         self.train_config = train_config
         self.eval_config = eval_config
         
@@ -285,7 +332,7 @@ class CellposePatchCNN(nn.Module):
         :param masks: masks of the given images (training labels)
         :type masks: List[np.ndarray] of same shape as output of eval, i.e. one channel instances, 
         second channel classes, so [2, H, W] or [2, 3, H, W] for 3D
-        """  
+        """   
         # train cellpose
         masks = np.array(masks) 
         masks_instances = list(masks[:,0,...]) #[mask.sum(-1) for mask in masks] if masks[0].ndim == 3 else masks
@@ -308,6 +355,13 @@ class CellposePatchCNN(nn.Module):
         self.loss = (self.segmentor.loss + self.classifier.loss)/2
 
     def eval(self, img):
+        """Evaluate the model on the provided image and return the final mask.
+
+        :param img: Input image for evaluation.
+        :type img: np.ndarray[np.uint8]
+        :return: Final mask containing instance mask and class masks.
+        :rtype: np.ndarray[np.uint16]
+        """
         # TBD we assume image is 2D [H, W] (see fsimage storage)
         # The final mask which is returned should have 
         # first channel the output of cellpose and the rest are the class channels
@@ -343,7 +397,20 @@ class CellposePatchCNN(nn.Module):
 
 class CellClassifierShallowModel:
 
+    """
+    This class implements a shallow model for cell classification using scikit-learn.
+    """
+
     def __init__(self, model_config, train_config, eval_config):
+        """Constructs all the necessary attributes for the CellClassifierShallowModel
+
+        :param model_config: Model configuration.
+        :type model_config: dict
+        :param train_config: Training configuration.
+        :type train_config: dict
+        :param eval_config: Evaluation configuration.
+        :type eval_config: dict
+        """
 
         self.model_config = model_config
         self.train_config = train_config
@@ -353,7 +420,13 @@ class CellClassifierShallowModel:
 
    
     def train(self, X_train, y_train):
+        """Trains the model using the provided training data.
 
+        :param X_train: Features of the training data.
+        :type X_train: numpy.ndarray
+        :param y_train: Labels of the training data.
+        :type y_train: numpy.ndarray
+        """
         self.model.fit(X_train,y_train)
 
         y_hat = self.model.predict(X_train)
@@ -365,6 +438,13 @@ class CellClassifierShallowModel:
 
     
     def eval(self, X_test):
+        """Evaluates the model on the provided test data.
+
+        :param X_test: Features of the test data.
+        :type X_test: numpy.ndarray
+        :return: y_hat - predicted labels.
+        :rtype: numpy.ndarray
+        """
 
         X_test = X_test.reshape(1,-1)
 
@@ -380,22 +460,29 @@ class UNet(nn.Module):
     """
     Unet is a convolutional neural network architecture for semantic segmentation.
     
-    Args:
-        in_channels (int): Number of input channels (default: 3).
-        out_channels (int): Number of output channels (default: 4).
-        features (list): List of feature channels for each encoder level (default: [64,128,256,512]).
+    :param in_channels: Number of input channels (default: 3).
+    :type in_channels: int
+    :param out_channels: Number of output channels (default: 4).
+    :type out_channels: int
+    :param features: List of feature channels for each encoder level (default: [64,128,256,512]).
+    :type features: list
     """
     
     class DoubleConv(nn.Module):
         """
         DoubleConv module consists of two consecutive convolutional layers with
         batch normalization and ReLU activation functions.
-        Args:
-            in_channels (int): Number of input channels.
-            out_channels (int): Number of output channels.
         """
 
         def __init__(self, in_channels, out_channels):
+            """
+            Initialize DoubleConv module.
+
+            :param in_channels: Number of input channels.
+            :type in_channels: int
+            :param out_channels: Number of output channels.
+            :type out_channels: int
+            """
             super().__init__()
 
             self.conv = nn.Sequential(
@@ -408,11 +495,27 @@ class UNet(nn.Module):
             )
 
         def forward(self, x):
+            """Forward pass through the DoubleConv module.
+
+            :param x: Input tensor.
+            :type x: torch.Tensor
+            """
             return self.conv(x)
     
 
     def __init__(self, model_config, train_config, eval_config, model_name):
-
+        """Constructs all the necessary attributes for the UNet model.
+   
+   
+        :param model_config: Model configuration.
+        :type model_config: dict
+        :param train_config: Training configuration.
+        :type train_config: dict
+        :param eval_config: Evaluation configuration.
+        :type eval_config: dict
+        :param model_name: Name of the model.
+        :type model_name: str
+        """
         super().__init__()
         self.model_config = model_config
         self.train_config = train_config
@@ -454,6 +557,14 @@ class UNet(nn.Module):
         self.output_conv = nn.Conv2d(self.features[0], self.out_channels, kernel_size=1)
 
     def forward(self, x):
+        """
+        Forward pass of the UNet model.
+
+        :param x: Input tensor.
+        :type x: torch.Tensor
+        :return: Output tensor.
+        :rtype: torch.Tensor
+        """
         skip_connections = []
         for encoder in self.encoder:
             x = encoder(x)
@@ -472,6 +583,14 @@ class UNet(nn.Module):
         return self.output_conv(x)
 
     def train(self, imgs, masks):
+        """
+        Trains the UNet model using the provided images and masks.
+
+        :param imgs: Input images for training.
+        :type imgs: list[numpy.ndarray]
+        :param masks: Masks corresponding to the input images.
+        :type masks: list[numpy.ndarray]
+        """
 
         lr = self.train_config["classifier"]['lr']
         epochs = self.train_config["classifier"]['n_epochs']
@@ -519,9 +638,11 @@ class UNet(nn.Module):
     def eval(self, img):
         """
         Evaluate the model on the provided image and return the predicted label.
-            Input:
-            img: np.ndarray[np.uint8]
-            Output: y_hat - The predicted label
+          
+        :param img: Input image for evaluation.
+        :type img:  np.ndarray[np.uint8]
+        :return: predicted mask consists of instance and class masks
+        :rtype: numpy.ndarray
         """ 
         with torch.no_grad():
             # normalise
