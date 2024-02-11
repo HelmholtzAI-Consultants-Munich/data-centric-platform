@@ -12,11 +12,11 @@ from dcp_client.utils.utils import get_path_stem, check_equal_arrays, Compute4Ma
 from dcp_client.gui._my_widget import MyWidget
 
 class NapariWindow(MyWidget):
-    '''Napari Window Widget object.
+    """Napari Window Widget object.
     Opens the napari image viewer to view and fix the labeles.
     :param app:
     :type Application
-    '''
+    """
 
     def __init__(self, app: Application):
         super().__init__()
@@ -157,12 +157,13 @@ class NapariWindow(MyWidget):
         self.switch_controls("fill_button", True) 
 
     def update_labels_mask(self, instance_mask):
-        """
-        If the instance mask has changed since the last switch between channels the class mask needs to be updated accordingly.
-        
-        Parameters:
-        - instance_mask (numpy.ndarray): The updated instance mask, changed by the user.
-        - labels_mask (numpy.ndarray): The existing labels mask, which needs to be updated.
+        """Updates the class mask based on changes in the instance mask.
+
+        If the instance mask has changed since the last switch between channels, the class mask needs to be updated accordingly.
+
+        :param instance_mask: The updated instance mask, changed by the user.
+        :type instance_mask: numpy.ndarray
+        :return: None
         """
         self.original_class_mask[self.cur_selected_seg] = Compute4Mask.compute_new_labels_mask(self.original_class_mask[self.cur_selected_seg], 
                                                                         instance_mask, 
@@ -180,12 +181,14 @@ class NapariWindow(MyWidget):
         self.layer.refresh()
 
     def update_instance_mask(self, instance_mask, labels_mask):
-        """
-        If the labels mask has changed **only if an object has been removed** the instance mask is updated.
-        
-        Parameters:
-        - instance_mask (numpy.ndarray): The existing instance mask, which needs to be updated.
-        - labels_mask (numpy.ndarray): The updated labels mask, changed by the user.
+        """Updates the instance mask based on changes in the labels mask.
+
+        If the labels mask has changed, but only if an object has been removed, the instance mask is updated accordingly.
+
+        :param instance_mask: The existing instance mask, which needs to be updated.
+        :type instance_mask: numpy.ndarray
+        :param labels_mask: The updated labels mask, changed by the user.
+        :type labels_mask: numpy.ndarray
         """
         # add contours back to labels mask
         labels_mask = Compute4Mask.add_contour(labels_mask, instance_mask, self.contours_mask[self.cur_selected_seg])
@@ -199,13 +202,14 @@ class NapariWindow(MyWidget):
         self.layer.refresh()
 
     def switch_controls(self, target_widget, status: bool, info_message=None):
-        """
-        Enable or disable a specific widget.
+        """Enables or disables a specific widget.
 
-        Parameters:
-        - target_widget (str): The name of the widget to be controlled within the QCtrl object.
-        - status (bool): If True, the widget will be enabled; if False, it will be disabled.
-        - info_message (str or None): Optionally add an info message when hovering over some widget.
+        :param target_widget: The name of the widget to be controlled within the QCtrl object.
+        :type target_widget: str
+        :param status: If True, the widget will be enabled; if False, it will be disabled.
+        :type status: bool
+        :param info_message: Optionally add an info message when hovering over some widget. Default is None.
+        :type info_message: str or None
         """
         try:
             getattr(self.qctrl, target_widget).setEnabled(status)
@@ -215,9 +219,8 @@ class NapariWindow(MyWidget):
             pass
 
     def on_add_to_curated_button_clicked(self):
-        '''
-        Defines what happens when the "Move to curated dataset folder" button is clicked.
-        '''
+        """Defines what happens when the "Move to curated dataset folder" button is clicked.
+        """
         if  self.app.cur_selected_path == str(self.app.train_data_path):
             message_text = "Image is already in the \'Curated data\' folder and should not be changed again"
             _ = self.create_warning_box(message_text, message_title="Warning")
@@ -251,9 +254,8 @@ class NapariWindow(MyWidget):
         self.close()
 
     def on_add_to_inprogress_button_clicked(self):
-        '''
-        Defines what happens when the "Move to curation in progress folder" button is clicked.
-        '''
+        """Defines what happens when the "Move to curation in progress folder" button is clicked.
+        """
         # TODO: Do we allow this? What if they moved it by mistake? User can always manually move from their folders?)
         if self.app.cur_selected_path == str(self.app.train_data_path):
             message_text = "Images from '\Curated data'\ folder can not be moved back to \'Curatation in progress\' folder."
