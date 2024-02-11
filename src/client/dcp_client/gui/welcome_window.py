@@ -11,11 +11,11 @@ if TYPE_CHECKING:
     from dcp_client.app import Application
 
 class WelcomeWindow(MyWidget):
-    '''Welcome Window Widget object.
+    """Welcome Window Widget object.
     The first window of the application providing a dialog that allows users to select directories. 
     Currently supported image file types that can be selected for segmentation are: .jpg, .jpeg, .png, .tiff, .tif.
     By clicking 'start' the MainWindow is called.
-    '''
+    """
 
     def __init__(self, app: Application):
         super().__init__()
@@ -88,10 +88,9 @@ class WelcomeWindow(MyWidget):
         self.show()
 
     def browse_eval_clicked(self):
-        '''
-        Activates  when the user clicks the button to choose the evaluation directory (QFileDialog) and 
+        """Activates  when the user clicks the button to choose the evaluation directory (QFileDialog) and 
         displays the name of the evaluation directory chosen in the validation textbox line (QLineEdit).
-        '''
+        """
         self.fd = QFileDialog()
         try:
             self.fd.setFileMode(QFileDialog.Directory)
@@ -102,10 +101,9 @@ class WelcomeWindow(MyWidget):
             self.fd = None
             
     def browse_train_clicked(self):
-        '''
-        Activates  when the user clicks the button to choose the train directory (QFileDialog) and 
+        """Activates  when the user clicks the button to choose the train directory (QFileDialog) and 
         displays the name of the train directory chosen in the train textbox line (QLineEdit).
-        '''
+        """
 
         fd = QFileDialog()
         fd.setFileMode(QFileDialog.Directory)
@@ -114,10 +112,10 @@ class WelcomeWindow(MyWidget):
         self.train_textbox.setText(self.app.train_data_path)
 
     def on_text_changed(self, field_obj, field_name, text):
-        '''
+        """
         Update data paths based on text changes in input fields. 
         Used for copying paths in the welcome window.
-        '''
+        """
 
         if field_name == "train":
             self.app.train_data_path = text
@@ -130,10 +128,10 @@ class WelcomeWindow(MyWidget):
 
 
     def browse_inprogr_clicked(self):
-        '''
+        """
         Activates  when the user clicks the button to choose the curation in progress directory (QFileDialog) and 
         displays the name of the evaluation directory chosen in the validation textbox line (QLineEdit).
-        '''
+        """
 
         fd = QFileDialog()
         fd.setFileMode(QFileDialog.Directory)
@@ -142,9 +140,8 @@ class WelcomeWindow(MyWidget):
         self.inprogr_textbox.setText(self.app.inprogr_data_path)
   
     def start_main(self):
-        '''
-        Starts the main window after the user clicks 'Start' and only if both evaluation and train directories are chosen and all unique. 
-        '''
+        """Starts the main window after the user clicks 'Start' and only if both evaluation and train directories are chosen and all unique. 
+        """
         
         if len({self.app.inprogr_data_path, self.app.train_data_path, self.app.eval_data_path})<3:
             self.message_text = "All directory names must be distinct."
@@ -159,10 +156,10 @@ class WelcomeWindow(MyWidget):
             _ = self.create_warning_box(self.message_text, message_title="Warning")
 
     def start_upload_and_main(self):
-        '''
+        """
         If the configs are set to use remote not local server then the user is asked to confirm the upload of their data
         to the server and the upload starts before launching the main window.
-        '''
+        """
         if self.done_upload is False:
             message_text = ("Your current configurations are set to run some operations on the cloud. \n"
                             "For this we need to upload your data to our server."
