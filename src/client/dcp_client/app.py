@@ -128,6 +128,13 @@ class Application:
         return message_text, message_title
 
     def load_image(self, image_name=None):
+        """Loads an image from the file system storage.
+
+        :param str image_name: The name of the image file to load.
+        If not provided, loads the currently selected image.
+        :return: The loaded image.
+        :rtype: numpy.ndarray
+        """
         if image_name is None:
             return self.fs_image_storage.load_image(self.cur_selected_path, self.cur_selected_img)
         else: return self.fs_image_storage.load_image(self.cur_selected_path, image_name)
