@@ -49,8 +49,9 @@ The config file has to have the five main parts. All the ```marked``` arguments 
   - Name of the model class from `models.py` you want to use. Currently available models:
     - **CustomCellposeModel**: Inherits [CellposeModel](https://cellpose.readthedocs.io/en/latest/api.html#cellposemodel) class
     - **CellposePatchCNN**: Includes a segmentor and a classifier. Currently, the segmentor can only be `CustomCellposeModel`, and the classifier can be either ``CellClassifierFCNN`` or ``CellClassifierShallowModel`` (Random Forest). The model sequentially runs the segmentor and then classifier on patches of the objects to classify them.
-    - **UNet** : End-to-End segmentation model.
-    
+    - **UNet**: End-to-End segmentation model.
+    - **CellposeMultichannel**:  Multichannel image segmentation model. Employs distinct CustomCellposeModel instances for each channel, the number of channels corresponds to the `num_classes` parameter of the `classifier`.
+
 - **`save_model_path`**
   - Name for the trained model, which will be saved after calling the (re)train from service - saved under `bentoml/models`.
   
@@ -65,7 +66,7 @@ The config file has to have the five main parts. All the ```marked``` arguments 
  
 ### Model
 
-- Configuration for the model instantiation. Pass any arguments you need or want to change. Ensure that the names of the arguments are the same as the original model class' `__init__()` function!
+- Configuration for the model instantiation. Pass any arguments you need or want to change. Ensure that the names of the arguments are the same as the original model class' `__init__()`!
   
   - **`segmentor`**: Model configuration for the segmentor. Currently takes arguments used in the init of CellposeModel, see [here](https://cellpose.readthedocs.io/en/latest/api.html#cellposemodel).
   
@@ -73,13 +74,16 @@ The config file has to have the five main parts. All the ```marked``` arguments 
     - If ``model_class`` is set to **"FCNN"**, see `__init__()` of `CellClassifierFCNN`.
     - If ``model_class`` is set to **"RandomForest"**, see `__init__()` of `CellClassifierShallowModel`.
 
+For **UNet** and **CellposeMultichannel** see `__init__()` of the corresponding class.
+
 ### Train
 
 - Configuration for the model training. Ensure that the names of the arguments are the same as the original model's `train()` function!
   
   - **segmentor**: If using Cellpose, the `train()` function arguments can be found [here](https://cellpose.readthedocs.io/en/latest/api.html#id7). Pass any arguments you need or want to change or leave empty `{}`, then default arguments will be used.
   
-  - **classifier**: Train configuration for the classifier, see _train()_  of `CellClassifierFCNN` or `CellClassifierShallowModel`.
+  - **classifier**: Train configuration for the classifier, see _train()_  of `CellClassifierFCNN`, `CellClassifierShallowModel` or `UNet`.
+
 
 ### Evaluation
 
@@ -105,8 +109,9 @@ The following models are currently integrated into DCP:
   
   - **Random Forest**: Operates on the level of radiomic and intensity features extracted from the patches.
 
-- **UNet**: Employed for semantic segmentation tasks. The UNet model is equipped with four layers, and  currently supports only input images with both width and height dimensions divisible by 16.
+- **UNet**: Employed for semantic segmentation tasks. The UNet model is equipped with four layers and supports images of any size.
 
+- **CellposeMultichannel**: Employed for panoptic segmentation task. The CellposeMultichannel model utilizes separate CustomCellposeModel instances for each channel and returns masks corresponding to each object type.
 
 
 ## Running with Docker [DO NOT USE UNTIL ISSUE IS SOLVED]
