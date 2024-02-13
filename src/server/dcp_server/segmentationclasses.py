@@ -2,7 +2,8 @@ from dcp_server import utils
 import os
 
 # Import configuration
-setup_config = utils.read_config('setup', config_path = 'config.cfg')
+dirname = os.path.dirname(__file__)
+setup_config = utils.read_config('setup', config_path = os.path.join(dirname, 'config.cfg'))
 
 class GeneralSegmentation():
     """Segmentation class. Defining the main functions needed for this project and served by service - segment image and train on images.

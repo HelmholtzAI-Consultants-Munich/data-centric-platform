@@ -6,7 +6,8 @@ from skimage.transform import resize, rescale
 from dcp_server import utils
 
 # Import configuration
-setup_config = utils.read_config('setup', config_path = 'config.cfg')
+dirname = os.path.dirname(__file__)
+setup_config = utils.read_config('setup', config_path = os.path.join(dirname, 'config.cfg'))
 
 class FilesystemImageStorage():
     """Class used to deal with everything related to image storing and processing - loading, saving, transforming...

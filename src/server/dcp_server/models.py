@@ -120,10 +120,11 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
 
 class CellClassifierFCNN(nn.Module):
     
-    """Fully convolutional classifier for cell images. 
+    """
+    Fully convolutional classifier for cell images. 
 
     .. note::
-    This model cannot be used as a standalone model in DCP
+        This model cannot be used as a standalone model in DCP
     """
 
     def __init__(self, model_config, train_config, eval_config):
@@ -271,20 +272,25 @@ class CellClassifierFCNN(nn.Module):
 class CellposePatchCNN(nn.Module):
 
     """
-    Cellpose & patches of cells and then cnn to classify each patch
+    Cellpose & patches of cells and then cnn to classify each patch.
+
     """
     
     def __init__(self, model_config, train_config, eval_config, model_name):
-        """Constructs all the necessary attributes for the CellposePatchCNN
+        """ Constructs all the necessary attributes for the CellposePatchCNN
 
         :param model_config: Model configuration.
         :type model_config: dict
+
         :param train_config: Training configuration.
         :type train_config: dict
+
         :param eval_config: Evaluation configuration.
         :type eval_config: dict
+
         :param model_name: Name of the model.
         :type model_name: str
+
         """
         super().__init__()
 
@@ -314,7 +320,7 @@ class CellposePatchCNN(nn.Module):
             self.include_mask = False 
             
     def update_configs(self, train_config, eval_config):
-        """Update the training and evaluation configurations.
+        """ Update the training and evaluation configurations.
 
         :param train_config: Dictionary containing the training configuration.
         :type train_config: dict
@@ -325,13 +331,15 @@ class CellposePatchCNN(nn.Module):
         self.eval_config = eval_config
         
     def train(self, imgs, masks):
-        """Trains the given model. First trains the segmentor and then the clasiffier.
+        """ Trains the given model. First trains the segmentor and then the clasiffier.
 
         :param imgs: images to train on (training data)
         :type imgs: List[np.ndarray]
+
         :param masks: masks of the given images (training labels)
         :type masks: List[np.ndarray] of same shape as output of eval, i.e. one channel instances, 
-        second channel classes, so [2, H, W] or [2, 3, H, W] for 3D
+                     second channel classes, so [2, H, W] or [2, 3, H, W] for 3D 
+
         """   
         # train cellpose
         masks = np.array(masks) 

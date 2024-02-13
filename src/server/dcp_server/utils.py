@@ -100,15 +100,15 @@ def crop_centered_padded_patch(img: np.ndarray,
     :param obj_label: the instance label of the mask at the patch
     :type obj_label: int
     :param mask: The mask array associated with the array x. 
-    Mask is used during training to mask out non-central elements. 
-    For RandomForest, it is used to calculate pyradiomics features.
+        Mask is used during training to mask out non-central elements. 
+        For RandomForest, it is used to calculate pyradiomics features.
     :type mask: np.ndarray, optional
     :param noise_intensity: intensity of noise to be added to the background
     :type noise_intensity: float, optional
 
     :return: the cropped patch with applied padding
     :rtype: np.ndarray
-    """           
+    """  
 
     height, width = patch_size  # Size of the patch
     img_height, img_width = img.shape[0], img.shape[1] # Size of the input image
@@ -173,24 +173,27 @@ def crop_centered_padded_patch(img: np.ndarray,
 
 
 def get_center_of_mass_and_label(mask: np.ndarray) -> np.ndarray:
-    """Computes the centers of mass for each object in a mask.
+    """
+    Computes the centers of mass for each object in a mask.
 
     :param mask: the input mask containing labeled objects
     :type mask: np.ndarray
 
     :return: 
-    - A list of tuples representing the coordinates (row, column) of the centers of mass for each object.
-    - A list of ints representing the labels for each object in the mask.
+        - A list of tuples representing the coordinates (row, column) of the centers of mass for each object.
+        - A list of ints representing the labels for each object in the mask.
+    
     :rtype: 
-    - list of tuple
-    - list of int
+        - list of tuple
+        - list of int
+
     """
 
     # Compute the centers of mass for each labeled object in the mask
-    '''
-    return [(int(x[0]), int(x[1])) 
-            for x in center_of_mass(mask, mask, np.arange(1, mask.max() + 1))]
-    '''
+    
+    #return [(int(x[0]), int(x[1])) 
+           # for x in center_of_mass(mask, mask, np.arange(1, mask.max() + 1))]
+    
     centers = []
     labels = []
     for region in measure.regionprops(mask):
@@ -208,7 +211,7 @@ def get_centered_patches(img,
                          mask_class=None,
                          include_mask=False):
 
-    ''' 
+    """
     Extracts centered patches from the input image based on the centers of objects identified in the mask.
 
     :param img: The input image.
@@ -224,12 +227,13 @@ def get_centered_patches(img,
     :param include_mask: Whether or not to include the mask as an input argument to the model.
     :type include_mask: bool  
     :return: A tuple containing the following elements:
-    - patches (numpy.ndarray): Extracted patches.
-    - patch_masks (numpy.ndarray): Masks corresponding to the extracted patches.
-    - instance_labels (list): Labels identifying each object instance in the extracted patches.
-    - class_labels (list): Labels identifying the class of each object instance in the extracted patches.
-    :rtype: tuple    
-    '''
+            - patches (numpy.ndarray): Extracted patches.
+            - patch_masks (numpy.ndarray): Masks corresponding to the extracted patches.
+            - instance_labels (list): Labels identifying each object instance in the extracted patches.
+            - class_labels (list): Labels identifying the class of each object instance in the extracted patches.
+    :rtype: tuple  
+
+    """ 
 
     patches, patch_masks, instance_labels, class_labels  = [], [], [], []
     # if image is 2D add an additional dim for channels
@@ -329,10 +333,10 @@ def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, 
     :rtype: tuple
 
     .. note::
-    If patch_size is not given, the algorithm should first run through all images to find the max cell size, and use
-    the max cell size to define the patch size. All patches and masks should then be returned
-    in the same format as imgs and masks (same type, i.e. check if tensor or np.array and same 
-    convention of dims, e.g.  CxHxW)
+        If patch_size is not given, the algorithm should first run through all images to find the max cell size, and use
+        the max cell size to define the patch size. All patches and masks should then be returned
+        in the same format as imgs and masks (same type, i.e. check if tensor or np.array and same 
+        convention of dims, e.g.  CxHxW)
     """
     if max_patch_size is None:
         max_patch_size = np.max([find_max_patch_size(mask) for mask in masks_instances])
