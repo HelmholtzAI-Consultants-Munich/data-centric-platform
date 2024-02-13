@@ -14,6 +14,8 @@ from dcp_client.utils import settings
 
 class IconProvider(QFileIconProvider):
     def __init__(self) -> None:
+        """Initializes the IconProvider with the default icon size.
+        """
         super().__init__()
         self.ICON_SIZE = QSize(512,512)
 

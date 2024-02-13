@@ -30,6 +30,9 @@ class DataRSync(DataSync):
     def first_sync(self, path):
         """
         During the first sync the folder structure should be created on the server
+        
+        :param path: Path to the local directory to synchronize.
+        :type path: str
         """
         server  = self.user_name + "@" + self.host_name + ":" + self.server_repo_path
         
@@ -40,7 +43,10 @@ class DataRSync(DataSync):
 
     def sync(self, src, dst, path):
         """ Syncs the data between the src and the dst. Both src and dst can be one of either
-        'client' or 'server', whereas path is the local path we wish to sync"""
+        'client' or 'server', whereas path is the local path we wish to sync
+        
+        #TODO: @christinab12 please help to add the description of the parameters
+        """
         path += '/' # otherwise it doesn't go in the directory
         rel_path = get_relative_path(path) # get last folder, i.e. uncurated, curated
         server_full_path = os.path.join(self.server_repo_path, rel_path)

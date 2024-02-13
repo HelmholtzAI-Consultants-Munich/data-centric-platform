@@ -18,6 +18,11 @@ class WelcomeWindow(MyWidget):
     """
 
     def __init__(self, app: Application):
+        """Initializes the WelcomeWindow.
+
+        :param app: The Application instance.
+        :type app: Application
+        """
         super().__init__()
         self.app = app
         self.resize(200, 200)
@@ -115,6 +120,13 @@ class WelcomeWindow(MyWidget):
         """
         Update data paths based on text changes in input fields. 
         Used for copying paths in the welcome window.
+
+        :param field_obj: The QLineEdit object.
+        :type field_obj: QLineEdit
+        :param field_name: The name of the data field being updated.
+        :type field_name: str
+        :param text: The updated text.
+        :type text: str
         """
 
         if field_name == "train":

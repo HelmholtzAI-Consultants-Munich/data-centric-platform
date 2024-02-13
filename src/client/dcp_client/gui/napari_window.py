@@ -14,11 +14,16 @@ from dcp_client.gui._my_widget import MyWidget
 class NapariWindow(MyWidget):
     """Napari Window Widget object.
     Opens the napari image viewer to view and fix the labeles.
-    :param app:
-    :type Application
+    :param app: The Application instance.
+    :type app: Application
     """
 
     def __init__(self, app: Application):
+        """Initializes the NapariWindow.
+
+        :param app: The Application instance.
+        :type app: Application
+        """
         super().__init__()
         self.app = app
         self.setWindowTitle("napari viewer")
