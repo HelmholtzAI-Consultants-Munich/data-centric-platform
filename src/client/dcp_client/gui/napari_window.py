@@ -241,14 +241,21 @@ class NapariWindow(MyWidget):
         seg = self.viewer.layers[seg_name_to_save].data
         contours = Compute4Mask.get_contours(seg[0])
         seg[1] = Compute4Mask.add_contour(seg[1], seg[0], contours)
-        self.app.save_image(self.app.train_data_path, seg_name_to_save+'.tiff', seg)
+        annot_error, faulty_ids = Compute4Mask.assert_consistent_labels(seg)
+        if annot_error:
+            message_text = ("There seems to be a problem with your mask. We expect each object to be a connected component. For object(s) with ID(s) \n"
+                            +str(faulty_ids)+"\n"
+                            "more than one connected component was found. Please go back and fix this.")
+            self.create_warning_box(message_text, "Warning")
+        else:
+            self.app.save_image(self.app.train_data_path, seg_name_to_save+'.tiff', seg)
 
-        # We remove seg from the current directory if it exists (both eval and inprogr allowed)
-        self.app.delete_images(self.seg_files)
-        # TODO Create the Archive folder for the rest? Or move them as well? 
+            # We remove seg from the current directory if it exists (both eval and inprogr allowed)
+            self.app.delete_images(self.seg_files)
+            # TODO Create the Archive folder for the rest? Or move them as well? 
 
-        self.viewer.close()
-        self.close()
+            self.viewer.close()
+            self.close()
 
     def on_add_to_inprogress_button_clicked(self):
         '''

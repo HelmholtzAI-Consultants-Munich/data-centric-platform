@@ -2,9 +2,7 @@ from PyQt5.QtWidgets import  QFileIconProvider
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap, QIcon
 import numpy as np
-from skimage.feature import canny
-from skimage.morphology import closing, square
-from skimage.measure import find_contours
+from skimage.measure import find_contours, label
 from skimage.draw import polygon_perimeter
 
 from pathlib import Path, PurePath
@@ -107,10 +105,16 @@ class Compute4Mask:
         instance_ids = Compute4Mask.get_unique_objects(instance_mask)
         for instance_id in instance_ids:
             where_instances = np.where(instance_mask==instance_id)
-            class_vals = Compute4Mask.get_unique_objects(labels_mask[where_instances])
+            # get unique class ids where the object is present
+            class_vals, counts = np.unique(labels_mask[where_instances], return_counts=True)
+            # and take the class id which is most heavily represented
+            class_id = class_vals[np.argmax(counts)]
+            labels_mask[np.where(contours_mask==instance_id)] = class_id
+            '''
             if len(class_vals)==0: continue
             else: 
                 labels_mask[np.where(contours_mask==instance_id)] = class_vals[-1]
+            '''
         return labels_mask
 
     
@@ -179,3 +183,23 @@ class Compute4Mask:
         """
         return list(np.unique(active_mask)[1:])
     
+    @staticmethod
+    def assert_consistent_labels(mask):
+        """
+        Before saving the final mask make sure the user has not mistakenly made an error during annotation,
+        such that one instance id does not correspond to exactly one class id.
+        Parameters:
+        - mask (numpy.ndarray): The mask which we want to test.
+        Returns:
+        - user_annot_error (bool): Will return True if there is more than one connected components corresponding to an instance id and Fale otherwise.
+        - faulty_ids (List): Is a list with all the instance ids for which more than one connected component was found.
+        """
+        user_annot_error = False
+        faulty_ids = []
+        instance_mask = mask[0] #instance_mask, class_mask = mask[0], mask[1]
+        instance_ids = Compute4Mask.get_unique_objects(instance_mask)
+        for instance_id in instance_ids:
+            if np.unique(label(instance_mask==instance_id)).shape[0] > 2: 
+                user_annot_error = True
+                faulty_ids.append(instance_id)
+        return user_annot_error, faulty_ids
