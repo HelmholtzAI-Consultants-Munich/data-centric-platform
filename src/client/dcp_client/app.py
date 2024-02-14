@@ -68,8 +68,9 @@ class Application:
         """
         Uploads the train and eval data to the server.
         """
-        self.syncer.first_sync(path=self.train_data_path)
-        self.syncer.first_sync(path=self.eval_data_path)
+        success_f1, message1 =  self.syncer.first_sync(path=self.train_data_path)
+        success_f2, message2 =  self.syncer.first_sync(path=self.eval_data_path)
+        return success_f1, success_f2, message1, message2
 
     def try_server_connection(self):
         """
@@ -89,8 +90,10 @@ class Application:
         if self.syncer.host_name=="local": 
             message_text = self.ml_model.run_train(self.train_data_path)
         else:
-            srv_relative_path = self.syncer.sync(src='client', dst='server', path=self.train_data_path)
-            message_text = self.ml_model.run_train(srv_relative_path)
+            success_sync, srv_relative_path = self.syncer.sync(src='client', dst='server', path=self.train_data_path)
+            # make sure syncing of folders was successful
+            if success_sync=="Success": message_text = self.ml_model.run_train(srv_relative_path)
+            else: message_text = None
         if message_text is None: 
             message_text = "An error has occured on the server. Please check your image data and configurations. If the problem persists contact your software provider."
             message_title = "Error"
@@ -111,9 +114,9 @@ class Application:
             # model serving from server
             list_of_files_not_suported = self.ml_model.run_inference(srv_relative_path)
             # sync data so that client gets new masks          
-            _ = self.syncer.sync(src='server', dst='client', path=self.eval_data_path)
+            success_sync, _ = self.syncer.sync(src='server', dst='client', path=self.eval_data_path)
         # check if serving could not be performed for some files and prepare message
-        if list_of_files_not_suported is None: 
+        if list_of_files_not_suported is None or success_sync=="Error": 
             message_text = "An error has occured on the server. Please check your image data and configurations. If the problem persists contact your software provider."
             message_title = "Error"
         else:
