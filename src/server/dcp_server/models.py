@@ -486,8 +486,8 @@ class UNet(nn.Module):
       
         # Classification label mask
         masks = np.array(masks)
-        masks = torch.stack([torch.from_numpy(mask[1]) for mask in masks])
-
+        masks = torch.stack([torch.from_numpy(mask[1].astype(np.int16)) for mask in masks])
+        
         # Create a training dataset and dataloader
         train_dataset = TensorDataset(imgs, masks)
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size)
