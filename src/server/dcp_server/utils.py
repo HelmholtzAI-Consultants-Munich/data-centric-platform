@@ -166,8 +166,8 @@ def get_centered_patches(img,
         mask (np.array): The mask representing the objects in the image.
         p_size (int): The size of the patches to extract.
         noise_intensity (float): The intensity of noise to add to the patches.
-        mask_class (int): The class represented in the patch
-        include_mask (bool): Whether or not to include mask as input argument to model
+        mask_class (np.array): The mask representing the classes of the objects in the image.
+        include_mask (bool): Whether or not to include mask as input argument to model.
 
     '''
 
@@ -248,17 +248,16 @@ def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, 
     if max_patch_size is None:
         max_patch_size = np.max([find_max_patch_size(mask) for mask in masks_instances])
         
-
     patches, patch_masks, labels = [], [], []
     for img, mask_class, mask_instance in zip(imgs,  masks_classes, masks_instances):
         # mask_instance has dimension WxH
         # mask_class has dimension WxH
         patch, patch_mask, _, label = get_centered_patches(img,
-                                            mask_instance,
-                                            max_patch_size, 
-                                            noise_intensity=noise_intensity,
-                                            mask_class=mask_class,
-                                            include_mask = include_mask)
+                                                           mask_instance,
+                                                           max_patch_size, 
+                                                           noise_intensity=noise_intensity,
+                                                           mask_class=mask_class,
+                                                           include_mask = include_mask)
         patches.extend(patch)
         patch_masks.extend(patch_mask)
         labels.extend(label) 

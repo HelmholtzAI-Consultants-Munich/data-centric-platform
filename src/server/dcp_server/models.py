@@ -323,10 +323,10 @@ class CellposePatchCNN(nn.Module):
             
             # get patches centered around detected objects
             patches, patch_masks, instance_labels, _ = get_centered_patches(img,
-                                                               instance_mask,
-                                                               max_patch_size,
-                                                               noise_intensity=noise_intensity,
-                                                               include_mask=self.include_mask)
+                                                                            instance_mask,
+                                                                            max_patch_size,
+                                                                            noise_intensity=noise_intensity,
+                                                                            include_mask=self.include_mask)
             x = patches
             if self.classifier_class == "RandomForest":
                 x = create_dataset_for_rf(patches, patch_masks)
