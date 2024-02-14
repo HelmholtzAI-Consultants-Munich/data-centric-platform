@@ -110,7 +110,9 @@ class Application:
             # model serving directly from local
             list_of_files_not_suported = self.ml_model.run_inference(self.eval_data_path)       
         else:
+            # sync data so that server gets updated files in client - e.g. if file was moved to curated
             srv_relative_path = utils.get_relative_path(self.eval_data_path)
+            success_sync, _ = self.syncer.sync(src='client', dst='server', path=self.eval_data_path)
             # model serving from server
             list_of_files_not_suported = self.ml_model.run_inference(srv_relative_path)
             # sync data so that client gets new masks          
