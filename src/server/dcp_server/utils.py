@@ -195,7 +195,9 @@ def get_centered_patches(img,
         if mask_class is not None:
             # get the class instance for the specific object
             instance_labels.append(obj_label)
-            class_l = int(np.unique(mask_class[mask[:,:,0]==obj_label]))
+            class_l  = np.unique(mask_class[mask[:,:,0]==obj_label])
+            assert class_l.shape[0] == 0
+            class_l = int(class_l[0])
             #-1 because labels from mask start from 1, we want classes to start from 0
             class_labels.append(class_l-1)
         

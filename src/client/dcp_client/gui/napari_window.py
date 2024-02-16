@@ -58,7 +58,7 @@ class NapariWindow(MyWidget):
                 # compute unique instance ids
                 self.instances[layer_name] = Compute4Mask.get_unique_objects(self.original_instance_mask[layer_name])
                 # remove border from class mask
-                self.contours_mask[layer_name] = Compute4Mask.get_contours(self.original_instance_mask[layer_name])
+                self.contours_mask[layer_name] = Compute4Mask.get_contours(self.original_instance_mask[layer_name], contours_level=0.8)
                 self.viewer.layers[layer_name].data[1][self.contours_mask[layer_name]!=0] = 0
             
             self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
@@ -172,7 +172,7 @@ class NapariWindow(MyWidget):
         self.original_instance_mask[self.cur_selected_seg] = instance_mask
         self.instances[self.cur_selected_seg] = Compute4Mask.get_unique_objects(self.original_instance_mask[self.cur_selected_seg])
         # compute contours to remove from class mask visualisation
-        self.contours_mask[self.cur_selected_seg] = Compute4Mask.get_contours(instance_mask)
+        self.contours_mask[self.cur_selected_seg] = Compute4Mask.get_contours(instance_mask, contours_level=0.8)
         vis_labels_mask = deepcopy(self.original_class_mask[self.cur_selected_seg])
         vis_labels_mask[self.contours_mask[self.cur_selected_seg]!=0] = 0
         # update the viewer

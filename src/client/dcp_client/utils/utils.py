@@ -59,7 +59,7 @@ def check_equal_arrays(array1, array2):
 class Compute4Mask:
 
     @staticmethod
-    def get_contours(instance_mask):
+    def get_contours(instance_mask, contours_level=None):
         '''
         Find contours of objects in the instance mask.
         This function is used to identify the contours of the objects to prevent 
@@ -78,7 +78,7 @@ class Compute4Mask:
             single_obj_mask = np.zeros_like(instance_mask)
             single_obj_mask[instance_mask==instance_id] = 1
             # compute contours for mask
-            contours = find_contours(single_obj_mask, 0.8)
+            contours = find_contours(single_obj_mask, contours_level)
             # sometimes little dots appeas as additional contours so remove these
             if len(contours)>1: 
                 contour_sizes = [contour.shape[0] for contour in contours]

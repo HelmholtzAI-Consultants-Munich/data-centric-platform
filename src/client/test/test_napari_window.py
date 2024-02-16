@@ -42,14 +42,14 @@ def napari_window(qtbot):
         imsave('eval_data_path/cat_seg.png', img3)
     
     imsave('eval_data_path/cat_test.png', img3)
-    img3_mask = np.zeros((2, img3.shape[0], img3.shape[1]))
+    img3_mask = np.zeros((2, img3.shape[0], img3.shape[1]), dtype=np.uint8)
     img3_mask[0, 50:50, 50:50] = 1
     img3_mask[1, 50:50, 50:50] = 1
     img3_mask[0, 100:200, 100:200] = 2
     img3_mask[1, 100:200, 100:200] = 1
     img3_mask[0, 200:300, 200:300] = 3
     img3_mask[1, 200:300, 200:300] = 2
-    imsave('eval_data_path/cat_test_seg.png', img3_mask)
+    imsave('eval_data_path/cat_test_seg.tiff', img3_mask)
 
     rsyncer = DataRSync(user_name="local", host_name="local", server_repo_path='.')
     application = Application(
@@ -95,7 +95,7 @@ def test_on_add_to_curated_button_clicked(napari_window, monkeypatch):
 
     assert os.path.exists('train_data_path/cat_test_seg.tiff')
     assert os.path.exists('train_data_path/cat_test.png')
-    assert not os.path.exists('eval_data_path/cat_test.png')
+    assert not os.path.exists('eval_data_path/cat_test.tiff')
 
 # @pytest.fixture(scope='session', autouse=True)
 # def cleanup_files(request):
