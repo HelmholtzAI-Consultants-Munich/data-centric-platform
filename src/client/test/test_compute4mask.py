@@ -32,7 +32,7 @@ def test_add_contour(sample_data):
     contours_mask = Compute4Mask.get_contours(instance_mask)
     labels_mask_wo_contour = np.copy(labels_mask)
     labels_mask_wo_contour[contours_mask!=0] = 0
-    updated_labels_mask = Compute4Mask.add_contour(labels_mask_wo_contour, instance_mask, contours_mask)
+    updated_labels_mask = Compute4Mask.add_contour(labels_mask_wo_contour, instance_mask)
     assert np.array_equal(updated_labels_mask[:3], labels_mask[:3])
 
 def test_compute_new_instance_mask(sample_data):

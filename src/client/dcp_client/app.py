@@ -108,7 +108,8 @@ class Application:
         
         if self.syncer.host_name=="local":
             # model serving directly from local
-            list_of_files_not_suported = self.ml_model.run_inference(self.eval_data_path)       
+            list_of_files_not_suported = self.ml_model.run_inference(self.eval_data_path)  
+            success_sync = "Success"     
         else:
             # sync data so that server gets updated files in client - e.g. if file was moved to curated
             srv_relative_path = utils.get_relative_path(self.eval_data_path)
