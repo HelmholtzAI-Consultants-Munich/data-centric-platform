@@ -90,14 +90,13 @@ class Compute4Mask:
         return contour_mask
     
     @staticmethod
-    def add_contour(labels_mask, instance_mask, contours_mask):
+    def add_contour(labels_mask, instance_mask):
         '''
         Add contours of objects to the labels mask.
 
         Parameters:
         - labels_mask (numpy.ndarray): The class mask array without the contour pixels annotated.
         - instance_mask (numpy.ndarray): The instance mask array.
-        - contours_mask (numpy.ndarray): The contours mask array, where each contour holds the instance_id.
 
         Returns:
         - labels_mask (numpy.ndarray): The updated class mask including contours.
@@ -109,12 +108,8 @@ class Compute4Mask:
             class_vals, counts = np.unique(labels_mask[where_instances], return_counts=True)
             # and take the class id which is most heavily represented
             class_id = class_vals[np.argmax(counts)]
-            labels_mask[np.where(contours_mask==instance_id)] = class_id
-            '''
-            if len(class_vals)==0: continue
-            else: 
-                labels_mask[np.where(contours_mask==instance_id)] = class_vals[-1]
-            '''
+            # make sure instance mask and class mask match
+            labels_mask[np.where(instance_mask==instance_id)] = class_id
         return labels_mask
 
     
@@ -169,9 +164,11 @@ class Compute4Mask:
                     new_labels_mask[where_instance] = num_classes[0]
                 # area was added where there is background or other class
                 else:
-                    old_class_id = np.unique(labels_mask[where_instance_orig])
+                    old_class_id, counts = np.unique(labels_mask[where_instance_orig], return_counts=True)
                     #assert len(old_class_id)==1
-                    old_class_id = old_class_id[0]
+                    #old_class_id = old_class_id[0]
+                    # and take the class id which is most heavily represented
+                    old_class_id = old_class_id[np.argmax(counts)]
                     new_labels_mask[where_instance] = old_class_id
     
         return new_labels_mask
@@ -195,11 +192,17 @@ class Compute4Mask:
         - faulty_ids (List): Is a list with all the instance ids for which more than one connected component was found.
         """
         user_annot_error = False
-        faulty_ids = []
-        instance_mask = mask[0] #instance_mask, class_mask = mask[0], mask[1]
+        mask_mismatch_error = False
+        faulty_ids_annot = []
+        faulty_ids_missmatch = []
+        instance_mask, class_mask = mask[0], mask[1]
         instance_ids = Compute4Mask.get_unique_objects(instance_mask)
         for instance_id in instance_ids:
             if np.unique(label(instance_mask==instance_id)).shape[0] > 2: 
                 user_annot_error = True
-                faulty_ids.append(instance_id)
-        return user_annot_error, faulty_ids
+                faulty_ids_annot.append(instance_id)
+            elif np.unique(class_mask[np.where(instance_mask==instance_id)]).shape[0]>1:
+                mask_mismatch_error = True
+                faulty_ids_missmatch.append(instance_id)
+
+        return user_annot_error, mask_mismatch_error, faulty_ids_annot, faulty_ids_missmatch

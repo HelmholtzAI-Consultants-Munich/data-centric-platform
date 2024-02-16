@@ -125,7 +125,7 @@ class NapariWindow(MyWidget):
         masks = deepcopy(self.layer.data)
         # if user has switched to the instance mask
         if self.active_mask_index==0: 
-            class_mask_with_contours = Compute4Mask.add_contour(masks[1], masks[0], self.contours_mask[self.cur_selected_seg])
+            class_mask_with_contours = Compute4Mask.add_contour(masks[1], masks[0])
             if not check_equal_arrays(class_mask_with_contours.astype(bool), self.original_class_mask[self.cur_selected_seg].astype(bool)):
                 self.update_instance_mask(masks[0], masks[1])
             self.switch_to_instance_mask()
@@ -188,7 +188,7 @@ class NapariWindow(MyWidget):
         - labels_mask (numpy.ndarray): The updated labels mask, changed by the user.
         """
         # add contours back to labels mask
-        labels_mask = Compute4Mask.add_contour(labels_mask, instance_mask, self.contours_mask[self.cur_selected_seg])
+        labels_mask = Compute4Mask.add_contour(labels_mask, instance_mask)
         # and compute the updated instance mask
         self.original_instance_mask[self.cur_selected_seg] = Compute4Mask.compute_new_instance_mask(labels_mask,
                                                                              instance_mask)
@@ -233,21 +233,25 @@ class NapariWindow(MyWidget):
             )
             _ = self.create_warning_box(message_text, message_title="Warning")
             return
-
-        # Move original image
-        self.app.move_images(self.app.train_data_path)
         
         # Save the (changed) seg
         seg = self.viewer.layers[seg_name_to_save].data
-        contours = Compute4Mask.get_contours(seg[0])
-        seg[1] = Compute4Mask.add_contour(seg[1], seg[0], contours)
-        annot_error, faulty_ids = Compute4Mask.assert_consistent_labels(seg)
+        seg[1] = Compute4Mask.add_contour(seg[1], seg[0])
+        annot_error, mask_mismatch_error, faulty_ids_annot, faulty_ids_missmatch = Compute4Mask.assert_consistent_labels(seg)
         if annot_error:
             message_text = ("There seems to be a problem with your mask. We expect each object to be a connected component. For object(s) with ID(s) \n"
-                            +str(faulty_ids)+"\n"
+                            +str(faulty_ids_annot)+"\n"
                             "more than one connected component was found. Please go back and fix this.")
             self.create_warning_box(message_text, "Warning")
-        else:
+        elif mask_mismatch_error:
+            message_text = ("There seems to be a mismatch between your class and instance masks for object(s) with ID(s) \n"
+                            +str(faulty_ids_missmatch)+"\n"
+                            "This should not occur and will cause a problem later during model training. Please go back and check.")
+            self.create_warning_box(message_text, "Warning")
+        else: 
+            # Move original image
+            self.app.move_images(self.app.train_data_path)
+
             self.app.save_image(self.app.train_data_path, seg_name_to_save+'.tiff', seg)
 
             # We remove seg from the current directory if it exists (both eval and inprogr allowed)
@@ -282,8 +286,7 @@ class NapariWindow(MyWidget):
         self.app.move_images(self.app.inprogr_data_path, move_segs=True)
         # Save the (changed) seg - this will overwrite existing seg if seg name hasn't been changed in viewer
         seg = self.viewer.layers[seg_name_to_save].data
-        contours = Compute4Mask.get_contours(seg[0])
-        seg[1] = Compute4Mask.add_contour(seg[1], seg[0], contours)
+        seg[1] = Compute4Mask.add_contour(seg[1], seg[0])
         self.app.save_image(self.app.inprogr_data_path, seg_name_to_save+'.tiff', seg)
         
         self.viewer.close()
