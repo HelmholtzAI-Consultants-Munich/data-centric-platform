@@ -48,7 +48,7 @@ jobs:
           pip install pytest-qt
           pip install pytest-xvfb
           pip install coverage
-          pip install -e ".[testing]"
+          pip install -e --no-cache-dir ".[testing]"
         working-directory: src/client
 
       - name: Install server dependencies (for communication tests)
@@ -96,7 +96,7 @@ jobs:
           pip install pytest
           pip install wheel
           pip install coverage
-          pip install -e ".[testing]"
+          pip install -e --no-cache-dir ".[testing]"
         working-directory: src/server
           
       - name: Test with pytest
