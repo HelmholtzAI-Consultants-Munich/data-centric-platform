@@ -80,7 +80,7 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
+# docs/_build/
 
 # PyBuilder
 target/
@@ -151,7 +151,7 @@ dmypy.json
 .idea/
 
 .DS_Store
-docs/
+# docs/
 test-napari.pub
 data/
 BentoML/
