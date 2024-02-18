@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="English">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DCP Server Installation &amp; Launch &mdash; dcp 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=37ea5c94"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="dcp_server package" href="dcp_server.html" />
+    <link rel="prev" title="DCP Client" href="dcp_client_installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            dcp
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="dcp_client_installation.html">DCP Client</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">DCP Server Installation &amp; Launch</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#launch-dcp-server">Launch DCP Server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#customization-for-developers">Customization (for developers)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#models">Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-with-docker">Running with Docker</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#docker-compose">Docker-Compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#docker-non-interactively">Docker Non-Interactively</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#docker-interactively">Docker Interactively</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_client.html">dcp_client package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">dcp</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">DCP Server Installation &amp; Launch</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/dcp_server_installation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="dcp-server-installation-launch">
+<h1>DCP Server Installation &amp; Launch<a class="headerlink" href="#dcp-server-installation-launch" title="Permalink to this heading"></a></h1>
+<p>The server of our data centric platform for microscopy imaging.</p>
+<img alt="stability-wip" src="https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg" /><p>The client and server communicate via the <a class="reference external" href="https://www.bentoml.com/?gclid=Cj0KCQiApKagBhC1ARIsAFc7Mc6iqOLi2OcLtqMbGx1KrFjtLUEZ-bhnqlT2zWREE0x7JImhtNmKlFEaAvSSEALw_wcB">bentoml</a> library. The client interacts with the server every time we run model inference or training, so the server should be running before starting the client.</p>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
+<p>Before starting make sure you have navigated to <code class="docutils literal notranslate"><span class="pre">data-centric-platform/src/server</span></code>. All future steps expect you are in the server directory. In your dedicated environment run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+</section>
+<section id="launch-dcp-server">
+<h2>Launch DCP Server<a class="headerlink" href="#launch-dcp-server" title="Permalink to this heading"></a></h2>
+<p>Simply run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>dcp_server/main.py
+</pre></div>
+</div>
+<p>Once the server is running, you can verify it is working by visiting <a class="reference external" href="http://localhost:7010/">http://localhost:7010/</a> in your web browser.</p>
+</section>
+<section id="customization-for-developers">
+<h2>Customization (for developers)<a class="headerlink" href="#customization-for-developers" title="Permalink to this heading"></a></h2>
+<p>All service configurations are set in the <code class="docutils literal notranslate"><span class="pre">config.cfg</span></code> file. Please, obey the <a class="reference external" href="https://www.json.org/json-en.html">formal JSON format</a>.</p>
+<p>The config file has to have the five main parts. All the <code class="docutils literal notranslate"><span class="pre">marked</span></code> arguments are mandatory:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">setup</span></code>
+- <code class="docutils literal notranslate"><span class="pre">segmentation</span></code> - segmentation type from the <code class="docutils literal notranslate"><span class="pre">segmentationclasses.py</span></code>. Currently, only <strong>GeneralSegmentation</strong> is available (MitoProjectSegmentation and GFPProjectSegmentation are stale).
+- <code class="docutils literal notranslate"><span class="pre">accepted_types</span></code> - types of images currently accepted for the analysis
+- <code class="docutils literal notranslate"><span class="pre">seg_name_string</span></code> - end string for masks to run on (All the segmentations of the image should contain this string - used to save and search for segmentations of the images)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">service</span></code>
+- <code class="docutils literal notranslate"><span class="pre">model_to_use</span></code> - name of the model class from the <code class="docutils literal notranslate"><span class="pre">models.py</span></code> you want to use. Currently, available models are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>CustomCellposeModel</strong>: Inherits <a class="reference external" href="https://cellpose.readthedocs.io/en/latest/api.html#cellposemodel">CellposeModel</a> class</p></li>
+<li><p><strong>CellposePatchCNN</strong>: Includes a segmentor and a classifier. Currently segmentor can only be <code class="docutils literal notranslate"><span class="pre">CustomCellposeModel</span></code>, and classifier is <code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN</span></code>. The model sequentially runs the segmentor and then classifier, on patches of the objects to classify them.</p></li>
+</ul>
+</div></blockquote>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">save_model_path</span></code> - name for the trained model which will be saved after calling the (re)train from service - is saved under <code class="docutils literal notranslate"><span class="pre">bentoml/models</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">runner_name</span></code> - name of the runner for the bentoml service</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">service_name</span></code> - name for the bentoml service</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">port</span></code> - on which port to start the service</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model</span></code> - configuration for the model instantiation. Here, pass any arguments you need or want to change. Take care that the names of the arguments are the same as of the original model class' <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> function!
+- <code class="docutils literal notranslate"><span class="pre">segmentor</span></code>: model configuration for the segmentor. Currently takes arguments used in the init of CellposeModel, see <a class="reference external" href="https://cellpose.readthedocs.io/en/latest/api.html#cellposemodel">here</a>.
+- <code class="docutils literal notranslate"><span class="pre">classifier</span></code>: model configuration for classifier, see <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> of <code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">train</span></code> - configuration for the model training. Take care that the names of the arguments are the same as of the original model's <code class="docutils literal notranslate"><span class="pre">train()</span></code> function!
+- <code class="docutils literal notranslate"><span class="pre">segmentor</span></code>: If using cellpose - the <code class="docutils literal notranslate"><span class="pre">train()</span></code> function arguments can be found <cite>here &lt;https://cellpose.readthedocs.io/en/latest/api.html#id7&gt;</cite>. Here, pass any arguments you need or want to change or leave empty {}, then default arguments will be used.
+- <code class="docutils literal notranslate"><span class="pre">classifier</span></code>: train configuration for classifier, see <code class="docutils literal notranslate"><span class="pre">train()</span></code> of <code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">eval</span></code> - configuration for the model evaluation. Take care that the names of the arguments are the same as of the original model's <code class="docutils literal notranslate"><span class="pre">eval()</span></code> function!
+- <code class="docutils literal notranslate"><span class="pre">segmentor</span></code>: If using cellpose - the <code class="docutils literal notranslate"><span class="pre">eval()</span></code> function arguments can be found <cite>here &lt;https://cellpose.readthedocs.io/en/latest/api.html#id3&gt;</cite>. Here, pass any arguments you need or want to change or leave empty {}, then default arguments will be used.
+- <code class="docutils literal notranslate"><span class="pre">classifier</span></code>: train configuration for classifier, see <code class="docutils literal notranslate"><span class="pre">eval()</span></code> of <code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN</span></code>.
+- <code class="docutils literal notranslate"><span class="pre">mask_channel_axis</span></code>: If a multi-class instance segmentation model has been used, then the masks returned by the model should have two channels, one for the instance segmentation results and one indicating the objects class. This variable indicated at which dim the channel axis should be stored. Currently should be kept at 0, as this is the only way the masks can be visualized correctly by napari in the client.</p></li>
+</ul>
+<p>To make it easier for you we provide you with two config files: <code class="docutils literal notranslate"><span class="pre">config.cfg</span></code> is set up to work for a panoptic segmentation task, while <code class="docutils literal notranslate"><span class="pre">config_instance.cfg</span></code> for instance segmentation. Make sure to rename the config you wish to use to <code class="docutils literal notranslate"><span class="pre">config.cfg</span></code>. The default is panoptic segmentation.</p>
+</section>
+<section id="models">
+<h2>Models<a class="headerlink" href="#models" title="Permalink to this heading"></a></h2>
+<p>The current models are currently integrated into DCP:</p>
+<ul class="simple">
+<li><p>CellPose --&gt; for instance segmentation tasks</p></li>
+<li><p>CellposePatchCNN --&gt; for panoptic segmentation tasks: includes the Cellpose model for instance segmentation followed by a patch wise CNN model on the predicted instances for obtaining class labels</p></li>
+</ul>
+</section>
+<section id="running-with-docker">
+<h2>Running with Docker<a class="headerlink" href="#running-with-docker" title="Permalink to this heading"></a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>DO NOT USE UNTIL ISSUE IS SOLVED</p>
+</div>
+<p>Docker --&gt; Currently doesn't work for generate labels?</p>
+<section id="docker-compose">
+<h3>Docker-Compose<a class="headerlink" href="#docker-compose" title="Permalink to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>up
+</pre></div>
+</div>
+</section>
+<section id="docker-non-interactively">
+<h3>Docker Non-Interactively<a class="headerlink" href="#docker-non-interactively" title="Permalink to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>dcp-server<span class="w"> </span>.
+docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">7010</span>:7010<span class="w"> </span>-it<span class="w"> </span>dcp-server
+</pre></div>
+</div>
+</section>
+<section id="docker-interactively">
+<h3>Docker Interactively<a class="headerlink" href="#docker-interactively" title="Permalink to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>dcp-server<span class="w"> </span>.
+docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>dcp-server<span class="w"> </span>bash
+bentoml<span class="w"> </span>serve<span class="w"> </span>service:svc<span class="w"> </span>--reload<span class="w"> </span>--port<span class="o">=</span><span class="m">7010</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="dcp_client_installation.html" class="btn btn-neutral float-left" title="DCP Client" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dcp_server.html" class="btn btn-neutral float-right" title="dcp_server package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Christina Bukas, Mariia Koren, Helena Pelin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

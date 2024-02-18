@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="English">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DCP Client &mdash; dcp 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=37ea5c94"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="DCP Server Installation &amp; Launch" href="dcp_server_installation.html" />
+    <link rel="prev" title="Data Centric Platform" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            dcp
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">DCP Client</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-the-client-a-step-by-step-guide">Running the client: A step-by-step guide!</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#configurations">1. <strong>Configurations</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#launching-the-client">2. <strong>Launching the client</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#welcome-window">3. <strong>Welcome window</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#setting-paths">4. <strong>Setting paths</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-overview">5. <strong>Data Overview</strong></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server_installation.html">DCP Server Installation &amp; Launch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_client.html">dcp_client package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">dcp</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">DCP Client</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/dcp_client_installation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="dcp-client">
+<span id="id1"></span><h1>DCP Client<a class="headerlink" href="#dcp-client" title="Permalink to this heading"></a></h1>
+<p>The client of our data centric platform for microscopy imaging.</p>
+<img alt="stability-wip" src="https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg" /><section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
+<p>Before starting make sure you have navigated to <code class="docutils literal notranslate"><span class="pre">data-centric-platform/src/client</span></code>. All future steps expect you are in the client directory. This installation has been tested using a conda environment with python version 3.9 on a mac local machine. In your dedicated environment run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+</section>
+<section id="running-the-client-a-step-by-step-guide">
+<h2>Running the client: A step-by-step guide!<a class="headerlink" href="#running-the-client-a-step-by-step-guide" title="Permalink to this heading"></a></h2>
+<section id="configurations">
+<h3>1. <strong>Configurations</strong><a class="headerlink" href="#configurations" title="Permalink to this heading"></a></h3>
+<blockquote>
+<div><p>Before launching the GUI you will need to set up your client configuration file, _dcp_client/<a href="#id2"><span class="problematic" id="id3">config.cfg_</span></a>. Please, obey the <a class="reference external" href="https://www.json.org/json-en.html">formal JSON format</a>. Here, we will define how the client will interact with the server. There are currently two options available: running the server locally, or connecting to the running instance on the FZJ jusuf-cloud. To connect to a locally running server, set:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;server&quot;</span><span class="p">:{</span>
+<span class="w">           </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;local&quot;</span><span class="p">,</span>
+<span class="w">           </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;local&quot;</span><span class="p">,</span>
+<span class="w">           </span><span class="nt">&quot;data-path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;None&quot;</span><span class="p">,</span>
+<span class="w">           </span><span class="nt">&quot;ip&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+<span class="w">           </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7010</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>To connect to the running service on jusuf-cloud, set:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>&quot;server&quot;:{
+       &quot;user&quot;: &quot;xxxxx&quot;,
+       &quot;host&quot;: &quot;xxxxxx&quot;,
+       &quot;data-path&quot;: &quot;xxxxx&quot;,
+       &quot;ip&quot;: &quot;xxx.xx.xx.xx&quot;,
+       &quot;port&quot;: xxxx
+}
+</pre></div>
+</div>
+<p>Before continuing, you need to make sure that DCP server is running, either locally or on the cloud. See <a class="reference external" href="https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/server/README.md#using-pypi">DCP Server Installation &amp; Launch</a> for instructions on how to launch the server. <strong>Note:</strong> In order for this connection to succeed, you will need to have contacted the team developing DCP, so they can add your IP to the list of accepted requests.</p>
+<p>To make it easier for you we provide you with two config files, one works when running a local server and one for remote - just make sure you rename the config file you wish to use to <code class="docutils literal notranslate"><span class="pre">config.cfg</span></code>. The default is local configuration.</p>
+</div></blockquote>
+</section>
+<section id="launching-the-client">
+<h3>2. <strong>Launching the client</strong><a class="headerlink" href="#launching-the-client" title="Permalink to this heading"></a></h3>
+<blockquote>
+<div><p>After setting your config simply run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>dcp_client/main.py
+</pre></div>
+</div>
+</div></blockquote>
+</section>
+<section id="welcome-window">
+<h3>3. <strong>Welcome window</strong><a class="headerlink" href="#welcome-window" title="Permalink to this heading"></a></h3>
+<blockquote>
+<div><p>The welcome window should have now popped up.</p>
+<a class="reference internal image-reference" href="https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/client_welcome_window.png"><img alt="https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/client_welcome_window.png" class="align-center" src="https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/client_welcome_window.png" style="width: 400px; height: 200px;" /></a>
+<p>Here you will need to select the directories which we will be using throughout the data centric workflow. The following directories need to be defined:</p>
+<ul class="simple">
+<li><p><strong>Uncurated Dataset Path:</strong></p></li>
+</ul>
+<p>This folder is intended to store all images of your dataset. These images may be accompanied by corresponding segmentations. If present, segmentation files should share the same filename as their associated image, appended with a suffix as specified in <code class="docutils literal notranslate"><span class="pre">server/dcp_server/config.cfg</span></code> file (default: '_seg').</p>
+<ul class="simple">
+<li><p><strong>Curation in Progress Path (Optional):</strong></p></li>
+</ul>
+<p>Images for which the segmentation is a work in progress should be moved here. Each image in this folder can have one or multiple segmentations corresponding to it (by changing the filename of the segmentation in the napari layer list after editing it, see <strong>Viewer</strong>). If you do not want to use an intermediate working dir, you can skip setting a path to this directory (it is not required). No future functions affect this directory, it is only used to move to and from the uncurated and curated directories.</p>
+<ul class="simple">
+<li><p><strong>Curated Dataset Path:</strong></p></li>
+</ul>
+<p>This folder is intended to contain images along with their final segmentations. <strong>Only</strong> move images here when the segmentation is complete and finalised, you won't be able to change them after they have been moved here. These are then used for training your model.</p>
+</div></blockquote>
+</section>
+<section id="setting-paths">
+<h3>4. <strong>Setting paths</strong><a class="headerlink" href="#setting-paths" title="Permalink to this heading"></a></h3>
+<blockquote>
+<div><p>After setting the paths for these three folders, you can click the <strong>Start</strong> button. If you have set the server configuration to the cloud, you will receive a message notifying you that your data will be uploaded to the cloud. Click <strong>Ok</strong> to continue.</p>
+</div></blockquote>
+</section>
+<section id="data-overview">
+<h3>5. <strong>Data Overview</strong><a class="headerlink" href="#data-overview" title="Permalink to this heading"></a></h3>
+<blockquote>
+<div><p>The main working window will appear next. This gives you an overview of the directories selected in the previous step along with three options:</p>
+<ul class="simple">
+<li><p><strong>Generate Labels:</strong> Click this button to generate labels for all images in the &quot;Uncurated dataset&quot; directory. This will call the <code class="docutils literal notranslate"><span class="pre">segment_image</span></code> service from the server</p></li>
+<li><p><strong>View image and fix label:</strong> Click this</p></li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Data Centric Platform" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dcp_server_installation.html" class="btn btn-neutral float-right" title="DCP Server Installation &amp; Launch" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Christina Bukas, Mariia Koren, Helena Pelin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
