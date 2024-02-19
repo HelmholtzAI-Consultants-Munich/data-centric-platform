@@ -1,7 +1,7 @@
 .. _DCP Server:
 
-DCP Server Installation
-=========================
+DCP Server
+===========
 
 
 The server of our data centric platform for microscopy imaging.
