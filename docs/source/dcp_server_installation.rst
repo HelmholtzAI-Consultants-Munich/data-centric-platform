@@ -1,5 +1,8 @@
-DCP Server Installation & Launch
-==================================
+.. _DCP Server:
+
+DCP Server Installation
+=========================
+
 
 The server of our data centric platform for microscopy imaging.
 

@@ -1,9 +1,6 @@
 dcp\_client package
 ===================
 
-Submodules
-----------
-
 dcp\_client.app module
 ----------------------
 
@@ -20,10 +17,4 @@ dcp\_client.main module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
 
-.. automodule:: dcp_client
-   :members:
-   :undoc-members:
-   :show-inheritance:

@@ -1,4 +1,4 @@
-.. _dcp-client:
+.. _DCP Client:
 
 DCP Client
 ===========
@@ -69,6 +69,7 @@ Running the client: A step-by-step guide!
          :width: 400
          :height: 200
          :align: center
+
 
    Here you will need to select the directories which we will be using throughout the data centric workflow. The following directories need to be defined:
 

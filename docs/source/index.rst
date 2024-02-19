@@ -24,8 +24,8 @@ The client and server communicate via the `bentoml <https://www.bentoml.com/?gcl
 The client interacts with the server every time we run model inference or training. 
 For full functionality of the software the server should be running, either locally or remotely. 
 
-To install and start the server side follow the instructions described in :ref:`dcp-server-installation`.
-To run the client GUI follow the instructions described in :ref:`dcp-client`
+To install and start the server side follow the instructions described in :ref:`DCP Server`.
+To run the client GUI follow the instructions described in :ref:`DCP Client`
 
 DCP handles all kinds of **segmentation tasks**! Try it out if you need to do:
 - **Instance** segmentation

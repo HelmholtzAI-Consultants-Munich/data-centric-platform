@@ -1,4 +1,4 @@
-.. _dcp-client:
+.. _DCP Client:
 
 DCP Client
 ===========

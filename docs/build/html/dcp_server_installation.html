@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="English">
+<html class="writer-html5" lang="English" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DCP Server Installation &amp; Launch &mdash; dcp 0.1 documentation</title>
+  <title>DCP Server Installation &mdash; DCP 0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,13 +15,13 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=37ea5c94"></script>
+        <script src="_static/documentation_options.js?v=2ed17a75"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="dcp_server package" href="dcp_server.html" />
+    <link rel="next" title="dcp_server.fsimagestorage module" href="dcp_server.html" />
     <link rel="prev" title="DCP Client" href="dcp_client_installation.html" /> 
 </head>
 
@@ -34,7 +34,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            dcp
+            DCP
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -47,7 +47,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="dcp_client_installation.html">DCP Client</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">DCP Server Installation &amp; Launch</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">DCP Server Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#launch-dcp-server">Launch DCP Server</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#customization-for-developers">Customization (for developers)</a></li>
@@ -60,7 +60,11 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server.fsimagestorage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.models">dcp_server.models module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.segmentationclasses">dcp_server.segmentationclasses module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.serviceclasses">dcp_server.serviceclasses module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.utils">dcp_server.utils module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dcp_client.html">dcp_client package</a></li>
 </ul>
 
@@ -70,7 +74,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">dcp</a>
+          <a href="index.html">DCP</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -78,7 +82,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">DCP Server Installation &amp; Launch</li>
+      <li class="breadcrumb-item active">DCP Server Installation</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/dcp_server_installation.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -88,27 +92,27 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="dcp-server-installation-launch">
-<h1>DCP Server Installation &amp; Launch<a class="headerlink" href="#dcp-server-installation-launch" title="Permalink to this heading"></a></h1>
+  <section id="dcp-server-installation">
+<span id="dcp-server"></span><h1>DCP Server Installation<a class="headerlink" href="#dcp-server-installation" title="Link to this heading"></a></h1>
 <p>The server of our data centric platform for microscopy imaging.</p>
 <img alt="stability-wip" src="https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg" /><p>The client and server communicate via the <a class="reference external" href="https://www.bentoml.com/?gclid=Cj0KCQiApKagBhC1ARIsAFc7Mc6iqOLi2OcLtqMbGx1KrFjtLUEZ-bhnqlT2zWREE0x7JImhtNmKlFEaAvSSEALw_wcB">bentoml</a> library. The client interacts with the server every time we run model inference or training, so the server should be running before starting the client.</p>
 <section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
 <p>Before starting make sure you have navigated to <code class="docutils literal notranslate"><span class="pre">data-centric-platform/src/server</span></code>. All future steps expect you are in the server directory. In your dedicated environment run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install -e .
 </pre></div>
 </div>
 </section>
 <section id="launch-dcp-server">
-<h2>Launch DCP Server<a class="headerlink" href="#launch-dcp-server" title="Permalink to this heading"></a></h2>
+<h2>Launch DCP Server<a class="headerlink" href="#launch-dcp-server" title="Link to this heading"></a></h2>
 <p>Simply run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>dcp_server/main.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python dcp_server/main.py
 </pre></div>
 </div>
 <p>Once the server is running, you can verify it is working by visiting <a class="reference external" href="http://localhost:7010/">http://localhost:7010/</a> in your web browser.</p>
 </section>
 <section id="customization-for-developers">
-<h2>Customization (for developers)<a class="headerlink" href="#customization-for-developers" title="Permalink to this heading"></a></h2>
+<h2>Customization (for developers)<a class="headerlink" href="#customization-for-developers" title="Link to this heading"></a></h2>
 <p>All service configurations are set in the <code class="docutils literal notranslate"><span class="pre">config.cfg</span></code> file. Please, obey the <a class="reference external" href="https://www.json.org/json-en.html">formal JSON format</a>.</p>
 <p>The config file has to have the five main parts. All the <code class="docutils literal notranslate"><span class="pre">marked</span></code> arguments are mandatory:</p>
 <ul>
@@ -145,7 +149,7 @@
 <p>To make it easier for you we provide you with two config files: <code class="docutils literal notranslate"><span class="pre">config.cfg</span></code> is set up to work for a panoptic segmentation task, while <code class="docutils literal notranslate"><span class="pre">config_instance.cfg</span></code> for instance segmentation. Make sure to rename the config you wish to use to <code class="docutils literal notranslate"><span class="pre">config.cfg</span></code>. The default is panoptic segmentation.</p>
 </section>
 <section id="models">
-<h2>Models<a class="headerlink" href="#models" title="Permalink to this heading"></a></h2>
+<h2>Models<a class="headerlink" href="#models" title="Link to this heading"></a></h2>
 <p>The current models are currently integrated into DCP:</p>
 <ul class="simple">
 <li><p>CellPose --&gt; for instance segmentation tasks</p></li>
@@ -153,30 +157,30 @@
 </ul>
 </section>
 <section id="running-with-docker">
-<h2>Running with Docker<a class="headerlink" href="#running-with-docker" title="Permalink to this heading"></a></h2>
+<h2>Running with Docker<a class="headerlink" href="#running-with-docker" title="Link to this heading"></a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>DO NOT USE UNTIL ISSUE IS SOLVED</p>
 </div>
 <p>Docker --&gt; Currently doesn't work for generate labels?</p>
 <section id="docker-compose">
-<h3>Docker-Compose<a class="headerlink" href="#docker-compose" title="Permalink to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>up
+<h3>Docker-Compose<a class="headerlink" href="#docker-compose" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker compose up
 </pre></div>
 </div>
 </section>
 <section id="docker-non-interactively">
-<h3>Docker Non-Interactively<a class="headerlink" href="#docker-non-interactively" title="Permalink to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>dcp-server<span class="w"> </span>.
-docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">7010</span>:7010<span class="w"> </span>-it<span class="w"> </span>dcp-server
+<h3>Docker Non-Interactively<a class="headerlink" href="#docker-non-interactively" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker build -t dcp-server .
+docker run -p <span class="m">7010</span>:7010 -it dcp-server
 </pre></div>
 </div>
 </section>
 <section id="docker-interactively">
-<h3>Docker Interactively<a class="headerlink" href="#docker-interactively" title="Permalink to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>dcp-server<span class="w"> </span>.
-docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>dcp-server<span class="w"> </span>bash
-bentoml<span class="w"> </span>serve<span class="w"> </span>service:svc<span class="w"> </span>--reload<span class="w"> </span>--port<span class="o">=</span><span class="m">7010</span>
+<h3>Docker Interactively<a class="headerlink" href="#docker-interactively" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker build -t dcp-server .
+docker run -it dcp-server bash
+bentoml serve service:svc --reload --port<span class="o">=</span><span class="m">7010</span>
 </pre></div>
 </div>
 </section>
@@ -188,7 +192,7 @@ bentoml<span class="w"> </span>serve<span class="w"> </span>service:svc<span cla
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="dcp_client_installation.html" class="btn btn-neutral float-left" title="DCP Client" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="dcp_server.html" class="btn btn-neutral float-right" title="dcp_server package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="dcp_server.html" class="btn btn-neutral float-right" title="dcp_server.fsimagestorage module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

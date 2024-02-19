@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="English">
+<html class="writer-html5" lang="English" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DCP Client &mdash; dcp 0.1 documentation</title>
+  <title>DCP Client &mdash; DCP 0.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,13 +15,13 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=37ea5c94"></script>
+        <script src="_static/documentation_options.js?v=2ed17a75"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
-        <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="DCP Server Installation &amp; Launch" href="dcp_server_installation.html" />
+    <link rel="next" title="DCP Server Installation" href="dcp_server_installation.html" />
     <link rel="prev" title="Data Centric Platform" href="index.html" /> 
 </head>
 
@@ -34,7 +34,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            dcp
+            DCP
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -58,8 +58,12 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server_installation.html">DCP Server Installation &amp; Launch</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server_installation.html">DCP Server Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server.fsimagestorage module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.models">dcp_server.models module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.segmentationclasses">dcp_server.segmentationclasses module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.serviceclasses">dcp_server.serviceclasses module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.utils">dcp_server.utils module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dcp_client.html">dcp_client package</a></li>
 </ul>
 
@@ -69,7 +73,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">dcp</a>
+          <a href="index.html">DCP</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -88,38 +92,38 @@
            <div itemprop="articleBody">
              
   <section id="dcp-client">
-<span id="id1"></span><h1>DCP Client<a class="headerlink" href="#dcp-client" title="Permalink to this heading"></a></h1>
+<span id="id1"></span><h1>DCP Client<a class="headerlink" href="#dcp-client" title="Link to this heading"></a></h1>
 <p>The client of our data centric platform for microscopy imaging.</p>
 <img alt="stability-wip" src="https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg" /><section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
 <p>Before starting make sure you have navigated to <code class="docutils literal notranslate"><span class="pre">data-centric-platform/src/client</span></code>. All future steps expect you are in the client directory. This installation has been tested using a conda environment with python version 3.9 on a mac local machine. In your dedicated environment run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install -e .
 </pre></div>
 </div>
 </section>
 <section id="running-the-client-a-step-by-step-guide">
-<h2>Running the client: A step-by-step guide!<a class="headerlink" href="#running-the-client-a-step-by-step-guide" title="Permalink to this heading"></a></h2>
+<h2>Running the client: A step-by-step guide!<a class="headerlink" href="#running-the-client-a-step-by-step-guide" title="Link to this heading"></a></h2>
 <section id="configurations">
-<h3>1. <strong>Configurations</strong><a class="headerlink" href="#configurations" title="Permalink to this heading"></a></h3>
+<h3>1. <strong>Configurations</strong><a class="headerlink" href="#configurations" title="Link to this heading"></a></h3>
 <blockquote>
 <div><p>Before launching the GUI you will need to set up your client configuration file, _dcp_client/<a href="#id2"><span class="problematic" id="id3">config.cfg_</span></a>. Please, obey the <a class="reference external" href="https://www.json.org/json-en.html">formal JSON format</a>. Here, we will define how the client will interact with the server. There are currently two options available: running the server locally, or connecting to the running instance on the FZJ jusuf-cloud. To connect to a locally running server, set:</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;server&quot;</span><span class="p">:{</span>
-<span class="w">           </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;local&quot;</span><span class="p">,</span>
-<span class="w">           </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;local&quot;</span><span class="p">,</span>
-<span class="w">           </span><span class="nt">&quot;data-path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;None&quot;</span><span class="p">,</span>
-<span class="w">           </span><span class="nt">&quot;ip&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
-<span class="w">           </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7010</span>
-<span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;server&quot;</span><span class="p">:{</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;local&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;local&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;data-path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;None&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;ip&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7010</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>To connect to the running service on jusuf-cloud, set:</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>&quot;server&quot;:{
-       &quot;user&quot;: &quot;xxxxx&quot;,
-       &quot;host&quot;: &quot;xxxxxx&quot;,
-       &quot;data-path&quot;: &quot;xxxxx&quot;,
-       &quot;ip&quot;: &quot;xxx.xx.xx.xx&quot;,
-       &quot;port&quot;: xxxx
-}
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;server&quot;</span><span class="p">:{</span><span class="w"></span>
+<span class="w">       </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;xxxxx&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">       </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;xxxxxx&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">       </span><span class="nt">&quot;data-path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;xxxxx&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">       </span><span class="nt">&quot;ip&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;xxx.xx.xx.xx&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">       </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">xxxx</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>Before continuing, you need to make sure that DCP server is running, either locally or on the cloud. See <a class="reference external" href="https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/server/README.md#using-pypi">DCP Server Installation &amp; Launch</a> for instructions on how to launch the server. <strong>Note:</strong> In order for this connection to succeed, you will need to have contacted the team developing DCP, so they can add your IP to the list of accepted requests.</p>
@@ -127,16 +131,16 @@
 </div></blockquote>
 </section>
 <section id="launching-the-client">
-<h3>2. <strong>Launching the client</strong><a class="headerlink" href="#launching-the-client" title="Permalink to this heading"></a></h3>
+<h3>2. <strong>Launching the client</strong><a class="headerlink" href="#launching-the-client" title="Link to this heading"></a></h3>
 <blockquote>
 <div><p>After setting your config simply run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>dcp_client/main.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python dcp_client/main.py
 </pre></div>
 </div>
 </div></blockquote>
 </section>
 <section id="welcome-window">
-<h3>3. <strong>Welcome window</strong><a class="headerlink" href="#welcome-window" title="Permalink to this heading"></a></h3>
+<h3>3. <strong>Welcome window</strong><a class="headerlink" href="#welcome-window" title="Link to this heading"></a></h3>
 <blockquote>
 <div><p>The welcome window should have now popped up.</p>
 <a class="reference internal image-reference" href="https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/client_welcome_window.png"><img alt="https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/client_welcome_window.png" class="align-center" src="https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/client_welcome_window.png" style="width: 400px; height: 200px;" /></a>
@@ -156,13 +160,13 @@
 </div></blockquote>
 </section>
 <section id="setting-paths">
-<h3>4. <strong>Setting paths</strong><a class="headerlink" href="#setting-paths" title="Permalink to this heading"></a></h3>
+<h3>4. <strong>Setting paths</strong><a class="headerlink" href="#setting-paths" title="Link to this heading"></a></h3>
 <blockquote>
 <div><p>After setting the paths for these three folders, you can click the <strong>Start</strong> button. If you have set the server configuration to the cloud, you will receive a message notifying you that your data will be uploaded to the cloud. Click <strong>Ok</strong> to continue.</p>
 </div></blockquote>
 </section>
 <section id="data-overview">
-<h3>5. <strong>Data Overview</strong><a class="headerlink" href="#data-overview" title="Permalink to this heading"></a></h3>
+<h3>5. <strong>Data Overview</strong><a class="headerlink" href="#data-overview" title="Link to this heading"></a></h3>
 <blockquote>
 <div><p>The main working window will appear next. This gives you an overview of the directories selected in the previous step along with three options:</p>
 <ul class="simple">
@@ -179,7 +183,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="Data Centric Platform" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="dcp_server_installation.html" class="btn btn-neutral float-right" title="DCP Server Installation &amp; Launch" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="dcp_server_installation.html" class="btn btn-neutral float-right" title="DCP Server Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
