@@ -2,9 +2,7 @@ from PyQt5.QtWidgets import  QFileIconProvider
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap, QIcon
 import numpy as np
-from skimage.feature import canny
-from skimage.morphology import closing, square
-from skimage.measure import find_contours
+from skimage.measure import find_contours, label
 from skimage.draw import polygon_perimeter
 
 from pathlib import Path, PurePath
@@ -61,7 +59,7 @@ def check_equal_arrays(array1, array2):
 class Compute4Mask:
 
     @staticmethod
-    def get_contours(instance_mask):
+    def get_contours(instance_mask, contours_level=None):
         '''
         Find contours of objects in the instance mask.
         This function is used to identify the contours of the objects to prevent 
@@ -80,7 +78,7 @@ class Compute4Mask:
             single_obj_mask = np.zeros_like(instance_mask)
             single_obj_mask[instance_mask==instance_id] = 1
             # compute contours for mask
-            contours = find_contours(single_obj_mask, 0.8)
+            contours = find_contours(single_obj_mask, contours_level)
             # sometimes little dots appeas as additional contours so remove these
             if len(contours)>1: 
                 contour_sizes = [contour.shape[0] for contour in contours]
@@ -92,14 +90,13 @@ class Compute4Mask:
         return contour_mask
     
     @staticmethod
-    def add_contour(labels_mask, instance_mask, contours_mask):
+    def add_contour(labels_mask, instance_mask):
         '''
         Add contours of objects to the labels mask.
 
         Parameters:
         - labels_mask (numpy.ndarray): The class mask array without the contour pixels annotated.
         - instance_mask (numpy.ndarray): The instance mask array.
-        - contours_mask (numpy.ndarray): The contours mask array, where each contour holds the instance_id.
 
         Returns:
         - labels_mask (numpy.ndarray): The updated class mask including contours.
@@ -107,10 +104,12 @@ class Compute4Mask:
         instance_ids = Compute4Mask.get_unique_objects(instance_mask)
         for instance_id in instance_ids:
             where_instances = np.where(instance_mask==instance_id)
-            class_vals = Compute4Mask.get_unique_objects(labels_mask[where_instances])
-            if len(class_vals)==0: continue
-            else: 
-                labels_mask[np.where(contours_mask==instance_id)] = class_vals[-1]
+            # get unique class ids where the object is present
+            class_vals, counts = np.unique(labels_mask[where_instances], return_counts=True)
+            # and take the class id which is most heavily represented
+            class_id = class_vals[np.argmax(counts)]
+            # make sure instance mask and class mask match
+            labels_mask[np.where(instance_mask==instance_id)] = class_id
         return labels_mask
 
     
@@ -165,9 +164,11 @@ class Compute4Mask:
                     new_labels_mask[where_instance] = num_classes[0]
                 # area was added where there is background or other class
                 else:
-                    old_class_id = np.unique(labels_mask[where_instance_orig])
+                    old_class_id, counts = np.unique(labels_mask[where_instance_orig], return_counts=True)
                     #assert len(old_class_id)==1
-                    old_class_id = old_class_id[0]
+                    #old_class_id = old_class_id[0]
+                    # and take the class id which is most heavily represented
+                    old_class_id = old_class_id[np.argmax(counts)]
                     new_labels_mask[where_instance] = old_class_id
     
         return new_labels_mask
@@ -179,3 +180,39 @@ class Compute4Mask:
         """
         return list(np.unique(active_mask)[1:])
     
+    @staticmethod
+    def assert_consistent_labels(mask):
+        """
+        Before saving the final mask make sure the user has not mistakenly made an error during annotation,
+        such that one instance id does not correspond to exactly one class id. Also checks whether for one instance id
+        multiple classes exist.
+        :param mask: The mask which we want to test.
+        :type mask: numpy.ndarray
+        :return:
+            - A boolean which is True if there is more than one connected components corresponding to an instance id and Fale otherwise.
+            - A boolean which is True if there is a missmatch between the instance mask and class masks (not 1-1 correspondance) and Flase otherwise.
+            - A list with all the instance ids for which more than one connected component was found.
+            - A list with all the instance ids for which a missmatch between class and instance masks was found.
+        :rtype :
+            - bool 
+            - bool
+            - list[int]
+            - list[int] 
+        """
+        user_annot_error = False
+        mask_mismatch_error = False
+        faulty_ids_annot = []
+        faulty_ids_missmatch = []
+        instance_mask, class_mask = mask[0], mask[1]
+        instance_ids = Compute4Mask.get_unique_objects(instance_mask)
+        for instance_id in instance_ids:
+            # check if there are more than one objects (connected components) with same instance_id
+            if np.unique(label(instance_mask==instance_id)).shape[0] > 2: 
+                user_annot_error = True
+                faulty_ids_annot.append(instance_id)
+            # and check if there is a mismatch between class mask and instance mask - should never happen!
+            if np.unique(class_mask[np.where(instance_mask==instance_id)]).shape[0]>1:
+                mask_mismatch_error = True
+                faulty_ids_missmatch.append(instance_id)
+
+        return user_annot_error, mask_mismatch_error, faulty_ids_annot, faulty_ids_missmatch

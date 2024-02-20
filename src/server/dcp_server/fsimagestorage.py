@@ -96,8 +96,10 @@ class FilesystemImageStorage():
         :return: list of unsupported files
         :rtype: list
         """        
-        return [file_name for file_name in os.listdir(os.path.join(self.root_dir, directory)) if utils.get_file_extension(file_name) not in setup_config['accepted_types']]
-    
+
+        return [file_name for file_name in os.listdir(os.path.join(self.root_dir, directory)) 
+                if not file_name.startswith('.') and utils.get_file_extension(file_name) not in setup_config['accepted_types']]
+        
     def get_image_size_properties(self, img, file_extension):
         """Get properties of the image size
 

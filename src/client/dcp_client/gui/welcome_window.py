@@ -169,7 +169,16 @@ class WelcomeWindow(MyWidget):
                             "We will now upload your data. Click ok to continue. \n"
                             "If you do not agree close the application and contact your software provider.")
             usr_response = self.create_warning_box(message_text, message_title="Warning", add_cancel_btn=True)
-            if usr_response: self.app.upload_data_to_server()
-            self.done_upload = True
-        self.start_main()
+            if usr_response: 
+                success_up1, success_up2, _, _ = self.app.upload_data_to_server()
+                if success_up1=="Error" or success_up2=="Error":
+                    message_text = ("An error has occured during data upload to the server. \n"
+                                    "Please check your configuration file and ensure that the server connection settings are correct and you have been given access to the server. \n"
+                                    "If the problem persists contact your software provider. Exiting now.")
+                    usr_response = self.create_warning_box(message_text, message_title="Error")   
+                    self.close()   
+                else: 
+                    self.done_upload = True
+                    self.start_upload_and_main()
+        else: self.start_main()
     

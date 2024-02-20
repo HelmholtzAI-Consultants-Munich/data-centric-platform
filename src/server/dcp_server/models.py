@@ -323,10 +323,10 @@ class CellposePatchCNN(nn.Module):
             
             # get patches centered around detected objects
             patches, patch_masks, instance_labels, _ = get_centered_patches(img,
-                                                               instance_mask,
-                                                               max_patch_size,
-                                                               noise_intensity=noise_intensity,
-                                                               include_mask=self.include_mask)
+                                                                            instance_mask,
+                                                                            max_patch_size,
+                                                                            noise_intensity=noise_intensity,
+                                                                            include_mask=self.include_mask)
             x = patches
             if self.classifier_class == "RandomForest":
                 x = create_dataset_for_rf(patches, patch_masks)
@@ -486,8 +486,8 @@ class UNet(nn.Module):
       
         # Classification label mask
         masks = np.array(masks)
-        masks = torch.stack([torch.from_numpy(mask[1]) for mask in masks])
-
+        masks = torch.stack([torch.from_numpy(mask[1].astype(np.int16)) for mask in masks])
+        
         # Create a training dataset and dataloader
         train_dataset = TensorDataset(imgs, masks)
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size)
