@@ -186,11 +186,18 @@ class Compute4Mask:
         Before saving the final mask make sure the user has not mistakenly made an error during annotation,
         such that one instance id does not correspond to exactly one class id. Also checks whether for one instance id
         multiple classes exist.
-        Parameters:
-        - mask (numpy.ndarray): The mask which we want to test.
-        Returns:
-        - user_annot_error (bool): Will return True if there is more than one connected components corresponding to an instance id and Fale otherwise.
-        - faulty_ids (List): Is a list with all the instance ids for which more than one connected component was found.
+        :param mask: The mask which we want to test.
+        :type mask: numpy.ndarray
+        :return:
+            - A boolean which is True if there is more than one connected components corresponding to an instance id and Fale otherwise.
+            - A boolean which is True if there is a missmatch between the instance mask and class masks (not 1-1 correspondance) and Flase otherwise.
+            - A list with all the instance ids for which more than one connected component was found.
+            - A list with all the instance ids for which a missmatch between class and instance masks was found.
+        :rtype :
+            - bool 
+            - bool
+            - list[int]
+            - list[int] 
         """
         user_annot_error = False
         mask_mismatch_error = False
