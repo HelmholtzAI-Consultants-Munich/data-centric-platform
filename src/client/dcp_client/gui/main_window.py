@@ -22,9 +22,8 @@ class WorkerThread(QThread):
         """
         Initialize the WorkerThread.
 
-        #TODO: @christinab12 Please, have a look, not sure if just an application should be mentioned.
-        :param app: The Application instance.
-        :type app: Application
+        :param app: The Application instance. See dcp_client.app for more information.
+        :type app: dcp_client.app.Application
         :param task: The task performed by the worker thread. Can be 'inference' or 'train'.
         :type task: str, optional
         :param parent: The parent QObject (default is None).
@@ -67,9 +66,8 @@ class MainWindow(MyWidget):
         """
         Initializes the MainWindow.
 
-        #TODO: @christinab12 please check it
-        :param app: The Application instance.
-        :type app: Application
+        :param app: The Application instance. See dcp_client.app for more information.
+        :type app: dcp_client.app.Application
         :param app.eval_data_path: Chosen path to images without labels, selected by the user in the WelcomeWindow.
         :type app.eval_data_path: str
         :param app.train_data_path: Chosen path to images with labels, selected by the user in the WelcomeWindow.
@@ -187,7 +185,6 @@ class MainWindow(MyWidget):
         """
         Is called once an image is selected in the 'curated dataset' folder.
 
-        #TODO: @christinab12 please check, I am not sure
         :param item: The selected item from the 'curated dataset' folder.
         :type item: QModelIndex
         """
@@ -198,7 +195,6 @@ class MainWindow(MyWidget):
         """
         Is called once an image is selected in the 'uncurated dataset' folder.
 
-        #TODO: @christinab12 please check, I am not sure
         :param item: The selected item from the 'uncurated dataset' folder.
         :type item: QModelIndex
         """
@@ -209,7 +205,6 @@ class MainWindow(MyWidget):
         """
         Is called once an image is selected in the 'in progress' folder.
 
-        #TODO: @christinab12 please check, I am not sure
         :param item: The selected item from the 'in progress' folder.
         :type item: QModelIndex
         """
@@ -254,8 +249,8 @@ class MainWindow(MyWidget):
     def on_finished(self, result):
         """
         Is called once the worker thread emits the on finished signal.
-        #TODO: @christinab12 please check
-        :param result: The result emitted by the worker thread.
+
+        :param result: The result emitted by the worker thread. See return type of WorkerThread.run
         :type result: tuple
         """ 
         # Stop the pulsation

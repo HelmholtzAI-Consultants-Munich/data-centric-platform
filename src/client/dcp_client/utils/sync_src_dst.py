@@ -44,8 +44,14 @@ class DataRSync(DataSync):
     def sync(self, src, dst, path):
         """ Syncs the data between the src and the dst. Both src and dst can be one of either
         'client' or 'server', whereas path is the local path we wish to sync
+
+        :param src: A string specifying the source, from where the data will be sent to dst. Can be 'client' or 'server'.
+        :type src: str
+        :param dst: A string specifying the destination, where the data from src will be sent to. Can be 'client' or 'server'.
+        :type dst: str
+        :param path: Path to the directory we want to synchronize.
+        :type path: str
         
-        #TODO: @christinab12 please help to add the description of the parameters
         """
         path += '/' # otherwise it doesn't go in the directory
         rel_path = get_relative_path(path) # get last folder, i.e. uncurated, curated

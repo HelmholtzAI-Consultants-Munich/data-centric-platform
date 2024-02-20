@@ -166,10 +166,8 @@ class Application:
         :param dst_directory: The destination directory where the images will be moved.
         :type dst_directory: str
 
-        :param move_segs: If True, moves the segmentation along with the image. Default is False.
+        :param move_segs: If True, moves the corresponding segmentation along with the image. Default is False.
         :type move_segs: bool
-        
-        #TODO: @christinab12 please check if I described it correctly?
         
         """
         #if image_name is None:
