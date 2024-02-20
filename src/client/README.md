@@ -5,7 +5,7 @@ The client of our data centric platform for microscopy imaging.
 
 ## How to use?
 ### Installation
-Before starting make sure you have navigated to ```data-centric-platform/src/client```. All future steps expect you are in the client directory. This installation has been tested using a conda environment with python version 3.9 on a mac local machine. In your dedicated environment run:
+Before starting, make sure you have navigated to ```data-centric-platform/src/client```. All future steps expect you are in the client directory. This installation has been tested using a conda environment with python version 3.9 on a mac local machine. In your dedicated environment run:
 ```
 pip install -e .
 ```
@@ -26,11 +26,11 @@ Before launching the GUI you will need to set up your client configuration file,
   To connect to the running service on jusuf-cloud, set:
   ```
        "server":{
-              "user": "xxxxx",
-              "host": "xxxxxx", 
-              "data-path": "xxxxx",
-              "ip": "xxx.xx.xx.xx", 
-              "port": xxxx
+              "user": "rocky",
+              "host": "jsc-vm", 
+              "data-path": "/home/rocky/dcp-data/my-project",
+              "ip": "134.94.198.230", 
+              "port": 7010
     }
   ```
   Before continuing, you need to make sure that DCP server is running, either locally or on the cloud. See [DCP Server Installation & Launch](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/server/README.md#using-pypi) for instructions on how to launch the server. **Note:** In order for this connection to succeed, you will need to have contacted the team developing DCP, so they can add your IP to the list of accepted requests.
