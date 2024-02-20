@@ -5,7 +5,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>dcp_server.fsimagestorage module &mdash; DCP 0.1 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
   
@@ -22,7 +22,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="dcp_client package" href="dcp_client.html" />
-    <link rel="prev" title="DCP Server Installation" href="dcp_server_installation.html" /> 
+    <link rel="prev" title="DCP Server" href="dcp_server_installation.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,7 +47,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="dcp_client_installation.html">DCP Client</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server_installation.html">DCP Server Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server_installation.html">DCP Server</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">dcp_server.fsimagestorage module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#dcp_server.fsimagestorage.FilesystemImageStorage"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.fsimagestorage.FilesystemImageStorage.get_image_seg_pairs"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.get_image_seg_pairs()</span></code></a></li>
@@ -69,7 +69,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CellClassifierFCNN.eval"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.eval()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CellClassifierFCNN.forward"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.forward()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CellClassifierFCNN.train"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.train()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CellClassifierFCNN.training"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.training</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CellClassifierFCNN.update_configs"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.update_configs()</span></code></a></li>
 </ul>
 </li>
@@ -81,7 +80,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#dcp_server.models.CellposePatchCNN"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CellposePatchCNN.eval"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN.eval()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CellposePatchCNN.train"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN.train()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CellposePatchCNN.training"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN.training</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CellposePatchCNN.update_configs"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN.update_configs()</span></code></a></li>
 </ul>
 </li>
@@ -89,21 +87,18 @@
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CustomCellposeModel.eval"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.eval()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CustomCellposeModel.masks_to_outlines"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.masks_to_outlines()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CustomCellposeModel.train"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.train()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CustomCellposeModel.training"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.training</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CustomCellposeModel.update_configs"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.update_configs()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#dcp_server.models.UNet"><code class="docutils literal notranslate"><span class="pre">UNet</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.UNet.DoubleConv"><code class="docutils literal notranslate"><span class="pre">UNet.DoubleConv</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.UNet.DoubleConv.forward"><code class="docutils literal notranslate"><span class="pre">UNet.DoubleConv.forward()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.UNet.DoubleConv.training"><code class="docutils literal notranslate"><span class="pre">UNet.DoubleConv.training</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.UNet.eval"><code class="docutils literal notranslate"><span class="pre">UNet.eval()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.UNet.forward"><code class="docutils literal notranslate"><span class="pre">UNet.forward()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.UNet.model_name"><code class="docutils literal notranslate"><span class="pre">UNet.model_name</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.UNet.train"><code class="docutils literal notranslate"><span class="pre">UNet.train()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.UNet.training"><code class="docutils literal notranslate"><span class="pre">UNet.training</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -435,11 +430,6 @@ Used, e.g., in training to create training data-training labels pairs</p>
 </dl>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="dcp_server.models.CellClassifierFCNN.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#dcp_server.models.CellClassifierFCNN.training" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="dcp_server.models.CellClassifierFCNN.update_configs">
 <span class="sig-name descname"><span class="pre">update_configs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CellClassifierFCNN.update_configs" title="Link to this definition"></a></dt>
@@ -531,11 +521,6 @@ Used, e.g., in training to create training data-training labels pairs</p>
 </dl>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="dcp_server.models.CellposePatchCNN.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#dcp_server.models.CellposePatchCNN.training" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="dcp_server.models.CellposePatchCNN.update_configs">
 <span class="sig-name descname"><span class="pre">update_configs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CellposePatchCNN.update_configs" title="Link to this definition"></a></dt>
@@ -609,11 +594,6 @@ Calls the original train function.</p>
 </dl>
 </dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="dcp_server.models.CustomCellposeModel.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#dcp_server.models.CustomCellposeModel.training" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="dcp_server.models.CustomCellposeModel.update_configs">
 <span class="sig-name descname"><span class="pre">update_configs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CustomCellposeModel.update_configs" title="Link to this definition"></a></dt>
@@ -660,11 +640,6 @@ batch normalization and ReLU activation functions.</p>
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="dcp_server.models.UNet.DoubleConv.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#dcp_server.models.UNet.DoubleConv.training" title="Link to this definition"></a></dt>
-<dd></dd></dl>
 
 </dd></dl>
 
@@ -723,11 +698,6 @@ self.features = self.model_config[&quot;unet&quot;][&quot;features&quot;]</p>
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="dcp_server.models.UNet.training">
-<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#dcp_server.models.UNet.training" title="Link to this definition"></a></dt>
-<dd></dd></dl>
 
 </dd></dl>
 
@@ -1200,7 +1170,7 @@ For RandomForest, it is used to calculate pyradiomics features.</p></li>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="dcp_server_installation.html" class="btn btn-neutral float-left" title="DCP Server Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dcp_server_installation.html" class="btn btn-neutral float-left" title="DCP Server" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="dcp_client.html" class="btn btn-neutral float-right" title="dcp_client package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

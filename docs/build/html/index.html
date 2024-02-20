@@ -5,7 +5,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Data Centric Platform &mdash; DCP 0.1 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
   
@@ -91,10 +91,12 @@ The client interacts with the server every time we run model inference or traini
 For full functionality of the software the server should be running, either locally or remotely.</p>
 <p>To install and start the server side follow the instructions described in <a class="reference internal" href="dcp_server_installation.html#dcp-server"><span class="std std-ref">DCP Server</span></a>.
 To run the client GUI follow the instructions described in <a class="reference internal" href="dcp_client_installation.html#dcp-client"><span class="std std-ref">DCP Client</span></a></p>
-<p>DCP handles all kinds of <strong>segmentation tasks</strong>! Try it out if you need to do:
-- <strong>Instance</strong> segmentation
-- <strong>Semantic</strong> segmentation
-- <strong>Panoptic</strong> segmentation</p>
+<p>DCP handles all kinds of <strong>segmentation tasks</strong>! Try it out if you need to do:</p>
+<ul class="simple">
+<li><p><strong>Instance</strong> segmentation</p></li>
+<li><p><strong>Semantic</strong> segmentation</p></li>
+<li><p><strong>Panoptic</strong> segmentation</p></li>
+</ul>
 </section>
 <section id="toy-data">
 <h2>Toy data<a class="headerlink" href="#toy-data" title="Link to this heading"></a></h2>
@@ -102,11 +104,13 @@ To run the client GUI follow the instructions described in <a class="reference i
 </section>
 <section id="enabling-data-centric-development">
 <h2>Enabling data centric development<a class="headerlink" href="#enabling-data-centric-development" title="Link to this heading"></a></h2>
-<p>Our platform encourages the use of data centric practices. With the user friendly client interface you can:
-- Detect and remove outliers from your training data: only confirmed samples are used to train our models
-- Detect and correct labeling errors: editing labels with the integrated napari visualisation tool
-- Establish consensus: allows for multiple annotators before curated label is passed to train model
-- Focus on data curation: no interaction with model parameters during training and inference</p>
+<p>Our platform encourages the use of data centric practices. With the user friendly client interface you can:</p>
+<ul class="simple">
+<li><p>Detect and remove outliers from your training data: only confirmed samples are used to train our models</p></li>
+<li><p>Detect and correct labeling errors: editing labels with the integrated napari visualisation tool</p></li>
+<li><p>Establish consensus: allows for multiple annotators before curated label is passed to train model</p></li>
+<li><p>Focus on data curation: no interaction with model parameters during training and inference</p></li>
+</ul>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
@@ -118,8 +122,10 @@ To run the client GUI follow the instructions described in <a class="reference i
 <li class="toctree-l3"><a class="reference internal" href="dcp_client_installation.html#welcome-window">3. <strong>Welcome window</strong></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dcp_client_installation.html#setting-paths">4. <strong>Setting paths</strong></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dcp_client_installation.html#data-overview">5. <strong>Data Overview</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client_installation.html#the-viewer">6. <strong>The viewer</strong></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client_installation.html#data-centric-workflow-intended-usage-summary">Data centric workflow [intended usage summary]</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="dcp_server_installation.html">DCP Server</a><ul>
@@ -156,7 +162,6 @@ To run the client GUI follow the instructions described in <a class="reference i
 <li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierFCNN.eval"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.eval()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierFCNN.forward"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.forward()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierFCNN.train"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.train()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierFCNN.training"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.training</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierFCNN.update_configs"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.update_configs()</span></code></a></li>
 </ul>
 </li>
@@ -168,7 +173,6 @@ To run the client GUI follow the instructions described in <a class="reference i
 <li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellposePatchCNN"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellposePatchCNN.eval"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN.eval()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellposePatchCNN.train"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN.train()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellposePatchCNN.training"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN.training</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellposePatchCNN.update_configs"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN.update_configs()</span></code></a></li>
 </ul>
 </li>
@@ -176,7 +180,6 @@ To run the client GUI follow the instructions described in <a class="reference i
 <li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CustomCellposeModel.eval"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.eval()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CustomCellposeModel.masks_to_outlines"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.masks_to_outlines()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CustomCellposeModel.train"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.train()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CustomCellposeModel.training"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.training</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CustomCellposeModel.update_configs"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.update_configs()</span></code></a></li>
 </ul>
 </li>
@@ -186,7 +189,6 @@ To run the client GUI follow the instructions described in <a class="reference i
 <li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.UNet.forward"><code class="docutils literal notranslate"><span class="pre">UNet.forward()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.UNet.model_name"><code class="docutils literal notranslate"><span class="pre">UNet.model_name</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.UNet.train"><code class="docutils literal notranslate"><span class="pre">UNet.train()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.UNet.training"><code class="docutils literal notranslate"><span class="pre">UNet.training</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -242,8 +244,17 @@ To run the client GUI follow the instructions described in <a class="reference i
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="dcp_client.html">dcp_client package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dcp_client.html#dcp-client-app-module">dcp_client.app module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_client.html#dcp-client-main-module">dcp_client.main module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.html#module-dcp_client.app">dcp_client.app module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.html#dcp_client.app.Application"><code class="docutils literal notranslate"><span class="pre">Application</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.html#dcp_client.app.DataSync"><code class="docutils literal notranslate"><span class="pre">DataSync</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.html#dcp_client.app.ImageStorage"><code class="docutils literal notranslate"><span class="pre">ImageStorage</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.html#dcp_client.app.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.html#module-dcp_client.main">dcp_client.main module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.html#dcp_client.main.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
