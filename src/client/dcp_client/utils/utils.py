@@ -184,7 +184,8 @@ class Compute4Mask:
     def assert_consistent_labels(mask):
         """
         Before saving the final mask make sure the user has not mistakenly made an error during annotation,
-        such that one instance id does not correspond to exactly one class id.
+        such that one instance id does not correspond to exactly one class id. Also checks whether for one instance id
+        multiple classes exist.
         Parameters:
         - mask (numpy.ndarray): The mask which we want to test.
         Returns:
@@ -198,10 +199,12 @@ class Compute4Mask:
         instance_mask, class_mask = mask[0], mask[1]
         instance_ids = Compute4Mask.get_unique_objects(instance_mask)
         for instance_id in instance_ids:
+            # check if there are more than one objects (connected components) with same instance_id
             if np.unique(label(instance_mask==instance_id)).shape[0] > 2: 
                 user_annot_error = True
                 faulty_ids_annot.append(instance_id)
-            elif np.unique(class_mask[np.where(instance_mask==instance_id)]).shape[0]>1:
+            # and check if there is a mismatch between class mask and instance mask - should never happen!
+            if np.unique(class_mask[np.where(instance_mask==instance_id)]).shape[0]>1:
                 mask_mismatch_error = True
                 faulty_ids_missmatch.append(instance_id)
 
