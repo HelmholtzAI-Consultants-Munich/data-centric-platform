@@ -37,49 +37,69 @@ Customization (for developers)
 
 All service configurations are set in the ``config.cfg`` file. Please, obey the `formal JSON format <https://www.json.org/json-en.html>`_.
 
-The config file has to have the five main parts. All the ``marked`` arguments are mandatory:
+The config file has to have the six main parts. All the ``marked`` arguments are mandatory:
 
 - ``setup``
-  - ``segmentation`` - segmentation type from the ``segmentationclasses.py``. Currently, only **GeneralSegmentation** is available (MitoProjectSegmentation and GFPProjectSegmentation are stale).
+
+  - ``segmentation`` - segmentation type from the ``segmentationclasses.py``. Currently, only ``GeneralSegmentation`` is available (MitoProjectSegmentation and GFPProjectSegmentation are stale).
+  - ``model_to_use`` - name of the model class from the ``models.py`` you want to use. Currently, available models are: ``CustomCellposeModel``, ``UNet`` and ``CellposePatchCNN``. See **Models** section for more information. 
   - ``accepted_types`` - types of images currently accepted for the analysis
   - ``seg_name_string`` - end string for masks to run on (All the segmentations of the image should contain this string - used to save and search for segmentations of the images)
 - ``service``
-  - ``model_to_use`` - name of the model class from the ``models.py`` you want to use. Currently, available models are:
-    - **CustomCellposeModel**: Inherits `CellposeModel <https://cellpose.readthedocs.io/en/latest/api.html#cellposemodel>`_ class
-    - **CellposePatchCNN**: Includes a segmentor and a classifier. Currently segmentor can only be ``CustomCellposeModel``, and classifier is ``CellClassifierFCNN``. The model sequentially runs the segmentor and then classifier, on patches of the objects to classify them.
-  - ``save_model_path`` - name for the trained model which will be saved after calling the (re)train from service - is saved under ``bentoml/models``
+
   - ``runner_name`` - name of the runner for the bentoml service
+  - ``bento_model_path`` - name for the trained model which will be saved after calling the (re)train from service - is saved under ``bentoml/models``
   - ``service_name`` - name for the bentoml service
   - ``port`` - on which port to start the service
-- ``model`` - configuration for the model instantiation. Here, pass any arguments you need or want to change. Take care that the names of the arguments are the same as of the original model class' ``__init__()`` function!
-  - ``segmentor``: model configuration for the segmentor. Currently takes arguments used in the init of CellposeModel, see `here <https://cellpose.readthedocs.io/en/latest/api.html#cellposemodel>`_.
-  - ``classifier``: model configuration for classifier, see ``__init__()`` of ``CellClassifierFCNN``
-- ``train`` - configuration for the model training. Take care that the names of the arguments are the same as of the original model's ``train()`` function!
-  - ``segmentor``: If using cellpose - the ``train()`` function arguments can be found `here <https://cellpose.readthedocs.io/en/latest/api.html#id7>`. Here, pass any arguments you need or want to change or leave empty {}, then default arguments will be used.
-  - ``classifier``: train configuration for classifier, see ``train()`` of ``CellClassifierFCNN``
-- ``eval`` - configuration for the model evaluation. Take care that the names of the arguments are the same as of the original model's ``eval()`` function!
-  - ``segmentor``: If using cellpose - the ``eval()`` function arguments can be found `here <https://cellpose.readthedocs.io/en/latest/api.html#id3>`. Here, pass any arguments you need or want to change or leave empty {}, then default arguments will be used.
-  - ``classifier``: train configuration for classifier, see ``eval()`` of ``CellClassifierFCNN``.
+- ``model`` - configuration for the model instantiation. Here, pass any arguments you need or want to change. Take care that the names of the arguments are the same as of the original model class ``__init__()`` function.
+
+  - ``segmentor``: model configuration for the segmentor. ``CustomCellposeModel`` takes arguments used in the init of CellposeModel, see `here <https://cellpose.readthedocs.io/en/latest/api.html#cellposemodel>`__.
+  - ``classifier``: model configuration for classifier, see ``__init__()`` of ``UNet``, ``CellClassifierFCNN`` or ``CellClassifierShallowModel``.
+- ``data`` - data configuration
+
+  - ``data_root``: if you are running the server remotely, then you need to specify the project path here. Should match the ``server: data-path`` argument in the client config.
+- ``train`` - configuration for the model training. Take care that the names of the arguments are the same as of the original model's ``train()`` function.
+  
+  - ``segmentor``: for  ``CustomCellposeModel`` the ``train()`` function arguments can be found `here <https://cellpose.readthedocs.io/en/latest/api.html#id7>`__. Pass any arguments you need or want to change or leave empty {}, then default arguments will be used.
+  - ``classifier``: train configuration for classifier, see ``train()`` of ``UNet``, ``CellClassifierFCNN`` or ``CellClassifierShallowModel``.
+- ``eval`` - configuration for the model evaluation. Take care that the names of the arguments are the same as of the original model's ``eval()`` function.
+  
+  - ``segmentor``: for  ``CustomCellposeModel`` the ``eval()`` function arguments can be found `here <https://cellpose.readthedocs.io/en/latest/api.html#id3>`__. Pass any arguments you need or want to change or leave empty {}, then default arguments will be used.
+  - ``classifier``: train configuration for classifier, see ``eval()`` of ``UNet``, ``CellClassifierFCNN``or ``CellClassifierShallowModel``
   - ``mask_channel_axis``: If a multi-class instance segmentation model has been used, then the masks returned by the model should have two channels, one for the instance segmentation results and one indicating the objects class. This variable indicated at which dim the channel axis should be stored. Currently should be kept at 0, as this is the only way the masks can be visualized correctly by napari in the client.
 
-To make it easier for you we provide you with two config files: ``config.cfg`` is set up to work for a panoptic segmentation task, while ``config_instance.cfg`` for instance segmentation. Make sure to rename the config you wish to use to ``config.cfg``. The default is panoptic segmentation.
+To make it easier to run the server we provide you with three config files: 
+ 
+ - ``config.cfg`` is set up to work for a panoptic segmentation task
+ - ``config_instance.cfg`` for instance segmentation
+ - ``config_semantic.cfg`` for semantic segmentation
+Make sure to rename the config you wish to use to ``config.cfg``. The default is panoptic segmentation.
 
 Models
 -------
 
-The current models are currently integrated into DCP:
+The models are currently integrated into DCP:
 
-- CellPose --> for instance segmentation tasks
-- CellposePatchCNN --> for panoptic segmentation tasks: includes the Cellpose model for instance segmentation followed by a patch wise CNN model on the predicted instances for obtaining class labels
+- **Instance** Segmentation: 
+
+  - ``CustomCellposeModel``: Inherits from cellpose.models.CellposeModel, see `here <https://cellpose.readthedocs.io/en/latest/api.html#cellposemodel>`__ for more information.
+- **Semantic** Segmentation: 
+  
+  - ``UNet``: A vanilla U-Net model, trained on the full images
+- **Panoptic** Segmentation: 
+
+  - ``CellposePatchCNN``: Includes a segmentor for instance segmentation, sequentially followed by a classifier for semantic segmentation. The segmentor can only be ``CustomCellposeModel`` model, while the classifier can be one of:
+
+    - ``CellClassifierFCNN`` or "FCNN" (in config): A CNN model for obtaining class labels, trained on images patches of individual objects, extarcted using the instance mask from the previous step
+    - ``CellClassifierShallowModel`` or "RandomForest" (in config): A Random Forest model for obtaining class labels, trained on shape and intensity features of the objects, extracted using the instance mask from the previous step.
+  - UNet: If the post-processing argument is set, then the instance mask is deduced from the labels mask. Will not be able to handle touching objects 
+
 
 Running with Docker 
 -------------------------------------------------------
 
 .. note::
-    DO NOT USE UNTIL ISSUE IS SOLVED
-
-
-Docker --> Currently doesn't work for generate labels?
+    DO NOT USE UNTIL ISSUE IS SOLVED: Currently doesn't work for generate labels
 
 Docker-Compose
 ~~~~~~~~~~~~~~~~

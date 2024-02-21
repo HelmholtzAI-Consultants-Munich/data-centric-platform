@@ -53,6 +53,17 @@ Our platform encourages the use of data centric practices. With the user friendl
    :height: 400
    :align: center
 
+.. centered::
+      *Get more with less!*
+
+DCP Imaging Conventions
+-----------------------
+DCP currently follows the imaging conventions described below:
+
+- Only 2D images are accepted
+- The accepted imaging formats are: ``(".jpg", ".jpeg", ".png", ".tiff", ".tif")``
+- RGB and RGBA images are accepted, however they will be converted to grayscale after read into DCP. The dims can be [C, H, W] or [H, W, C]
+- Existing segementations can be used, however they need to be TIFF files and have the same name as the corresponding image followed by '_seg', e.g. image1_seg.tiff\
 
 .. toctree::
    :maxdepth: 3
@@ -63,5 +74,3 @@ Our platform encourages the use of data centric practices. With the user friendl
    dcp_server
    dcp_client
 
-.. centered::
-      *Get more with less!*

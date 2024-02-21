@@ -133,6 +133,18 @@ The intended usage of DCP would include the following:
       :height: 400
       :align: center
 
+DCP Shortcuts
+-------------
+
+- In the Data Overview window, clicking on an image and the hitting the **Enter** key, is equivalent to clicking the 'View Image and Fix Label' button
+- The viewer accepts all Napari Shortcuts. The current list of the shortcuts for macOS can be see below:
+
+.. image:: https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/add-documentation/src/client/readme_figs/napari_shortcuts.png
+   :width: 600
+   :height: 500
+   :align: center
+
+
 
    
 

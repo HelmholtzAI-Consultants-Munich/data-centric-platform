@@ -112,6 +112,17 @@ To run the client GUI follow the instructions described in <a class="reference i
 <li><p><strong>Focus on data curation</strong>: no interaction with model parameters during training and inference</p></li>
 </ul>
 <a class="reference internal image-reference" href="https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/dcp_pipeline.png"><img alt="https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/dcp_pipeline.png" class="align-center" src="https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/dcp_pipeline.png" style="width: 400px; height: 400px;" /></a>
+<p class="centered">
+<strong><em>Get more with less!</em></strong></p></section>
+<section id="dcp-imaging-conventions">
+<h2>DCP Imaging Conventions<a class="headerlink" href="#dcp-imaging-conventions" title="Link to this heading"></a></h2>
+<p>DCP currently follows the imaging conventions described below:</p>
+<ul class="simple">
+<li><p>Only 2D images are accepted</p></li>
+<li><p>The accepted imaging formats are: <code class="docutils literal notranslate"><span class="pre">(&quot;.jpg&quot;,</span> <span class="pre">&quot;.jpeg&quot;,</span> <span class="pre">&quot;.png&quot;,</span> <span class="pre">&quot;.tiff&quot;,</span> <span class="pre">&quot;.tif&quot;)</span></code></p></li>
+<li><p>RGB and RGBA images are accepted, however they will be converted to grayscale after read into DCP. The dims can be [C, H, W] or [H, W, C]</p></li>
+<li><p>Existing segementations can be used, however they need to be TIFF files and have the same name as the corresponding image followed by '_seg', e.g. image1_seg.tiff</p></li>
+</ul>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
@@ -127,6 +138,7 @@ To run the client GUI follow the instructions described in <a class="reference i
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="dcp_client_installation.html#data-centric-workflow-intended-usage-summary">Data centric workflow [intended usage summary]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client_installation.html#dcp-shortcuts">DCP Shortcuts</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="dcp_server_installation.html">DCP Server</a><ul>
@@ -260,8 +272,7 @@ To run the client GUI follow the instructions described in <a class="reference i
 </li>
 </ul>
 </div>
-<p class="centered">
-<strong><em>Get more with less!</em></strong></p></section>
+</section>
 </section>
 
 

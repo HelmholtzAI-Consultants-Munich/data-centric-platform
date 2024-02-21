@@ -65,17 +65,6 @@ DCP currently follows the imaging conventions described below:
 - RGB and RGBA images are accepted, however they will be converted to grayscale after read into DCP. The dims can be [C, H, W] or [H, W, C]
 - Existing segementations can be used, however they need to be TIFF files and have the same name as the corresponding image followed by '_seg', e.g. image1_seg.tiff\
 
-DCP Shortcuts
--------------
-
-- In the Data Overview window, clicking on an image and the hitting the **Enter** key, is equivalent to clicking the 'View Image and Fix Label' button
-- The viewer accepts all Napari Shortcuts. The current list of the shortcuts for macOS can be see below:
-
-.. image:: https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/add-documentation/src/client/readme_figs/napari_shortcuts.png
-   :width: 600
-   :height: 500
-   :align: center
-
 .. toctree::
    :maxdepth: 3
    :caption: Contents:
