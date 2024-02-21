@@ -43,10 +43,15 @@ Enabling data centric development
 
 Our platform encourages the use of data centric practices. With the user friendly client interface you can:
 
-- Detect and remove outliers from your training data: only confirmed samples are used to train our models
-- Detect and correct labeling errors: editing labels with the integrated napari visualisation tool
-- Establish consensus: allows for multiple annotators before curated label is passed to train model
-- Focus on data curation: no interaction with model parameters during training and inference
+- **Detect and remove outliers** from your training data: only confirmed samples are used to train our models
+- **Detect and correct labeling errors**: editing labels with the integrated napari visualisation tool
+- **Establish consensus**: allows for multiple annotators before curated label is passed to train model
+- **Focus on data curation**: no interaction with model parameters during training and inference
+
+.. image:: https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/dcp_pipeline.png
+   :width: 400
+   :height: 400
+   :align: center
 
 
 .. toctree::

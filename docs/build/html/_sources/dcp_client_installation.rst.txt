@@ -100,7 +100,7 @@ Running the client: A step-by-step guide!
    - **Train Model:** Click this model to train your model on the images in the "Curated dataset" directory. This will call the ``train`` service from the server
    
    .. image:: https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/client_data_overview_window.png
-      :width: 400
+      :width: 500
       :height: 200
       :align: center
 
@@ -113,12 +113,12 @@ Running the client: A step-by-step guide!
    - Click the **Move to Curated dataset folder** if you are certain that the labels you are now viewing are final and require no more curation. These images and labels will later be used for training the machine learning model, so make sure that you select this option only if you are certain about the labels. If several labels are displayed (opened from the 'Curation in progress' step), make sure to **click** on the single label in the labels layer list you wish to be moved to the *Curated data folder*. The other images will then be automatically deleted from this folder.
 
    .. image:: https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/client_napari_viewer.png
-      :width: 400
-      :height: 200
+      :width: 900
+      :height: 500
       :align: center
 
 Data centric workflow [intended usage summary]
--------------
+----------------------------------------------
 
 The intended usage of DCP would include the following:
 
@@ -126,11 +126,11 @@ The intended usage of DCP would include the following:
 2. Generate labels for data in *Uncurated data folder*
 3. Visualise the resulting labels with the viewer and correct labels wherever necessary - once done move the image *Curated data folder*. Repeat this step for a couple of images until a few are placed into the *Curated data folder*. Depending on the qualitative evaluation of the label generation you might want to include fewer or more images, i.e. if the resulting masks require few edits, then few images will most likely be sufficient, whereas if many edits to the mask are required it is likely that more images are needed in the *Curated data folder*. You can always start with a small number and adjust later
 4. Train the model with the images in the *Curated data folder*
-6. Repeat steps 2-4 until you are satisfied with the masks generated for the remaining images in the *Uncurated data folder*. Every time the model is trained in step 4, the masks generated in step 2 should be of higher quality, until the model need not be trained any more 
+5. Repeat steps 2-4 until you are satisfied with the masks generated for the remaining images in the *Uncurated data folder*. Every time the model is trained in step 4, the masks generated in step 2 should be of higher quality, until the model need not be trained any more 
 
    .. image:: https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/dcp_pipeline.png
       :width: 400
-      :height: 200
+      :height: 400
       :align: center
 
 

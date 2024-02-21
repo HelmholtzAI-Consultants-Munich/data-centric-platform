@@ -43,11 +43,38 @@ Enabling data centric development
 
 Our platform encourages the use of data centric practices. With the user friendly client interface you can:
 
-- Detect and remove outliers from your training data: only confirmed samples are used to train our models
-- Detect and correct labeling errors: editing labels with the integrated napari visualisation tool
-- Establish consensus: allows for multiple annotators before curated label is passed to train model
-- Focus on data curation: no interaction with model parameters during training and inference
+- **Detect and remove outliers** from your training data: only confirmed samples are used to train our models
+- **Detect and correct labeling errors**: editing labels with the integrated napari visualisation tool
+- **Establish consensus**: allows for multiple annotators before curated label is passed to train model
+- **Focus on data curation**: no interaction with model parameters during training and inference
 
+.. image:: https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/dcp_pipeline.png
+   :width: 400
+   :height: 400
+   :align: center
+
+.. centered::
+      *Get more with less!*
+
+DCP Imaging Conventions
+-----------------------
+DCP currently follows the imaging conventions described below:
+
+- Only 2D images are accepted
+- The accepted imaging formats are: ``(".jpg", ".jpeg", ".png", ".tiff", ".tif")``
+- RGB and RGBA images are accepted, however they will be converted to grayscale after read into DCP. The dims can be [C, H, W] or [H, W, C]
+- Existing segementations can be used, however they need to be TIFF files and have the same name as the corresponding image followed by '_seg', e.g. image1_seg.tiff\
+
+DCP Shortcuts
+-------------
+
+- In the Data Overview window, clicking on an image and the hitting the **Enter** key, is equivalent to clicking the 'View Image and Fix Label' button
+- The viewer accepts all Napari Shortcuts. The current list of the shortcuts for macOS can be see below:
+
+.. image:: https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/add-documentation/src/client/readme_figs/napari_shortcuts.png
+   :width: 600
+   :height: 500
+   :align: center
 
 .. toctree::
    :maxdepth: 3
@@ -58,5 +85,3 @@ Our platform encourages the use of data centric practices. With the user friendl
    dcp_server
    dcp_client
 
-.. centered::
-      *Get more with less!*
