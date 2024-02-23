@@ -8,6 +8,8 @@ from copy import deepcopy
 from tqdm import tqdm
 import numpy as np
 from scipy.ndimage import label
+from skimage.measure import label as label_mask
+
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import f1_score, log_loss
@@ -58,8 +60,8 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         self.train_config = train_config
         self.eval_config = eval_config
 
-    def eval_probas(self, img):
-        """Get the probability mask for the given input image.
+    def eval_all_outputs(self, img):
+        """Get all outputs of the model when running eval.
 
         :param img: Input image for segmentation.
         :type img: numpy.ndarray
@@ -67,7 +69,7 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         :rtype: numpy.ndarray
         """
 
-        return super().eval(x=img, **self.eval_config["segmentor"])[1][2]
+        return super().eval(x=img, **self.eval_config["segmentor"])
 
     def eval(self, img):
         """Evaluate the model - find mask of the given image
@@ -745,37 +747,44 @@ class CellposeMultichannel():
         :rtype: numpy.ndarray
         """
 
-        instance_masks, class_masks, class_probas = [], [], []
-
-        instance_offset = 0
+        instance_masks, class_masks, model_confidences = [], [], []
 
         for i in range(self.num_of_channels):
 
-            res = self.cellpose_models[i].eval(img)
-            res[res>0] += instance_offset
-            instance_masks.append(res)
+            instance_mask, probs, _  = self.cellpose_models[i].eval_all_outputs(img)
+            confidence = probs[2]
+            class_mask = np.zeros_like(instance_mask)
+            class_mask[instance_mask>0]=(i + 1)
+                        
+            instance_masks.append(instance_mask)
+            class_masks.append(class_mask)
+            model_confidences.append(confidence)
 
-            instance_offset = np.max(res)
-
-            label_mask = res.copy()
-            label_mask[res>0]=(i + 1)
-            class_masks.append(label_mask)
-
-            class_proba = self.cellpose_models[i].eval_probas(img)
-            class_probas.append(class_proba)
-
-        instance_mask = sum(instance_masks)
-        class_probas = np.argmax(np.stack(class_probas), axis=0)
-
-        # merge the outputs of the n models
-        class_masks = np.stack(class_masks)
-        indexes = class_probas*class_probas.size + np.arange(class_probas.size).reshape(class_probas.shape)
-        indexes = np.unravel_index(indexes, class_masks.shape)
-        class_mask = class_masks[indexes]
+        merged_mask_instances, class_mask = self.merge_masks(instance_masks, class_masks, model_confidences)
+        instance_mask = label_mask(merged_mask_instances>0)
+        for inst_id in np.unique(instance_mask)[1:]:   
+            where_inst_id = np.where(instance_mask==inst_id)
+            vals, counts = np.unique(class_mask[where_inst_id], return_counts=True)
+            class_mask[where_inst_id] = vals[np.argmax(counts)]
 
         final_mask = np.stack((instance_mask, class_mask), axis=self.eval_config['mask_channel_axis']).astype(np.uint16)
         
         return final_mask
+    
+    def merge_masks(self, inst_masks, class_masks, probabilities):
+        # Convert lists to numpy arrays
+        inst_masks = np.array(inst_masks)
+        class_masks = np.array(class_masks)
+        probabilities = np.array(probabilities)
+        
+        # Find the index of the mask with the maximum probability for each pixel
+        max_prob_indices = np.argmax(probabilities, axis=0)
+        
+        # Use the index to select the corresponding mask for each pixel
+        final_mask_inst = inst_masks[max_prob_indices, np.arange(inst_masks.shape[1])[:, None], np.arange(inst_masks.shape[2])]
+        final_mask_class = class_masks[max_prob_indices, np.arange(class_masks.shape[1])[:, None], np.arange(class_masks.shape[2])]
+
+        return final_mask_inst, final_mask_class
 
 
     
