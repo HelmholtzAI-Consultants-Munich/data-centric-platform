@@ -10,6 +10,7 @@ class FilesystemImageStorage(ImageStorage):
         return imread(os.path.join(from_directory, cur_selected_img))
     
     def move_image(self, from_directory, to_directory, cur_selected_img):
+        print(f"from:{os.path.join(from_directory, cur_selected_img)}, to:{os.path.join(to_directory, cur_selected_img)}")
         os.replace(os.path.join(from_directory, cur_selected_img), os.path.join(to_directory, cur_selected_img))
 
     def save_image(self, to_directory, cur_selected_img, img):

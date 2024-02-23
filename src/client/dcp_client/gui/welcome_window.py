@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QLineEdit
-from PyQt5.QtCore import Qt
+from qtpy.QtWidgets import QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QLineEdit
+from qtpy.QtCore import Qt
 
 from dcp_client.gui.main_window import MainWindow
 from dcp_client.gui._my_widget import MyWidget
@@ -43,8 +43,14 @@ class WelcomeWindow(MyWidget):
         self.text_layout.addWidget(train_label)
 
         self.val_textbox = QLineEdit(self)
+        self.val_textbox.textEdited.connect(lambda x: self.on_text_changed(self.val_textbox, "eval", x))
+
         self.inprogr_textbox = QLineEdit(self)
+        self.inprogr_textbox.textEdited.connect(lambda x: self.on_text_changed(self.inprogr_textbox, "inprogress", x))
+
         self.train_textbox = QLineEdit(self)
+        self.train_textbox.textEdited.connect(lambda x: self.on_text_changed(self.train_textbox, "train", x))
+
         self.path_layout.addWidget(self.val_textbox)
         self.path_layout.addWidget(self.inprogr_textbox)
         self.path_layout.addWidget(self.train_textbox)
@@ -107,6 +113,21 @@ class WelcomeWindow(MyWidget):
             self.app.train_data_path = fd.selectedFiles()[0]
         self.train_textbox.setText(self.app.train_data_path)
 
+    def on_text_changed(self, field_obj, field_name, text):
+        '''
+        Update data paths based on text changes in input fields. 
+        Used for copying paths in the welcome window.
+        '''
+
+        if field_name == "train":
+            self.app.train_data_path = text
+        elif field_name == "eval":
+            self.app.eval_data_path = text
+        elif field_name == "inprogress":
+            self.app.inprogr_data_path = text
+        field_obj.setText(text)
+        
+
 
     def browse_inprogr_clicked(self):
         '''
@@ -122,15 +143,20 @@ class WelcomeWindow(MyWidget):
   
     def start_main(self):
         '''
-        Starts the main window after the user clicks 'Start' and only if both evaluation and train directories are chosen. 
+        Starts the main window after the user clicks 'Start' and only if both evaluation and train directories are chosen and all unique. 
         '''
         
-        if self.app.train_data_path and self.app.eval_data_path:
+        if len({self.app.inprogr_data_path, self.app.train_data_path, self.app.eval_data_path})<3:
+            self.message_text = "All directory names must be distinct."
+            _ = self.create_warning_box(self.message_text, message_title="Warning")
+
+
+        elif self.app.train_data_path and self.app.eval_data_path:
             self.hide()
             self.mw = MainWindow(self.app)
         else:
-            message_text = "You need to specify a folder both for your uncurated and curated dataset (even if the curated folder is currently empty). Please go back and select folders for both."
-            _ = self.create_warning_box(message_text, message_title="Warning")
+            self.message_text = "You need to specify a folder both for your uncurated and curated dataset (even if the curated folder is currently empty). Please go back and select folders for both."
+            _ = self.create_warning_box(self.message_text, message_title="Warning")
 
     def start_upload_and_main(self):
         '''
@@ -143,7 +169,16 @@ class WelcomeWindow(MyWidget):
                             "We will now upload your data. Click ok to continue. \n"
                             "If you do not agree close the application and contact your software provider.")
             usr_response = self.create_warning_box(message_text, message_title="Warning", add_cancel_btn=True)
-            if usr_response: self.app.upload_data_to_server()
-            self.done_upload = True
-        self.start_main()
+            if usr_response: 
+                success_up1, success_up2, _, _ = self.app.upload_data_to_server()
+                if success_up1=="Error" or success_up2=="Error":
+                    message_text = ("An error has occured during data upload to the server. \n"
+                                    "Please check your configuration file and ensure that the server connection settings are correct and you have been given access to the server. \n"
+                                    "If the problem persists contact your software provider. Exiting now.")
+                    usr_response = self.create_warning_box(message_text, message_title="Error")   
+                    self.close()   
+                else: 
+                    self.done_upload = True
+                    self.start_upload_and_main()
+        else: self.start_main()
     

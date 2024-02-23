@@ -1,8 +1,9 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView, QProgressBar
+from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView, QProgressBar, QShortcut
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtGui import QKeySequence
 
 from dcp_client.utils import settings
 from dcp_client.utils.utils import IconProvider
@@ -117,6 +118,9 @@ class MainWindow(MyWidget):
         self.launch_nap_button = QPushButton("View image and fix label", self)
         self.launch_nap_button.clicked.connect(self.on_launch_napari_button_clicked)  # add selected image    
         self.inprogress_layout.addWidget(self.launch_nap_button, alignment=Qt.AlignCenter)
+        # Create a shortcut for the Enter key to click the button
+        enter_shortcut = QShortcut(QKeySequence(Qt.Key_Return), self)
+        enter_shortcut.activated.connect(self.on_launch_napari_button_clicked)
 
         dir_layout.addLayout(self.inprogress_layout)
 
@@ -212,7 +216,7 @@ class MainWindow(MyWidget):
             _ = self.create_warning_box(message_text, message_title="Warning")
         else:
             self.nap_win = NapariWindow(self.app)
-            self.nap_win.show()
+            self.nap_win.show() 
 
     def on_finished(self, result):
         ''' 

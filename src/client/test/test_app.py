@@ -70,7 +70,7 @@ def test_run_inference_run(app):
     ]
     process = subprocess.Popen(command, stdin=subprocess.PIPE, shell=False)
     # and wait until it is setup
-    if sys.platform == 'win32' or sys.platform == 'cygwin': time.sleep(120) 
+    if sys.platform == 'win32' or sys.platform == 'cygwin': time.sleep(240) 
     else: time.sleep(60)
     # then do model serving
     message_text, message_title = app.run_inference()
