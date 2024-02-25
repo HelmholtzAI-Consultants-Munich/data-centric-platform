@@ -73,6 +73,6 @@ DCP currently follows the imaging conventions described below:
    dcp_server_installation
    dcp_server
    dcp_client
-   modules
+   
 
 

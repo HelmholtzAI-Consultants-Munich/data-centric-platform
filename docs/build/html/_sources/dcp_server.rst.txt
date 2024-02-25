@@ -18,13 +18,6 @@ dcp\_server.fsimagestorage module
    :undoc-members:
    :show-inheritance:
 
-dcp\_server.main module
------------------------
-
-.. automodule:: dcp_server.main
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 dcp\_server.models module
 -------------------------
@@ -38,14 +31,6 @@ dcp\_server.segmentationclasses module
 --------------------------------------
 
 .. automodule:: dcp_server.segmentationclasses
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-dcp\_server.service module
---------------------------
-
-.. automodule:: dcp_server.service
    :members:
    :undoc-members:
    :show-inheritance:
