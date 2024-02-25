@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from qtpy.QtWidgets import QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QLineEdit
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, QEvent
 
 from dcp_client.gui.main_window import MainWindow
 from dcp_client.gui._my_widget import MyWidget
@@ -44,29 +44,19 @@ class WelcomeWindow(MyWidget):
 
         self.val_textbox = QLineEdit(self)
         self.val_textbox.textEdited.connect(lambda x: self.on_text_changed(self.val_textbox, "eval", x))
+        self.val_textbox.installEventFilter(self)
 
         self.inprogr_textbox = QLineEdit(self)
         self.inprogr_textbox.textEdited.connect(lambda x: self.on_text_changed(self.inprogr_textbox, "inprogress", x))
+        self.inprogr_textbox.installEventFilter(self)
 
         self.train_textbox = QLineEdit(self)
         self.train_textbox.textEdited.connect(lambda x: self.on_text_changed(self.train_textbox, "train", x))
+        self.train_textbox.installEventFilter(self)
 
         self.path_layout.addWidget(self.val_textbox)
         self.path_layout.addWidget(self.inprogr_textbox)
         self.path_layout.addWidget(self.train_textbox)
-        
-        self.file_open_button_val = QPushButton('Browse',self)
-        self.file_open_button_val.show()
-        self.file_open_button_val.clicked.connect(self.browse_eval_clicked)
-        self.file_open_button_prog = QPushButton('Browse',self)
-        self.file_open_button_prog.show()
-        self.file_open_button_prog.clicked.connect(self.browse_inprogr_clicked)
-        self.file_open_button_train = QPushButton('Browse',self)
-        self.file_open_button_train.show()
-        self.file_open_button_train.clicked.connect(self.browse_train_clicked)
-        self.button_layout.addWidget(self.file_open_button_val)
-        self.button_layout.addWidget(self.file_open_button_prog)
-        self.button_layout.addWidget(self.file_open_button_train)
 
         input_layout.addLayout(self.text_layout)
         input_layout.addLayout(self.path_layout)
@@ -127,7 +117,17 @@ class WelcomeWindow(MyWidget):
             self.app.inprogr_data_path = text
         field_obj.setText(text)
         
-
+    def eventFilter(self, obj, event):
+        ''' Event filter to capture double-click events on QLineEdit widgets '''
+        if event.type() == QEvent.MouseButtonDblClick:
+            if obj == self.val_textbox:
+                self.browse_eval_clicked()
+            elif obj == self.inprogr_textbox:
+                self.browse_inprogr_clicked()
+            elif obj == self.train_textbox:
+                self.browse_train_clicked()
+        return super().eventFilter(obj, event)
+    
 
     def browse_inprogr_clicked(self):
         '''
