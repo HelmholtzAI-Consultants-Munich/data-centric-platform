@@ -1,3 +1,14 @@
+dcp\_server package
+===================
+
+.. automodule:: dcp_server
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :exclude-members: dcp\_server.main module
+
+Submodules
+----------
 
 dcp\_server.fsimagestorage module
 ---------------------------------
@@ -6,6 +17,7 @@ dcp\_server.fsimagestorage module
    :members:
    :undoc-members:
    :show-inheritance:
+
 
 dcp\_server.models module
 -------------------------
@@ -38,5 +50,3 @@ dcp\_server.utils module
    :members:
    :undoc-members:
    :show-inheritance:
-
-

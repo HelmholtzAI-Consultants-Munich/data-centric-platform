@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 class WorkerThread(QThread):
     """
      Worker thread for displaying Pulse ProgressBar during model serving.
+    
     """
     task_finished = pyqtSignal(tuple)
     def __init__(self, app: Application, task: str = None, parent = None,):
@@ -56,6 +57,7 @@ class MainWindow(MyWidget):
     Main Window Widget object.
     Opens the main window of the app where selected images in both directories are listed. 
     User can view the images, train the model to get the labels, and visualise the result.
+    
     :param eval_data_path: Chosen path to images without labeles, selected by the user in the WelcomeWindow
     :type eval_data_path: string
     :param train_data_path: Chosen path to images with labeles, selected by the user in the WelcomeWindow

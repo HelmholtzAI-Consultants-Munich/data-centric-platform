@@ -5,7 +5,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Data Centric Platform &mdash; DCP 0.1 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
   
@@ -47,11 +47,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="dcp_client_installation.html">DCP Client</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dcp_server_installation.html">DCP Server</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server.fsimagestorage module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.models">dcp_server.models module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.segmentationclasses">dcp_server.segmentationclasses module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.serviceclasses">dcp_server.serviceclasses module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.utils">dcp_server.utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dcp_client.html">dcp_client package</a></li>
 </ul>
 
@@ -154,118 +150,79 @@ To run the client GUI follow the instructions described in <a class="reference i
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server.fsimagestorage module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.fsimagestorage.FilesystemImageStorage"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.fsimagestorage.FilesystemImageStorage.get_image_seg_pairs"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.get_image_seg_pairs()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.fsimagestorage.FilesystemImageStorage.get_image_size_properties"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.get_image_size_properties()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.fsimagestorage.FilesystemImageStorage.get_unsupported_files"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.get_unsupported_files()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.fsimagestorage.FilesystemImageStorage.load_image"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.load_image()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.fsimagestorage.FilesystemImageStorage.prepare_images_and_masks_for_training"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.prepare_images_and_masks_for_training()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.fsimagestorage.FilesystemImageStorage.rescale_image"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.rescale_image()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.fsimagestorage.FilesystemImageStorage.resize_mask"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.resize_mask()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.fsimagestorage.FilesystemImageStorage.save_image"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.save_image()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.fsimagestorage.FilesystemImageStorage.search_images"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.search_images()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.fsimagestorage.FilesystemImageStorage.search_segs"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.search_segs()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#overview-of-dcp-server-package">Overview of dcp_server Package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#submodules">Submodules:</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#id1">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#module-dcp_server.fsimagestorage">dcp_server.fsimagestorage module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.fsimagestorage.FilesystemImageStorage"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.models">dcp_server.models module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierFCNN"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierFCNN.eval"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.eval()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierFCNN.forward"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.forward()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierFCNN.train"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.train()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierFCNN.update_configs"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.update_configs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp-server-main-module">dcp_server.main module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#module-dcp_server.models">dcp_server.models module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierFCNN"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierShallowModel"><code class="docutils literal notranslate"><span class="pre">CellClassifierShallowModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellposePatchCNN"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CustomCellposeModel"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.UNet"><code class="docutils literal notranslate"><span class="pre">UNet</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierShallowModel"><code class="docutils literal notranslate"><span class="pre">CellClassifierShallowModel</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierShallowModel.eval"><code class="docutils literal notranslate"><span class="pre">CellClassifierShallowModel.eval()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierShallowModel.train"><code class="docutils literal notranslate"><span class="pre">CellClassifierShallowModel.train()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#module-dcp_server.segmentationclasses">dcp_server.segmentationclasses module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.segmentationclasses.GFPProjectSegmentation"><code class="docutils literal notranslate"><span class="pre">GFPProjectSegmentation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.segmentationclasses.GeneralSegmentation"><code class="docutils literal notranslate"><span class="pre">GeneralSegmentation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.segmentationclasses.MitoProjectSegmentation"><code class="docutils literal notranslate"><span class="pre">MitoProjectSegmentation</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellposePatchCNN"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellposePatchCNN.eval"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN.eval()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellposePatchCNN.train"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN.train()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellposePatchCNN.update_configs"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN.update_configs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp-server-service-module">dcp_server.service module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#module-dcp_server.serviceclasses">dcp_server.serviceclasses module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.serviceclasses.CustomBentoService"><code class="docutils literal notranslate"><span class="pre">CustomBentoService</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.serviceclasses.CustomRunnable"><code class="docutils literal notranslate"><span class="pre">CustomRunnable</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.models.CustomCellposeModel"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CustomCellposeModel.eval"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.eval()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CustomCellposeModel.masks_to_outlines"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.masks_to_outlines()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CustomCellposeModel.train"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.train()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CustomCellposeModel.update_configs"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.update_configs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#module-dcp_server.utils">dcp_server.utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.create_dataset_for_rf"><code class="docutils literal notranslate"><span class="pre">create_dataset_for_rf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.create_patch_dataset"><code class="docutils literal notranslate"><span class="pre">create_patch_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.crop_centered_padded_patch"><code class="docutils literal notranslate"><span class="pre">crop_centered_padded_patch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.extract_intensity_features"><code class="docutils literal notranslate"><span class="pre">extract_intensity_features()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.find_max_patch_size"><code class="docutils literal notranslate"><span class="pre">find_max_patch_size()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_center_of_mass_and_label"><code class="docutils literal notranslate"><span class="pre">get_center_of_mass_and_label()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_centered_patches"><code class="docutils literal notranslate"><span class="pre">get_centered_patches()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_file_extension"><code class="docutils literal notranslate"><span class="pre">get_file_extension()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_objects"><code class="docutils literal notranslate"><span class="pre">get_objects()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_path_name"><code class="docutils literal notranslate"><span class="pre">get_path_name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_path_parent"><code class="docutils literal notranslate"><span class="pre">get_path_parent()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_path_stem"><code class="docutils literal notranslate"><span class="pre">get_path_stem()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_shape_features"><code class="docutils literal notranslate"><span class="pre">get_shape_features()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.join_path"><code class="docutils literal notranslate"><span class="pre">join_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.read_config"><code class="docutils literal notranslate"><span class="pre">read_config()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.models.UNet"><code class="docutils literal notranslate"><span class="pre">UNet</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.UNet.DoubleConv"><code class="docutils literal notranslate"><span class="pre">UNet.DoubleConv</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.UNet.eval"><code class="docutils literal notranslate"><span class="pre">UNet.eval()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.UNet.forward"><code class="docutils literal notranslate"><span class="pre">UNet.forward()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.UNet.model_name"><code class="docutils literal notranslate"><span class="pre">UNet.model_name</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.UNet.train"><code class="docutils literal notranslate"><span class="pre">UNet.train()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.segmentationclasses">dcp_server.segmentationclasses module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.segmentationclasses.GFPProjectSegmentation"><code class="docutils literal notranslate"><span class="pre">GFPProjectSegmentation</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.segmentationclasses.GFPProjectSegmentation.segment_image"><code class="docutils literal notranslate"><span class="pre">GFPProjectSegmentation.segment_image()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.segmentationclasses.GeneralSegmentation"><code class="docutils literal notranslate"><span class="pre">GeneralSegmentation</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.segmentationclasses.GeneralSegmentation.segment_image"><code class="docutils literal notranslate"><span class="pre">GeneralSegmentation.segment_image()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.segmentationclasses.GeneralSegmentation.train"><code class="docutils literal notranslate"><span class="pre">GeneralSegmentation.train()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.segmentationclasses.MitoProjectSegmentation"><code class="docutils literal notranslate"><span class="pre">MitoProjectSegmentation</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.segmentationclasses.MitoProjectSegmentation.segment_image"><code class="docutils literal notranslate"><span class="pre">MitoProjectSegmentation.segment_image()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.serviceclasses">dcp_server.serviceclasses module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.serviceclasses.CustomBentoService"><code class="docutils literal notranslate"><span class="pre">CustomBentoService</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.serviceclasses.CustomBentoService.start_service"><code class="docutils literal notranslate"><span class="pre">CustomBentoService.start_service()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.serviceclasses.CustomRunnable"><code class="docutils literal notranslate"><span class="pre">CustomRunnable</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.serviceclasses.CustomRunnable.SUPPORTED_RESOURCES"><code class="docutils literal notranslate"><span class="pre">CustomRunnable.SUPPORTED_RESOURCES</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.serviceclasses.CustomRunnable.SUPPORTS_CPU_MULTI_THREADING"><code class="docutils literal notranslate"><span class="pre">CustomRunnable.SUPPORTS_CPU_MULTI_THREADING</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.serviceclasses.CustomRunnable.bentoml_runnable_methods__"><code class="docutils literal notranslate"><span class="pre">CustomRunnable.bentoml_runnable_methods__</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.serviceclasses.CustomRunnable.check_and_load_model"><code class="docutils literal notranslate"><span class="pre">CustomRunnable.check_and_load_model()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.serviceclasses.CustomRunnable.evaluate"><code class="docutils literal notranslate"><span class="pre">CustomRunnable.evaluate()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.serviceclasses.CustomRunnable.train"><code class="docutils literal notranslate"><span class="pre">CustomRunnable.train()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.utils">dcp_server.utils module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.utils.create_dataset_for_rf"><code class="docutils literal notranslate"><span class="pre">create_dataset_for_rf()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.utils.create_patch_dataset"><code class="docutils literal notranslate"><span class="pre">create_patch_dataset()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.utils.crop_centered_padded_patch"><code class="docutils literal notranslate"><span class="pre">crop_centered_padded_patch()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.utils.extract_intensity_features"><code class="docutils literal notranslate"><span class="pre">extract_intensity_features()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.utils.find_max_patch_size"><code class="docutils literal notranslate"><span class="pre">find_max_patch_size()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_center_of_mass_and_label"><code class="docutils literal notranslate"><span class="pre">get_center_of_mass_and_label()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_centered_patches"><code class="docutils literal notranslate"><span class="pre">get_centered_patches()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_file_extension"><code class="docutils literal notranslate"><span class="pre">get_file_extension()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_objects"><code class="docutils literal notranslate"><span class="pre">get_objects()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_path_name"><code class="docutils literal notranslate"><span class="pre">get_path_name()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_path_parent"><code class="docutils literal notranslate"><span class="pre">get_path_parent()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_path_stem"><code class="docutils literal notranslate"><span class="pre">get_path_stem()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_shape_features"><code class="docutils literal notranslate"><span class="pre">get_shape_features()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.utils.join_path"><code class="docutils literal notranslate"><span class="pre">join_path()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#dcp_server.utils.read_config"><code class="docutils literal notranslate"><span class="pre">read_config()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="dcp_client.html">dcp_client package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.gui.html">dcp_client.gui package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.gui.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.gui.html#module-dcp_client.gui.main_window">dcp_client.gui.main_window module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.gui.html#module-dcp_client.gui.napari_window">dcp_client.gui.napari_window module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.gui.html#module-dcp_client.gui.welcome_window">dcp_client.gui.welcome_window module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.utils.html">dcp_client.utils package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#module-dcp_client.utils.bentoml_model">dcp_client.utils.bentoml_model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#module-dcp_client.utils.fsimagestorage">dcp_client.utils.fsimagestorage module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#module-dcp_client.utils.settings">dcp_client.utils.settings module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#module-dcp_client.utils.sync_src_dst">dcp_client.utils.sync_src_dst module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#module-dcp_client.utils.utils">dcp_client.utils.utils module</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="dcp_client.html#module-dcp_client.app">dcp_client.app module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="dcp_client.html#dcp_client.app.Application"><code class="docutils literal notranslate"><span class="pre">Application</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dcp_client.html#dcp_client.app.DataSync"><code class="docutils literal notranslate"><span class="pre">DataSync</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dcp_client.html#dcp_client.app.ImageStorage"><code class="docutils literal notranslate"><span class="pre">ImageStorage</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dcp_client.html#dcp_client.app.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="dcp_client.html#module-dcp_client.main">dcp_client.main module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="dcp_client.html#dcp_client.main.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
 </ul>
 </li>
 </ul>

@@ -5,7 +5,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DCP Server &mdash; DCP 0.1 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
   
@@ -21,7 +21,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="dcp_server.fsimagestorage module" href="dcp_server.html" />
+    <link rel="next" title="dcp_server package" href="dcp_server.html" />
     <link rel="prev" title="DCP Client" href="dcp_client_installation.html" /> 
 </head>
 
@@ -60,11 +60,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server.fsimagestorage module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.models">dcp_server.models module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.segmentationclasses">dcp_server.segmentationclasses module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.serviceclasses">dcp_server.serviceclasses module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.utils">dcp_server.utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dcp_client.html">dcp_client package</a></li>
 </ul>
 
@@ -99,14 +95,14 @@
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
 <p>Before starting make sure you have navigated to <code class="docutils literal notranslate"><span class="pre">data-centric-platform/src/server</span></code>. All future steps expect you are in the server directory. In your dedicated environment run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install -e .
 </pre></div>
 </div>
 </section>
 <section id="launch-dcp-server">
 <h2>Launch DCP Server<a class="headerlink" href="#launch-dcp-server" title="Link to this heading"></a></h2>
 <p>Simply run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>dcp_server/main.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python dcp_server/main.py
 </pre></div>
 </div>
 <p>Once the server is running, you can verify it is working by visiting <a class="reference external" href="http://localhost:7010/">http://localhost:7010/</a> in your web browser.</p>
@@ -202,22 +198,22 @@
 </div>
 <section id="docker-compose">
 <h3>Docker-Compose<a class="headerlink" href="#docker-compose" title="Link to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>up
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker compose up
 </pre></div>
 </div>
 </section>
 <section id="docker-non-interactively">
 <h3>Docker Non-Interactively<a class="headerlink" href="#docker-non-interactively" title="Link to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>dcp-server<span class="w"> </span>.
-docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">7010</span>:7010<span class="w"> </span>-it<span class="w"> </span>dcp-server
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker build -t dcp-server .
+docker run -p <span class="m">7010</span>:7010 -it dcp-server
 </pre></div>
 </div>
 </section>
 <section id="docker-interactively">
 <h3>Docker Interactively<a class="headerlink" href="#docker-interactively" title="Link to this heading"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>dcp-server<span class="w"> </span>.
-docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>dcp-server<span class="w"> </span>bash
-bentoml<span class="w"> </span>serve<span class="w"> </span>service:svc<span class="w"> </span>--reload<span class="w"> </span>--port<span class="o">=</span><span class="m">7010</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker build -t dcp-server .
+docker run -it dcp-server bash
+bentoml serve service:svc --reload --port<span class="o">=</span><span class="m">7010</span>
 </pre></div>
 </div>
 </section>
@@ -229,7 +225,7 @@ bentoml<span class="w"> </span>serve<span class="w"> </span>service:svc<span cla
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="dcp_client_installation.html" class="btn btn-neutral float-left" title="DCP Client" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="dcp_server.html" class="btn btn-neutral float-right" title="dcp_server.fsimagestorage module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="dcp_server.html" class="btn btn-neutral float-right" title="dcp_server package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

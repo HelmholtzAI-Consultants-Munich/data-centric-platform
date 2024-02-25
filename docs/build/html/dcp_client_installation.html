@@ -5,7 +5,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DCP Client &mdash; DCP 0.1 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
   
@@ -62,11 +62,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="dcp_server_installation.html">DCP Server</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server.fsimagestorage module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.models">dcp_server.models module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.segmentationclasses">dcp_server.segmentationclasses module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.serviceclasses">dcp_server.serviceclasses module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.utils">dcp_server.utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dcp_client.html">dcp_client package</a></li>
 </ul>
 
@@ -100,7 +96,7 @@
 <img alt="stability-wip" src="https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg" /><section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
 <p>Before starting make sure you have navigated to <code class="docutils literal notranslate"><span class="pre">data-centric-platform/src/client</span></code>. All future steps expect you are in the client directory. This installation has been tested using a conda environment with python version 3.9 on a mac local machine. In your dedicated environment run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install -e .
 </pre></div>
 </div>
 </section>
@@ -110,23 +106,23 @@
 <h3>1. <strong>Configurations</strong><a class="headerlink" href="#configurations" title="Link to this heading"></a></h3>
 <blockquote>
 <div><p>Before launching the GUI you will need to set up your client configuration file, <code class="docutils literal notranslate"><span class="pre">dcp_client/config.cfg</span></code>. Please, obey the <a class="reference external" href="https://www.json.org/json-en.html">formal JSON format</a>. Here, we will define how the client will interact with the server. There are currently two options available: running the server locally, or connecting to the running instance on the FZJ jusuf-cloud. To connect to a locally running server, set:</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;server&quot;</span><span class="p">:{</span>
-<span class="w">           </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;local&quot;</span><span class="p">,</span>
-<span class="w">           </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;local&quot;</span><span class="p">,</span>
-<span class="w">           </span><span class="nt">&quot;data-path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;None&quot;</span><span class="p">,</span>
-<span class="w">           </span><span class="nt">&quot;ip&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
-<span class="w">           </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7010</span>
-<span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;server&quot;</span><span class="p">:{</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;local&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;local&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;data-path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;None&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;ip&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7010</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>To connect to the running service on jusuf-cloud, set:</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;server&quot;</span><span class="p">:{</span>
-<span class="w">       </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;rocky&quot;</span><span class="p">,</span>
-<span class="w">       </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;jsc-vm&quot;</span><span class="p">,</span>
-<span class="w">       </span><span class="nt">&quot;data-path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/home/rocky/dcp-data/my-project&quot;</span><span class="p">,</span>
-<span class="w">       </span><span class="nt">&quot;ip&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;134.94.198.230&quot;</span><span class="p">,</span>
-<span class="w">       </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7010</span>
-<span class="p">}</span>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;server&quot;</span><span class="p">:{</span><span class="w"></span>
+<span class="w">       </span><span class="nt">&quot;user&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;rocky&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">       </span><span class="nt">&quot;host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;jsc-vm&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">       </span><span class="nt">&quot;data-path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/home/rocky/dcp-data/my-project&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">       </span><span class="nt">&quot;ip&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;134.94.198.230&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">       </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7010</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>Before continuing, you need to make sure that DCP server is running, either locally or on the cloud. See :doc: <cite>dcp_server_installation</cite> for instructions on how to launch the server. <strong>Note:</strong> In order for this connection to succeed, you will need to have contacted the team developing DCP, so they can add your IP to the list of accepted requests.</p>
@@ -137,7 +133,7 @@
 <h3>2. <strong>Launching the client</strong><a class="headerlink" href="#launching-the-client" title="Link to this heading"></a></h3>
 <blockquote>
 <div><p>After setting your config simply run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>dcp_client/main.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python dcp_client/main.py
 </pre></div>
 </div>
 </div></blockquote>

@@ -73,6 +73,7 @@ To make it easier to run the server we provide you with three config files:
  - ``config.cfg`` is set up to work for a panoptic segmentation task
  - ``config_instance.cfg`` for instance segmentation
  - ``config_semantic.cfg`` for semantic segmentation
+
 Make sure to rename the config you wish to use to ``config.cfg``. The default is panoptic segmentation.
 
 Models

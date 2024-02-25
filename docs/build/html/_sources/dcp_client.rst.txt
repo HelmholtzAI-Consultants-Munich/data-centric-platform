@@ -1,6 +1,14 @@
 dcp\_client package
 ===================
 
+
+.. toctree::
+   :maxdepth: 4
+
+   dcp_client.gui
+   dcp_client.utils
+
+
 dcp\_client.app module
 ----------------------
 
@@ -8,13 +16,4 @@ dcp\_client.app module
    :members:
    :undoc-members:
    :show-inheritance:
-
-dcp\_client.main module
------------------------
-
-.. automodule:: dcp_client.main
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 

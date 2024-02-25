@@ -5,7 +5,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>dcp_client package &mdash; DCP 0.1 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
   
@@ -21,7 +21,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="dcp_server.fsimagestorage module" href="dcp_server.html" /> 
+    <link rel="next" title="dcp_client.gui package" href="dcp_client.gui.html" />
+    <link rel="prev" title="dcp_server package" href="dcp_server.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,12 +48,10 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="dcp_client_installation.html">DCP Client</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dcp_server_installation.html">DCP Server</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server.fsimagestorage module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.models">dcp_server.models module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.segmentationclasses">dcp_server.segmentationclasses module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.serviceclasses">dcp_server.serviceclasses module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dcp_server.html#module-dcp_server.utils">dcp_server.utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server package</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">dcp_client package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.gui.html">dcp_client.gui package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.utils.html">dcp_client.utils package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-dcp_client.app">dcp_client.app module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#dcp_client.app.Application"><code class="docutils literal notranslate"><span class="pre">Application</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#dcp_client.app.Application.delete_images"><code class="docutils literal notranslate"><span class="pre">Application.delete_images()</span></code></a></li>
@@ -81,10 +80,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#dcp_client.app.Model.run_train"><code class="docutils literal notranslate"><span class="pre">Model.run_train()</span></code></a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#module-dcp_client.main">dcp_client.main module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#dcp_client.main.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -117,6 +112,119 @@
              
   <section id="dcp-client-package">
 <h1>dcp_client package<a class="headerlink" href="#dcp-client-package" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dcp_client.gui.html">dcp_client.gui package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.gui.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.gui.html#module-dcp_client.gui.main_window">dcp_client.gui.main_window module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.main_window.MainWindow"><code class="docutils literal notranslate"><span class="pre">MainWindow</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.main_window.MainWindow.main_window"><code class="docutils literal notranslate"><span class="pre">MainWindow.main_window()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.main_window.MainWindow.on_finished"><code class="docutils literal notranslate"><span class="pre">MainWindow.on_finished()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.main_window.MainWindow.on_item_eval_selected"><code class="docutils literal notranslate"><span class="pre">MainWindow.on_item_eval_selected()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.main_window.MainWindow.on_item_inprogr_selected"><code class="docutils literal notranslate"><span class="pre">MainWindow.on_item_inprogr_selected()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.main_window.MainWindow.on_item_train_selected"><code class="docutils literal notranslate"><span class="pre">MainWindow.on_item_train_selected()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.main_window.MainWindow.on_launch_napari_button_clicked"><code class="docutils literal notranslate"><span class="pre">MainWindow.on_launch_napari_button_clicked()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.main_window.MainWindow.on_run_inference_button_clicked"><code class="docutils literal notranslate"><span class="pre">MainWindow.on_run_inference_button_clicked()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.main_window.MainWindow.on_train_button_clicked"><code class="docutils literal notranslate"><span class="pre">MainWindow.on_train_button_clicked()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.main_window.WorkerThread"><code class="docutils literal notranslate"><span class="pre">WorkerThread</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.main_window.WorkerThread.run"><code class="docutils literal notranslate"><span class="pre">WorkerThread.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.main_window.WorkerThread.task_finished"><code class="docutils literal notranslate"><span class="pre">WorkerThread.task_finished</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.gui.html#module-dcp_client.gui.napari_window">dcp_client.gui.napari_window module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.napari_window.NapariWindow"><code class="docutils literal notranslate"><span class="pre">NapariWindow</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.napari_window.NapariWindow.axis_changed"><code class="docutils literal notranslate"><span class="pre">NapariWindow.axis_changed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.napari_window.NapariWindow.on_add_to_curated_button_clicked"><code class="docutils literal notranslate"><span class="pre">NapariWindow.on_add_to_curated_button_clicked()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.napari_window.NapariWindow.on_add_to_inprogress_button_clicked"><code class="docutils literal notranslate"><span class="pre">NapariWindow.on_add_to_inprogress_button_clicked()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.napari_window.NapariWindow.on_seg_channel_changed"><code class="docutils literal notranslate"><span class="pre">NapariWindow.on_seg_channel_changed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.napari_window.NapariWindow.set_editable_mask"><code class="docutils literal notranslate"><span class="pre">NapariWindow.set_editable_mask()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.napari_window.NapariWindow.switch_controls"><code class="docutils literal notranslate"><span class="pre">NapariWindow.switch_controls()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.napari_window.NapariWindow.switch_to_instance_mask"><code class="docutils literal notranslate"><span class="pre">NapariWindow.switch_to_instance_mask()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.napari_window.NapariWindow.switch_to_labels_mask"><code class="docutils literal notranslate"><span class="pre">NapariWindow.switch_to_labels_mask()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.napari_window.NapariWindow.update_instance_mask"><code class="docutils literal notranslate"><span class="pre">NapariWindow.update_instance_mask()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.napari_window.NapariWindow.update_labels_mask"><code class="docutils literal notranslate"><span class="pre">NapariWindow.update_labels_mask()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.gui.html#module-dcp_client.gui.welcome_window">dcp_client.gui.welcome_window module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.welcome_window.WelcomeWindow"><code class="docutils literal notranslate"><span class="pre">WelcomeWindow</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.welcome_window.WelcomeWindow.browse_eval_clicked"><code class="docutils literal notranslate"><span class="pre">WelcomeWindow.browse_eval_clicked()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.welcome_window.WelcomeWindow.browse_inprogr_clicked"><code class="docutils literal notranslate"><span class="pre">WelcomeWindow.browse_inprogr_clicked()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.welcome_window.WelcomeWindow.browse_train_clicked"><code class="docutils literal notranslate"><span class="pre">WelcomeWindow.browse_train_clicked()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.welcome_window.WelcomeWindow.on_text_changed"><code class="docutils literal notranslate"><span class="pre">WelcomeWindow.on_text_changed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.welcome_window.WelcomeWindow.start_main"><code class="docutils literal notranslate"><span class="pre">WelcomeWindow.start_main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.gui.html#dcp_client.gui.welcome_window.WelcomeWindow.start_upload_and_main"><code class="docutils literal notranslate"><span class="pre">WelcomeWindow.start_upload_and_main()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_client.utils.html">dcp_client.utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.utils.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.utils.html#module-dcp_client.utils.bentoml_model">dcp_client.utils.bentoml_model module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.bentoml_model.BentomlModel"><code class="docutils literal notranslate"><span class="pre">BentomlModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.bentoml_model.BentomlModel.connect"><code class="docutils literal notranslate"><span class="pre">BentomlModel.connect()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.bentoml_model.BentomlModel.is_connected"><code class="docutils literal notranslate"><span class="pre">BentomlModel.is_connected</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.bentoml_model.BentomlModel.run_inference"><code class="docutils literal notranslate"><span class="pre">BentomlModel.run_inference()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.bentoml_model.BentomlModel.run_train"><code class="docutils literal notranslate"><span class="pre">BentomlModel.run_train()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.utils.html#module-dcp_client.utils.fsimagestorage">dcp_client.utils.fsimagestorage module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.fsimagestorage.FilesystemImageStorage"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.fsimagestorage.FilesystemImageStorage.delete_image"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.delete_image()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.fsimagestorage.FilesystemImageStorage.load_image"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.load_image()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.fsimagestorage.FilesystemImageStorage.move_image"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.move_image()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.fsimagestorage.FilesystemImageStorage.save_image"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.save_image()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.utils.html#module-dcp_client.utils.settings">dcp_client.utils.settings module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.settings.init"><code class="docutils literal notranslate"><span class="pre">init()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.utils.html#module-dcp_client.utils.sync_src_dst">dcp_client.utils.sync_src_dst module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.sync_src_dst.DataRSync"><code class="docutils literal notranslate"><span class="pre">DataRSync</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.sync_src_dst.DataRSync.first_sync"><code class="docutils literal notranslate"><span class="pre">DataRSync.first_sync()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.sync_src_dst.DataRSync.sync"><code class="docutils literal notranslate"><span class="pre">DataRSync.sync()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.utils.html#module-dcp_client.utils.utils">dcp_client.utils.utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.utils.Compute4Mask"><code class="docutils literal notranslate"><span class="pre">Compute4Mask</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.utils.Compute4Mask.add_contour"><code class="docutils literal notranslate"><span class="pre">Compute4Mask.add_contour()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.utils.Compute4Mask.compute_new_instance_mask"><code class="docutils literal notranslate"><span class="pre">Compute4Mask.compute_new_instance_mask()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.utils.Compute4Mask.compute_new_labels_mask"><code class="docutils literal notranslate"><span class="pre">Compute4Mask.compute_new_labels_mask()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.utils.Compute4Mask.get_contours"><code class="docutils literal notranslate"><span class="pre">Compute4Mask.get_contours()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.utils.Compute4Mask.get_unique_objects"><code class="docutils literal notranslate"><span class="pre">Compute4Mask.get_unique_objects()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.utils.IconProvider"><code class="docutils literal notranslate"><span class="pre">IconProvider</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.utils.IconProvider.icon"><code class="docutils literal notranslate"><span class="pre">IconProvider.icon()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.utils.check_equal_arrays"><code class="docutils literal notranslate"><span class="pre">check_equal_arrays()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.utils.get_path_name"><code class="docutils literal notranslate"><span class="pre">get_path_name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.utils.get_path_parent"><code class="docutils literal notranslate"><span class="pre">get_path_parent()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.utils.get_path_stem"><code class="docutils literal notranslate"><span class="pre">get_path_stem()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.utils.get_relative_path"><code class="docutils literal notranslate"><span class="pre">get_relative_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.utils.join_path"><code class="docutils literal notranslate"><span class="pre">join_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#dcp_client.utils.utils.read_config"><code class="docutils literal notranslate"><span class="pre">read_config()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
 <section id="module-dcp_client.app">
 <span id="dcp-client-app-module"></span><h2>dcp_client.app module<a class="headerlink" href="#module-dcp_client.app" title="Link to this heading"></a></h2>
 <dl class="py class">
@@ -264,21 +372,14 @@ These files should have a _seg extension to the cur_selected_img filename.</p>
 </dd></dl>
 
 </section>
-<section id="module-dcp_client.main">
-<span id="dcp-client-main-module"></span><h2>dcp_client.main module<a class="headerlink" href="#module-dcp_client.main" title="Link to this heading"></a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="dcp_client.main.main">
-<span class="sig-prename descclassname"><span class="pre">dcp_client.main.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dcp_client.main.main" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="dcp_server.html" class="btn btn-neutral float-left" title="dcp_server.fsimagestorage module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dcp_server.html" class="btn btn-neutral float-left" title="dcp_server package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dcp_client.gui.html" class="btn btn-neutral float-right" title="dcp_client.gui package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

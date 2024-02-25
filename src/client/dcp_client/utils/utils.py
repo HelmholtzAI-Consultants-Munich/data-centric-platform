@@ -126,18 +126,14 @@ class Compute4Mask:
 
     @staticmethod
     def get_contours(instance_mask):
-        """
-        Find contours of objects in the instance mask.
-        This function is used to identify the contours of 
-        the objects to prevent the problem of the merged
+        """ Find contours of objects in the instance mask. This function is used to identify the contours of the objects to prevent the problem of the merged
         objects in napari window (mask).
 
         :param instance_mask: The instance mask array.
         :type instance_mask: numpy.ndarray
-        :return: A binary mask where the contours of all
-        objects in the instance segmentation mask are one
-        and the rest is background.
+        :return: A binary mask where the contours of all objects in the instance segmentation mask are one and the rest is background.
         :rtype: numpy.ndarray
+
         """
         instance_ids = Compute4Mask.get_unique_objects(instance_mask) # get object instance labels ignoring background
         contour_mask= np.zeros_like(instance_mask)
@@ -159,19 +155,17 @@ class Compute4Mask:
     
     @staticmethod
     def add_contour(labels_mask, instance_mask, contours_mask):
-        """
-        Add contours of objects to the labels mask.
+        """ Add contours of objects to the labels mask.
 
-        :param labels_mask: The class mask array without the contour
-        pixels annotated.
+        :param labels_mask: The class mask array without the contour pixels annotated.
         :type labels_mask: numpy.ndarray
         :param instance_mask: The instance mask array.
         :type instance_mask: numpy.ndarray
-        :param contours_mask: The contours mask array, where each
-        contour holds the instance_id.
+        :param contours_mask: The contours mask array, where each contour holds the instance_id.
         :type contours_mask: numpy.ndarray
         :return: The updated class mask including contours.
         :rtype: numpy.ndarray
+
         """
         instance_ids = Compute4Mask.get_unique_objects(instance_mask)
         for instance_id in instance_ids:
