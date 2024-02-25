@@ -20,14 +20,28 @@ class WelcomeWindow(MyWidget):
     def __init__(self, app: Application):
         super().__init__()
         self.app = app
-        self.resize(200, 200)
-        self.title = "Select Dataset"
-        self.main_layout = QVBoxLayout()
-        input_layout = QHBoxLayout()
-        label = QLabel(self)
-        label.setText('Welcome to Helmholtz AI data centric tool! Please select your dataset folder')
-        self.main_layout.addWidget(label)
+        self.setWindowTitle("Welcome to Helmholtz AI Data-Centric Tool")
+        self.setStyleSheet("background-color: #ffffff;")
+        self.resize(590, 250)
 
+        self.main_layout = QVBoxLayout()
+    
+        title_label = QLabel("Welcome to Helmholtz AI Data-Centric Tool")
+        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setStyleSheet(
+            "font-size: 24px; font-weight: bold; color: #14213d;"
+        )
+        self.main_layout.addWidget(title_label)
+
+        instructions_label = QLabel("Please select your dataset folder:")
+        instructions_label.setAlignment(Qt.AlignCenter)
+        instructions_label.setStyleSheet(
+            "font-size: 14px; color: #000000;"
+        )
+        self.main_layout.addWidget(instructions_label)
+
+        input_layout = QHBoxLayout()
+        
         self.text_layout = QVBoxLayout()
         self.path_layout = QVBoxLayout()
         self.button_layout = QVBoxLayout()
@@ -65,6 +79,11 @@ class WelcomeWindow(MyWidget):
 
         self.start_button = QPushButton('Start', self)
         self.start_button.setFixedSize(120, 30)
+        self.start_button.setStyleSheet(
+            "QPushButton { background-color: #fca311; color: #000000; border-radius: 5px; padding: 8px 16px; }"
+            "QPushButton:hover { background-color: #74c69d; }"
+            "QPushButton:pressed { background-color: #74c69d; }"
+        )
         self.start_button.show()
         # check if we need to upload data to server
         self.done_upload = False # we only do once
