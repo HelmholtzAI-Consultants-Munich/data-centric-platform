@@ -1,6 +1,7 @@
-from PyQt5.QtWidgets import  QFileIconProvider
+from PyQt5.QtWidgets import  QFileIconProvider, QStyledItemDelegate
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap, QIcon
+
 import numpy as np
 from skimage.measure import find_contours, label
 from skimage.draw import polygon_perimeter
@@ -22,6 +23,7 @@ class IconProvider(QFileIconProvider):
 
         if fn.endswith(settings.accepted_types):
             a = QPixmap(self.ICON_SIZE)
+            # a = a.scaled(QSize(1024, 1024))
             a.load(fn)
             return QIcon(a)
         else:
@@ -56,6 +58,37 @@ def join_path(root_dir, filepath): return str(Path(root_dir, filepath))
 def check_equal_arrays(array1, array2):
     return np.array_equal(array1, array2)
 
+class CustomItemDelegate(QStyledItemDelegate):
+    """
+    A custom item delegate for setting a fixed height for items in a view.
+    This delegate overrides the sizeHint method to set a fixed height for items.
+    """
+    def __init__(self, parent=None):
+        """
+        Initialize the CustomItemDelegate.
+
+        :param parent: The parent QObject. Default is None.
+        :type parent: QObject
+        """
+        super().__init__(parent)
+
+    def sizeHint(self, option, index):
+        """
+        Returns the size hint for the item specified by the given index.
+
+        :param option: The parameters used to draw the item.
+        :type option: QStyleOptionViewItem
+        
+        :param index: The model index of the item.
+        :type index: QModelIndex
+        
+        :returns: The size hint for the item.
+        :rtype: QSize
+        """
+        size = super().sizeHint(option, index)
+        size.setHeight(100)  
+        return size
+    
 class Compute4Mask:
 
     @staticmethod

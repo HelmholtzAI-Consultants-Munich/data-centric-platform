@@ -2,17 +2,18 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView, QProgressBar, QShortcut
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSize
 from PyQt5.QtGui import QKeySequence
 
 from dcp_client.utils import settings
-from dcp_client.utils.utils import IconProvider
+from dcp_client.utils.utils import IconProvider, CustomItemDelegate
 
 from dcp_client.gui.napari_window import NapariWindow
 from dcp_client.gui._my_widget import MyWidget
 
 if TYPE_CHECKING:
     from dcp_client.app import Application
+
 
 class WorkerThread(QThread):
     ''' Worker thread for displaying Pulse ProgressBar during model serving '''
@@ -84,11 +85,17 @@ class MainWindow(MyWidget):
 
         self.eval_dir_layout.addWidget(self.label_eval)
         # add eval dir list
+
         model_eval = QFileSystemModel()
         model_eval.setIconProvider(IconProvider())
         self.list_view_eval = QTreeView(self)
+        self.list_view_eval.setIconSize(QSize(50,50))
         self.list_view_eval.setStyleSheet("background-color: #ffffff")
         self.list_view_eval.setModel(model_eval)
+        model_eval.setRootPath('/')
+        delegate = CustomItemDelegate()
+        self.list_view_eval.setItemDelegate(delegate)
+
         for i in range(1,4):
             self.list_view_eval.hideColumn(i)
         #self.list_view_eval.setFixedSize(600, 600)
@@ -129,9 +136,15 @@ class MainWindow(MyWidget):
         model_inprogr = QFileSystemModel()
         #self.list_view = QListView(self)
         self.list_view_inprogr = QTreeView(self)
+        self.list_view_inprogr.setIconSize(QSize(50,50))
         self.list_view_inprogr.setStyleSheet("background-color: #ffffff")
         model_inprogr.setIconProvider(IconProvider())
         self.list_view_inprogr.setModel(model_inprogr)
+
+        model_inprogr.setRootPath('/')
+        delegate = CustomItemDelegate()
+        self.list_view_inprogr.setItemDelegate(delegate)
+
         for i in range(1,4):
             self.list_view_inprogr.hideColumn(i)
         #self.list_view_inprogr.setFixedSize(600, 600)
@@ -140,9 +153,6 @@ class MainWindow(MyWidget):
         self.inprogr_dir_layout.addWidget(self.list_view_inprogr)
         self.inprogress_layout.addLayout(self.inprogr_dir_layout)
 
-        # self.launch_nap_button = QPushButton("View image and fix label", self)
-        # self.launch_nap_button.clicked.connect(self.on_launch_napari_button_clicked)     
-        # self.inprogress_layout.addWidget(self.launch_nap_button, alignment=Qt.AlignCenter)
         self.launch_nap_button = QPushButton()
         self.launch_nap_button.setStyleSheet(
         "QPushButton { background-color: transparent; border: none; border-radius: 5px; padding: 8px 16px; }"
@@ -170,11 +180,18 @@ class MainWindow(MyWidget):
         self.train_dir_layout.addWidget(self.label_train)
         # add train dir list
         model_train = QFileSystemModel()
+
         #self.list_view = QListView(self)
         self.list_view_train = QTreeView(self)
+        self.list_view_train.setIconSize(QSize(50,50))
         self.list_view_train.setStyleSheet("background-color: #ffffff")
         model_train.setIconProvider(IconProvider())
         self.list_view_train.setModel(model_train)
+
+        model_train.setRootPath('/')
+        delegate = CustomItemDelegate()
+        self.list_view_train.setItemDelegate(delegate)
+
         for i in range(1,4):
             self.list_view_train.hideColumn(i)
         #self.list_view_train.setFixedSize(600, 600)
