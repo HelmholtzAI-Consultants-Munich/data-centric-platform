@@ -2,9 +2,7 @@ from PyQt5.QtWidgets import  QFileIconProvider
 from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QPixmap, QIcon
 import numpy as np
-from skimage.feature import canny
-from skimage.morphology import closing, square
-from skimage.measure import find_contours
+from skimage.measure import find_contours, label
 from skimage.draw import polygon_perimeter
 
 from pathlib import Path, PurePath
@@ -14,13 +12,13 @@ from dcp_client.utils import settings
 
 class IconProvider(QFileIconProvider):
     def __init__(self) -> None:
-        """Initializes the IconProvider with the default icon size.
+        """ Initializes the IconProvider with the default icon size.
         """
         super().__init__()
         self.ICON_SIZE = QSize(512,512)
 
     def icon(self, type: 'QFileIconProvider.IconType'):
-        """Returns the icon for the specified file type.
+        """ Returns the icon for the specified file type.
 
         :param type: The type of the file for which the icon is requested.
         :type type: QFileIconProvider.IconType
@@ -39,7 +37,7 @@ class IconProvider(QFileIconProvider):
             return super().icon(type)
 
 def read_config(name, config_path = 'config.cfg') -> dict:   
-    """Reads the configuration file
+    """ Reads the configuration file
 
     :param name: name of the section you want to read (e.g. 'setup','train')
     :type name: string
@@ -55,7 +53,7 @@ def read_config(name, config_path = 'config.cfg') -> dict:
         return config_dict[name]
 
 def get_relative_path(filepath):
-    """Returns the name of the file from the given filepath.
+    """ Returns the name of the file from the given filepath.
 
     :param filepath: The path of the file.
     :type filepath: str
@@ -65,7 +63,7 @@ def get_relative_path(filepath):
     return PurePath(filepath).name
 
 def get_path_stem(filepath): 
-    """Returns the stem (filename without its extension) from the given filepath.
+    """ Returns the stem (filename without its extension) from the given filepath.
 
     :param filepath: The path of the file.
     :type filepath: str
@@ -85,7 +83,7 @@ def get_path_name(filepath):
     return str(Path(filepath).name)
 
 def get_path_parent(filepath):
-    """Returns the parent directory of the given filepath.
+    """ Returns the parent directory of the given filepath.
 
     :param filepath: The path of the file.
     :type filepath: str
@@ -95,8 +93,7 @@ def get_path_parent(filepath):
     return str(Path(filepath).parent)
 
 def join_path(root_dir, filepath):
-    """
-    Joins the root directory path with the given filepath.
+    """ Joins the root directory path with the given filepath.
 
     :param root_dir: The root directory.
     :type root_dir: str
@@ -108,7 +105,7 @@ def join_path(root_dir, filepath):
     return str(Path(root_dir, filepath))
 
 def check_equal_arrays(array1, array2):
-    """Checks if two arrays are equal.
+    """ Checks if two arrays are equal.
 
     :param array1: The first array.
     :type array1: numpy.ndarray
@@ -142,7 +139,7 @@ class Compute4Mask:
             single_obj_mask = np.zeros_like(instance_mask)
             single_obj_mask[instance_mask==instance_id] = 1
             # compute contours for mask
-            contours = find_contours(single_obj_mask, 0.8)
+            contours = find_contours(single_obj_mask, contours_level)
             # sometimes little dots appeas as additional contours so remove these
             if len(contours)>1: 
                 contour_sizes = [contour.shape[0] for contour in contours]
@@ -165,21 +162,22 @@ class Compute4Mask:
         :type contours_mask: numpy.ndarray
         :return: The updated class mask including contours.
         :rtype: numpy.ndarray
-
         """
         instance_ids = Compute4Mask.get_unique_objects(instance_mask)
         for instance_id in instance_ids:
             where_instances = np.where(instance_mask==instance_id)
-            class_vals = Compute4Mask.get_unique_objects(labels_mask[where_instances])
-            if len(class_vals)==0: continue
-            else: 
-                labels_mask[np.where(contours_mask==instance_id)] = class_vals[-1]
+            # get unique class ids where the object is present
+            class_vals, counts = np.unique(labels_mask[where_instances], return_counts=True)
+            # and take the class id which is most heavily represented
+            class_id = class_vals[np.argmax(counts)]
+            # make sure instance mask and class mask match
+            labels_mask[np.where(instance_mask==instance_id)] = class_id
         return labels_mask
 
     
     @staticmethod
     def compute_new_instance_mask(labels_mask, instance_mask):
-        """Given an updated labels mask, update also the instance mask accordingly. 
+        """ Given an updated labels mask, update also the instance mask accordingly. 
         So far the user can only remove an entire object in the labels mask view by 
         setting the color of the object to the background.
         Therefore the instance mask can only change by entirely removing an object.
@@ -201,8 +199,7 @@ class Compute4Mask:
 
     @staticmethod
     def compute_new_labels_mask(labels_mask, instance_mask, original_instance_mask, old_instances):
-        """
-        Given the existing labels mask, the updated instance mask is used to update the labels mask.
+        """ Given the existing labels mask, the updated instance mask is used to update the labels mask.
 
         :param labels_mask: The existing labels mask, which needs to be updated.
         :type labels_mask: numpy.ndarray
@@ -233,16 +230,18 @@ class Compute4Mask:
                     new_labels_mask[where_instance] = num_classes[0]
                 # area was added where there is background or other class
                 else:
-                    old_class_id = np.unique(labels_mask[where_instance_orig])
+                    old_class_id, counts = np.unique(labels_mask[where_instance_orig], return_counts=True)
                     #assert len(old_class_id)==1
-                    old_class_id = old_class_id[0]
+                    #old_class_id = old_class_id[0]
+                    # and take the class id which is most heavily represented
+                    old_class_id = old_class_id[np.argmax(counts)]
                     new_labels_mask[where_instance] = old_class_id
     
         return new_labels_mask
        
     @staticmethod
     def get_unique_objects(active_mask):
-        """Gets unique objects from the active mask.
+        """ Gets unique objects from the active mask.
 
         :param active_mask: The mask array.
         :type active_mask: numpy.ndarray
@@ -251,3 +250,38 @@ class Compute4Mask:
         """
         return list(np.unique(active_mask)[1:])
     
+    @staticmethod
+    def assert_consistent_labels(mask):
+        """ Before saving the final mask make sure the user has not mistakenly made an error during annotation,
+        such that one instance id does not correspond to exactly one class id. Also checks whether for one instance id
+        multiple classes exist.
+        :param mask: The mask which we want to test.
+        :type mask: numpy.ndarray
+        :return:
+            - A boolean which is True if there is more than one connected components corresponding to an instance id and Fale otherwise.
+            - A boolean which is True if there is a missmatch between the instance mask and class masks (not 1-1 correspondance) and Flase otherwise.
+            - A list with all the instance ids for which more than one connected component was found.
+            - A list with all the instance ids for which a missmatch between class and instance masks was found.
+        :rtype :
+            - bool 
+            - bool
+            - list[int]
+            - list[int] 
+        """
+        user_annot_error = False
+        mask_mismatch_error = False
+        faulty_ids_annot = []
+        faulty_ids_missmatch = []
+        instance_mask, class_mask = mask[0], mask[1]
+        instance_ids = Compute4Mask.get_unique_objects(instance_mask)
+        for instance_id in instance_ids:
+            # check if there are more than one objects (connected components) with same instance_id
+            if np.unique(label(instance_mask==instance_id)).shape[0] > 2: 
+                user_annot_error = True
+                faulty_ids_annot.append(instance_id)
+            # and check if there is a mismatch between class mask and instance mask - should never happen!
+            if np.unique(class_mask[np.where(instance_mask==instance_id)]).shape[0]>1:
+                mask_mismatch_error = True
+                faulty_ids_missmatch.append(instance_id)
+
+        return user_annot_error, mask_mismatch_error, faulty_ids_annot, faulty_ids_missmatch

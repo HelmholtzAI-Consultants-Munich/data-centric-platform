@@ -24,25 +24,29 @@ from dcp_client.utils import settings
 @pytest.fixture
 def napari_window(qtbot):
 
-    img1 = data.astronaut()
-    img2 = data.coffee()
-    img3 = data.cat()
+    #img1 = data.astronaut()
+    #img2 = data.coffee()
+    img = data.cat()
+    img_mask = np.zeros((2, img.shape[0], img.shape[1]), dtype=np.uint8)
+    img_mask[0, 50:50, 50:50] = 1
+    img_mask[1, 50:50, 50:50] = 1
+    img_mask[0, 100:200, 100:200] = 2
+    img_mask[1, 100:200, 100:200] = 1
+    img_mask[0, 200:300, 200:300] = 3
+    img_mask[1, 200:300, 200:300] = 2
+    #img3_mask = img2_mask.copy()
 
     if not os.path.exists('train_data_path'): 
         os.mkdir('train_data_path')
-        imsave('train_data_path/astronaut.png', img1)
 
     if not os.path.exists('in_prog'): 
         os.mkdir('in_prog')
-        imsave('in_prog/coffee.png', img2)
 
     if not os.path.exists('eval_data_path'): 
         os.mkdir('eval_data_path')
-        imsave('eval_data_path/cat.png', img3)
-        imsave('eval_data_path/cat_seg.png', img3)
+        imsave('eval_data_path/cat.png', img)
     
-    imsave('eval_data_path/cat_test.png', img3)
-    imsave('eval_data_path/cat_test_seg.png', img3)
+    imsave('eval_data_path/cat_seg.tiff', img_mask)
 
     rsyncer = DataRSync(user_name="local", host_name="local", server_repo_path='.')
     application = Application(
@@ -56,7 +60,7 @@ def napari_window(qtbot):
         os.path.join(os.getcwd(), 'in_prog')
     )
 
-    application.cur_selected_img = 'cat_test.png'
+    application.cur_selected_img = 'cat.png'
     application.cur_selected_path = application.eval_data_path
 
     widget = NapariWindow(application)
@@ -73,36 +77,18 @@ def test_on_add_to_curated_button_clicked(napari_window, monkeypatch):
     # Mock the create_warning_box method
     def mock_create_warning_box(message_text, message_title):
         return None  
-
     monkeypatch.setattr(napari_window, 'create_warning_box', mock_create_warning_box)
 
-    # assert napari_window.app.cur_selected_path == 'eval_data_path'
-
-    napari_window.app.cur_selected_img = 'cat_test.png'
+    napari_window.app.cur_selected_img = 'cat.png'
     napari_window.app.cur_selected_path = napari_window.app.eval_data_path
 
-    napari_window.viewer.layers.selection.active.name = 'cat_test_seg' 
+    napari_window.viewer.layers.selection.active.name = 'cat_seg' 
 
     # Simulate the button click
     napari_window.on_add_to_curated_button_clicked()
 
-    assert os.path.exists('train_data_path/cat_test_seg.tiff')
-    assert os.path.exists('train_data_path/cat_test.png')
-    assert not os.path.exists('eval_data_path/cat_test.png')
-
-# @pytest.fixture(scope='session', autouse=True)
-# def cleanup_files(request):
-#     # This code runs after all tests from all files have completed
-#     yield
-#     # Clean up
-#     for fname in os.listdir('train_data_path'):
-#         os.remove(os.path.join('train_data_path', fname))
-#     os.rmdir('train_data_path')
-
-#     for fname in os.listdir('in_prog'):
-#         os.remove(os.path.join('in_prog', fname))
-#     os.rmdir('in_prog')
-
-#     for fname in os.listdir('eval_data_path'):
-#         os.remove(os.path.join('eval_data_path', fname))
-#     os.rmdir('eval_data_path')
+    assert not os.path.exists('eval_data_path/cat.tiff')
+    assert not os.path.exists('eval_data_path/cat_seg.tiff')
+    assert os.path.exists('train_data_path/cat.png')
+    assert os.path.exists('train_data_path/cat_seg.tiff')
+    

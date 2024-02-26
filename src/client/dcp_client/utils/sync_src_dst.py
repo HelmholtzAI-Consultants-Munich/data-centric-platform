@@ -35,11 +35,17 @@ class DataRSync(DataSync):
         :type path: str
         """
         server  = self.user_name + "@" + self.host_name + ":" + self.server_repo_path
-        
-        subprocess.run(["rsync",
-                        "-azP" ,
-                        path, 
-                        server])
+        try:
+            # Run the subprocess command
+            result = subprocess.run(["rsync",
+                                     "-azP" ,
+                                     path, 
+                                     server],
+                                     check=True)
+            return ("Success", result.stdout)
+        except subprocess.CalledProcessError as e:
+            return ("Error", e)
+
 
     def sync(self, src, dst, path):
         """ Syncs the data between the src and the dst. Both src and dst can be one of either
@@ -66,14 +72,17 @@ class DataRSync(DataSync):
         else:
             src = path
             dst = server
-
-        subprocess.run(["rsync",
-                        "-r" ,
-                        "--delete", 
-                        src, 
-                        dst])
-        
-        return server_full_path
+        try:
+            # Run the subprocess command
+            _ = subprocess.run(["rsync",
+                                     "-r" ,
+                                     "--delete",
+                                     src, 
+                                     dst],
+                                     check=True)
+            return ("Success", server_full_path)
+        except subprocess.CalledProcessError as e:
+            return ("Error", e)
         
 
 if __name__=="__main__":

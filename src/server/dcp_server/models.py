@@ -8,6 +8,8 @@ from copy import deepcopy
 from tqdm import tqdm
 import numpy as np
 from scipy.ndimage import label
+from skimage.measure import label as label_mask
+
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import f1_score, log_loss
@@ -21,11 +23,12 @@ from cellpose.dynamics import labels_to_flows
 from dcp_server.utils import get_centered_patches, find_max_patch_size, create_patch_dataset, create_dataset_for_rf
 
 class CustomCellposeModel(models.CellposeModel, nn.Module):
-    """Custom cellpose model inheriting the attributes and functions from the original CellposeModel and implementing
+    """
+    Custom cellpose model inheriting the attributes and functions from the original CellposeModel and implementing
     additional attributes and methods needed for this project.
     """    
     def __init__(self, model_config, train_config, eval_config, model_name):
-        """Construct all the necessary attributes for the CustomCellposeModel. 
+        """ Construct all the necessary attributes for the CustomCellposeModel. 
         The model inherits all attributes from the parent class, the init allows to pass any other argument that the parent class accepts.
         Please, visit here https://cellpose.readthedocs.io/en/latest/api.html#id4 for more details on arguments accepted. 
 
@@ -48,7 +51,7 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         self.model_name = model_name
 
     def update_configs(self, train_config, eval_config):
-        """Update the training and evaluation configurations.
+        """ Update the training and evaluation configurations.
 
         :param train_config: Dictionary containing the training configuration.
         :type train_config: dict
@@ -57,9 +60,20 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         """
         self.train_config = train_config
         self.eval_config = eval_config
-        
+
+    def eval_all_outputs(self, img):
+        """ Get all outputs of the model when running eval.
+
+        :param img: Input image for segmentation.
+        :type img: numpy.ndarray
+        :return: Probability mask for the input image.
+        :rtype: numpy.ndarray
+        """
+
+        return super().eval(x=img, **self.eval_config["segmentor"])
+
     def eval(self, img):
-        """Evaluate the model - find mask of the given image
+        """ Evaluate the model - find mask of the given image
         Calls the original eval function. 
 
         :param img: image to evaluate on
@@ -70,7 +84,7 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         return super().eval(x=img, **self.eval_config["segmentor"])[0] # 0 to take only mask
 
     def train(self, imgs, masks):
-        """Train the given model
+        """ Train the given model
         Calls the original train function.
 
         :param imgs: images to train on (training data)
@@ -107,7 +121,7 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
         self.metric = np.mean(aggregated_jaccard_index(masks, pred_masks))
     
     def masks_to_outlines(self, mask):
-        """Get outlines of masks as a 0-1 array
+        """ Get outlines of masks as a 0-1 array
         Calls the original cellpose.utils.masks_to_outlines function.
 
         :param mask: int, 2D or 3D array, mask of an image
@@ -120,16 +134,12 @@ class CustomCellposeModel(models.CellposeModel, nn.Module):
 
 class CellClassifierFCNN(nn.Module):
     
-    """
-    Fully convolutional classifier for cell images. 
-
-    .. note::
-        This model cannot be used as a standalone model in DCP.
+    """ 
+    Fully convolutional classifier for cell images. NOTE -> This model cannot be used as a standalone model in DCP
     """
 
     def __init__(self, model_config, train_config, eval_config):
-        """
-        Construct all the necessary attributes for the CellClassifierFCNN.
+        """ Initialize the fully convolutional classifier.
 
         :param model_config: Model configuration.
         :type model_config: dict
@@ -175,8 +185,8 @@ class CellClassifierFCNN(nn.Module):
         self.metric_fn = F1Score(num_classes=self.num_classes, task="multiclass") 
 
     def update_configs(self, train_config, eval_config):
-        """Update the training and evaluation configurations.
-
+        """ Update the training and evaluation configurations.
+        
         :param train_config: Dictionary containing the training configuration.
         :type train_config: dict
         :param eval_config: Dictionary containing the evaluation configuration.
@@ -186,7 +196,7 @@ class CellClassifierFCNN(nn.Module):
         self.eval_config = eval_config
 
     def forward(self, x):
-        """Perform forward pass of the CellClassifierFCNN.
+        """ Performs forward pass of the CellClassifierFCNN.
 
         :param x: Input tensor.
         :type x: torch.Tensor
@@ -203,7 +213,7 @@ class CellClassifierFCNN(nn.Module):
         return x
 
     def train (self, imgs, labels):        
-        """Train the given model.
+        """ Trains the given model.
 
         :param imgs: List of input images with shape (3, dx, dy).
         :type imgs: List[np.ndarray[np.uint8]]
@@ -253,7 +263,7 @@ class CellClassifierFCNN(nn.Module):
             self.metric /= len(train_dataloader)
     
     def eval(self, img):
-        """Evaluate the model on the provided image and return the predicted label.
+        """ Evaluates the model on the provided image and return the predicted label.
 
         :param img: Input image for evaluation.
         :type img: np.ndarray[np.uint8]
@@ -270,10 +280,8 @@ class CellClassifierFCNN(nn.Module):
 
 
 class CellposePatchCNN(nn.Module):
-
     """
     Cellpose & patches of cells and then cnn to classify each patch.
-
     """
     
     def __init__(self, model_config, train_config, eval_config, model_name):
@@ -290,7 +298,6 @@ class CellposePatchCNN(nn.Module):
 
         :param model_name: Name of the model.
         :type model_name: str
-
         """
         super().__init__()
 
@@ -369,9 +376,8 @@ class CellposePatchCNN(nn.Module):
         :type img: np.ndarray[np.uint8]
         :return: Final mask containing instance mask and class masks.
         :rtype: np.ndarray[np.uint16]
-
         """
-
+        
         # TBD we assume image is 2D [H, W] (see fsimage storage)
         # The final mask which is returned should have 
         # first channel the output of cellpose and the rest are the class channels
@@ -387,10 +393,10 @@ class CellposePatchCNN(nn.Module):
             
             # get patches centered around detected objects
             patches, patch_masks, instance_labels, _ = get_centered_patches(img,
-                                                               instance_mask,
-                                                               max_patch_size,
-                                                               noise_intensity=noise_intensity,
-                                                               include_mask=self.include_mask)
+                                                                            instance_mask,
+                                                                            max_patch_size,
+                                                                            noise_intensity=noise_intensity,
+                                                                            include_mask=self.include_mask)
             x = patches
             if self.classifier_class == "RandomForest":
                 x = create_dataset_for_rf(patches, patch_masks)
@@ -406,13 +412,12 @@ class CellposePatchCNN(nn.Module):
         return final_mask
 
 class CellClassifierShallowModel:
-
     """
     This class implements a shallow model for cell classification using scikit-learn.
     """
 
     def __init__(self, model_config, train_config, eval_config):
-        """Construct all the necessary attributes for the CellClassifierShallowModel.
+        """ Construct all the necessary attributes for the CellClassifierShallowModel.
 
         :param model_config: Model configuration.
         :type model_config: dict
@@ -430,13 +435,14 @@ class CellClassifierShallowModel:
 
    
     def train(self, X_train, y_train):
-        """Train the model using the provided training data.
+        """ Trains the model using the provided training data.
 
         :param X_train: Features of the training data.
         :type X_train: numpy.ndarray
         :param y_train: Labels of the training data.
         :type y_train: numpy.ndarray
         """
+        
         self.model.fit(X_train,y_train)
 
         y_hat = self.model.predict(X_train)
@@ -448,7 +454,7 @@ class CellClassifierShallowModel:
 
     
     def eval(self, X_test):
-        """Evaluate the model on the provided test data.
+        """ Evaluates the model on the provided test data.
 
         :param X_test: Features of the test data.
         :type X_test: numpy.ndarray
@@ -516,8 +522,8 @@ class UNet(nn.Module):
     
 
     def __init__(self, model_config, train_config, eval_config, model_name):
-        """Construct all the necessary attributes for the UNet model.
-
+        """ Construct all the necessary attributes for the UNet model.
+   
         :param model_config: Model configuration.
         :type model_config: dict
         :param train_config: Training configuration.
@@ -569,8 +575,7 @@ class UNet(nn.Module):
         self.output_conv = nn.Conv2d(self.features[0], self.out_channels, kernel_size=1)
 
     def forward(self, x):
-        """
-        Forward pass of the UNet model.
+        """ Forward pass of the UNet model.
 
         :param x: Input tensor.
         :type x: torch.Tensor
@@ -595,8 +600,7 @@ class UNet(nn.Module):
         return self.output_conv(x)
 
     def train(self, imgs, masks):
-        """
-        Train the UNet model using the provided images and masks.
+        """ Trains the UNet model using the provided images and masks.
 
         :param imgs: Input images for training.
         :type imgs: list[numpy.ndarray]
@@ -617,8 +621,8 @@ class UNet(nn.Module):
       
         # Classification label mask
         masks = np.array(masks)
-        masks = torch.stack([torch.from_numpy(mask[1]) for mask in masks])
-
+        masks = torch.stack([torch.from_numpy(mask[1].astype(np.int16)) for mask in masks])
+        
         # Create a training dataset and dataloader
         train_dataset = TensorDataset(imgs, masks)
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size)
@@ -648,8 +652,7 @@ class UNet(nn.Module):
             self.loss /= len(train_dataloader) 
 
     def eval(self, img):
-        """
-        Evaluate the model on the provided image and return the predicted label.
+        """ Evaluate the model on the provided image and return the predicted label.
           
         :param img: Input image for evaluation.
         :type img:  np.ndarray[np.uint8]
@@ -672,7 +675,135 @@ class UNet(nn.Module):
 
         return final_mask
 
+class CellposeMultichannel():
+    """
+    Multichannel image segmentation model.
+    Run the separate CustomCellposeModel models for each channel return the mask corresponding to each object type.
+    """
+
+    def __init__(self, model_config, train_config, eval_config, model_name="Cellpose"):
+        """ Constructs all the necessary attributes for the CellposeMultichannel model.
+   
+        :param model_config: Model configuration.
+        :type model_config: dict
+        :param train_config: Training configuration.
+        :type train_config: dict
+        :param eval_config: Evaluation configuration.
+        :type eval_config: dict
+        :param model_name: Name of the model.
+        :type model_name: str
+        """
+
+        self.model_config = model_config
+        self.train_config = train_config
+        self.eval_config = eval_config
+        self.model_name = model_name
+        self.num_of_channels = self.model_config["classifier"]["num_classes"]
+
+        self.cellpose_models = [
+            CustomCellposeModel(self.model_config, 
+                                self.train_config,
+                                self.eval_config,
+                                self.model_name
+            ) for _ in range(self.num_of_channels)
+        ]  
+
+    def train(self, imgs, masks):
+        """ Train the model on the provided images and masks.
+
+        :param imgs: Input images for training.
+        :type imgs: list[numpy.ndarray]
+        :param masks: Masks corresponding to the input images.
+        :type masks: list[numpy.ndarray]
+        """
+
+        for i in range(self.num_of_channels):
+
+            masks_class = []
+
+            for mask in masks:
+                mask_class = mask.copy()
+                # set all instances in the instance mask not corresponding to the class in question to zero
+                mask_class[0][mask_class[1]!=(i+1)] = 0
+                masks_class.append(mask_class)
+            
+            self.cellpose_models[i].train(imgs, masks_class)
+
+        self.metric = np.mean([self.cellpose_models[i].metric for i in range(self.num_of_channels)])
+        self.loss = np.mean([self.cellpose_models[i].loss for i in range(self.num_of_channels)])
+
+
+    def eval(self, img):
+        """ Evaluate the model on the provided image. The instance mask are computed as the union of the predicted model outputs, while the class of
+        each object is assigned based on majority voting between the models.
+
+        :param img: Input image for evaluation.
+        :type img:  np.ndarray[np.uint8]
+        :return: predicted mask consists of instance and class masks
+        :rtype: numpy.ndarray
+        """
+
+        instance_masks, class_masks, model_confidences = [], [], []
+
+        for i in range(self.num_of_channels):
+            # get the instance mask and pixel-wise cell probability mask
+            instance_mask, probs, _  = self.cellpose_models[i].eval_all_outputs(img)
+            confidence = probs[2]
+            # assign the appropriate class to all objects detected by this model
+            class_mask = np.zeros_like(instance_mask)
+            class_mask[instance_mask>0]=(i + 1)
+                        
+            instance_masks.append(instance_mask)
+            class_masks.append(class_mask)
+            model_confidences.append(confidence)
+        # merge the outputs of the different models using the pixel-wise cell probability mask
+        merged_mask_instances, class_mask = self.merge_masks(instance_masks, class_masks, model_confidences)
+        # set all connected components to the same label in the instance mask
+        instance_mask = label_mask(merged_mask_instances>0)
+        # and set the class with the most pixels to that object
+        for inst_id in np.unique(instance_mask)[1:]:   
+            where_inst_id = np.where(instance_mask==inst_id)
+            vals, counts = np.unique(class_mask[where_inst_id], return_counts=True)
+            class_mask[where_inst_id] = vals[np.argmax(counts)]
+        # take the final mask by stancking instance and class mask
+        final_mask = np.stack((instance_mask, class_mask), axis=self.eval_config['mask_channel_axis']).astype(np.uint16)
         
+        return final_mask
+    
+    def merge_masks(self, inst_masks, class_masks, probabilities):
+        """ Merges the instance and class masks resulting from the different models using the pixel-wise cell probability. The output of the model
+        with the maximum probability is selected for each pixel.
+
+        :param inst_masks: List of predicted instance masks from each model.
+        :type inst_masks:  List[np.array]
+        :param class_masks: List of corresponding class masks from each model.
+        :type class_masks:  List[np.array]
+        :param probabilities: List of corresponding pixel-wise cell probability masks
+        :type probabilities:  List[np.array]
+        :return: A tuple containing the following elements:
+            - final_mask_inst (numpy.ndarray): A single instance mask where for each pixel the output of the model with the highest probability is selected
+            - final_mask_class (numpy.ndarray): A single class mask where for each pixel the output of the model with the highest probability is selected
+        :rtype: tuple
+        """
+        # Convert lists to numpy arrays
+        inst_masks = np.array(inst_masks)
+        class_masks = np.array(class_masks)
+        probabilities = np.array(probabilities)
+        
+        # Find the index of the mask with the maximum probability for each pixel
+        max_prob_indices = np.argmax(probabilities, axis=0)
+        
+        # Use the index to select the corresponding mask for each pixel
+        final_mask_inst = inst_masks[max_prob_indices, np.arange(inst_masks.shape[1])[:, None], np.arange(inst_masks.shape[2])]
+        final_mask_class = class_masks[max_prob_indices, np.arange(class_masks.shape[1])[:, None], np.arange(class_masks.shape[2])]
+
+        return final_mask_inst, final_mask_class
+
+
+    
+
+
+
 # class CustomSAMModel():
 # # https://github.com/facebookresearch/segment-anything/blob/main/notebooks/automatic_mask_generator_example.ipynb
 #     def __init__(self):

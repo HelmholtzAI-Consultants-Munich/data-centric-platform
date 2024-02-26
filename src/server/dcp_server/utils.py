@@ -9,7 +9,7 @@ import SimpleITK as sitk
 from radiomics import  shape2D
 
 def read_config(name, config_path = 'config.cfg') -> dict:   
-    """Reads the configuration file
+    """ Reads the configuration file
 
     :param name: name of the section you want to read (e.g. 'setup','train')
     :type name: string
@@ -25,7 +25,7 @@ def read_config(name, config_path = 'config.cfg') -> dict:
         return config_dict[name]
 
 def get_path_stem(filepath):
-    """Returns the stem of a file path.
+    """ Returns the stem of a file path.
 
     :param filepath: The file path.
     :type filepath: str
@@ -36,7 +36,7 @@ def get_path_stem(filepath):
 
 
 def get_path_name(filepath):
-    """Returns the name of a file or directory from a given path.
+    """ Returns the name of a file or directory from a given path.
 
     :param filepath: The file path.
     :type filepath: str
@@ -47,7 +47,7 @@ def get_path_name(filepath):
 
 
 def get_path_parent(filepath):
-    """Returns the parent directory of a file or directory from a given path.
+    """ Returns the parent directory of a file or directory from a given path.
 
     :param filepath: The file path.
     :type filepath: str
@@ -58,7 +58,7 @@ def get_path_parent(filepath):
 
 
 def join_path(root_dir, filepath):
-    """Joins a root directory with a file or directory path.
+    """ Joins a root directory with a file or directory path.
 
     :param root_dir: The root directory.
     :type root_dir: str
@@ -71,7 +71,7 @@ def join_path(root_dir, filepath):
 
 
 def get_file_extension(file):
-    """Returns the extension of a file.
+    """ Returns the extension of a file.
 
     :param file: The file path.
     :type file: str
@@ -87,8 +87,7 @@ def crop_centered_padded_patch(img: np.ndarray,
                                obj_label,
                                mask: np.ndarray=None,
                                noise_intensity=None) -> np.ndarray:
-    """
-    Crops a patch from an array `x` centered at coordinates `c` with size `p`, 
+    """ Crops a patch from an array `x` centered at coordinates `c` with size `p`, 
     and apply padding if necessary.
 
     :param img: the input array from which the patch will be cropped
@@ -173,8 +172,7 @@ def crop_centered_padded_patch(img: np.ndarray,
 
 
 def get_center_of_mass_and_label(mask: np.ndarray) -> np.ndarray:
-    """
-    Computes the centers of mass for each object in a mask.
+    """ Computes the centers of mass for each object in a mask.
 
     :param mask: the input mask containing labeled objects
     :type mask: np.ndarray
@@ -184,9 +182,8 @@ def get_center_of_mass_and_label(mask: np.ndarray) -> np.ndarray:
         - A list of ints representing the labels for each object in the mask.
     
     :rtype: 
-        - list of tuple
-        - list of int
-
+        - List [tuple]
+        - List [int]
     """
 
     # Compute the centers of mass for each labeled object in the mask
@@ -211,8 +208,7 @@ def get_centered_patches(img,
                          mask_class=None,
                          include_mask=False):
 
-    """
-    Extracts centered patches from the input image based on the centers of objects identified in the mask.
+    """ Extracts centered patches from the input image based on the centers of objects identified in the mask.
 
     :param img: The input image.
     :type img: numpy.ndarray
@@ -232,7 +228,6 @@ def get_centered_patches(img,
             - instance_labels (list): Labels identifying each object instance in the extracted patches.
             - class_labels (list): Labels identifying the class of each object instance in the extracted patches.
     :rtype: tuple  
-
     """ 
 
     patches, patch_masks, instance_labels, class_labels  = [], [], [], []
@@ -259,14 +254,16 @@ def get_centered_patches(img,
         if mask_class is not None:
             # get the class instance for the specific object
             instance_labels.append(obj_label)
-            class_l = int(np.unique(mask_class[mask[:,:,0]==obj_label]))
+            class_l  = np.unique(mask_class[mask[:,:,0]==obj_label])
+            assert class_l.shape[0] == 1, "ERROR"+str(class_l)
+            class_l = int(class_l[0])
             #-1 because labels from mask start from 1, we want classes to start from 0
             class_labels.append(class_l-1)
         
     return patches, patch_masks, instance_labels, class_labels
 
 def get_objects(mask):
-    """Finds labeled connected components in a binary mask.
+    """ Finds labeled connected components in a binary mask.
 
     :param mask: The binary mask representing objects.
     :type mask: numpy.ndarray
@@ -276,7 +273,7 @@ def get_objects(mask):
     return find_objects(mask)
 
 def find_max_patch_size(mask):
-    """Finds the maximum patch size in a mask.
+    """ Finds the maximum patch size in a mask.
 
     :param mask: The binary mask representing objects.
     :type mask: numpy.ndarray
@@ -314,8 +311,7 @@ def find_max_patch_size(mask):
         return max_patch_size_edge
     
 def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, max_patch_size, include_mask):
-    """
-    Splits images and masks into patches of equal size centered around the cells.
+    """ Splits images and masks into patches of equal size centered around the cells.
 
     :param imgs: A list of input images.
     :type imgs: list of numpy.ndarray or torch.Tensor
@@ -341,17 +337,16 @@ def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, 
     if max_patch_size is None:
         max_patch_size = np.max([find_max_patch_size(mask) for mask in masks_instances])
         
-
     patches, patch_masks, labels = [], [], []
     for img, mask_class, mask_instance in zip(imgs,  masks_classes, masks_instances):
         # mask_instance has dimension WxH
         # mask_class has dimension WxH
         patch, patch_mask, _, label = get_centered_patches(img,
-                                            mask_instance,
-                                            max_patch_size, 
-                                            noise_intensity=noise_intensity,
-                                            mask_class=mask_class,
-                                            include_mask = include_mask)
+                                                           mask_instance,
+                                                           max_patch_size, 
+                                                           noise_intensity=noise_intensity,
+                                                           mask_class=mask_class,
+                                                           include_mask = include_mask)
         patches.extend(patch)
         patch_masks.extend(patch_mask)
         labels.extend(label) 
@@ -359,8 +354,7 @@ def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, 
 
 
 def get_shape_features(img, mask):
-    """
-    Calculate shape-based radiomic features from an image within the region defined by the mask.
+    """ Calculate shape-based radiomic features from an image within the region defined by the mask.
 
     :param img: The input image.
     :type img: numpy.ndarray
@@ -382,7 +376,7 @@ def get_shape_features(img, mask):
     return np.array(list(shape_features.values()))
 
 def extract_intensity_features(image, mask):
-    """Extracts intensity-based features from an image within the region defined by the mask.
+    """ Extracts intensity-based features from an image within the region defined by the mask.
 
     :param image: The input image.
     :type image: numpy.ndarray
@@ -410,7 +404,7 @@ def extract_intensity_features(image, mask):
     return np.array(list(features.values()))
 
 def create_dataset_for_rf(imgs, masks):
-    """Extracts shape and intensity-based features from images within regions defined by masks.
+    """ Extracts shape and intensity-based features from images within regions defined by masks.
 
     :param imgs: A list of input images.
     :type imgs: list
