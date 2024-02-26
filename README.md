@@ -16,7 +16,7 @@ To run the client GUI follow the instructions described in [DCP Client Installat
 DCP handles all kinds of **segmentation tasks**! Try it out if you need to do:
 * **Instance** segmentation
 * **Semantic** segmentation
-* **Panoptic** segmentation
+* **Multi-class instance** segmentation
 
 ### Toy data
 This repo includes the ```data/``` directory with some toy data which you can use as the *Uncurated dataset* folder. You can create (empty) folders for the other two directories required in the welcome window and start playing around.
