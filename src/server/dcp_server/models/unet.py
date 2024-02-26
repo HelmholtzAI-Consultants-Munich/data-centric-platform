@@ -1,13 +1,15 @@
 from typing import List
-import torch
-from torch import nn
-from torch.optim import Adam
-from torch.utils.data import TensorDataset, DataLoader
 from tqdm import tqdm
 import numpy as np
 from scipy.ndimage import label
 
+import torch
+from torch import nn
+from torch.optim import Adam
+from torch.utils.data import TensorDataset, DataLoader
+
 from dcp_server.models import Model
+from dcp_server.utils.processing import normalise
 
 class UNet(Model, nn.Module):
 
@@ -163,7 +165,7 @@ class UNet(Model, nn.Module):
 
         # Convert input images and labels to tensors
         # normalize images 
-        imgs = [(img - np.min(img)) / (np.max(img) - np.min(img)) for img in imgs]
+        imgs = [normalise(img) for img in imgs]
         # convert to tensor
         imgs = torch.stack([
             torch.from_numpy(img.astype(np.float32)) for img in imgs

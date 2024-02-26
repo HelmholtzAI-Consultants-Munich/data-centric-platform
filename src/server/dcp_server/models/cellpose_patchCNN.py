@@ -14,7 +14,8 @@ from sklearn.metrics import f1_score, log_loss
 from sklearn.exceptions import NotFittedError
 
 from dcp_server.models import Model, CustomCellposeModel
-from dcp_server.utils import (
+from dcp_server.utils.processing import (
+    normalise,
     get_centered_patches,
     find_max_patch_size,
     create_patch_dataset,
@@ -279,7 +280,7 @@ class CellClassifierFCNN(nn.Module):
         # Convert input images and labels to tensors
 
         # normalize images 
-        imgs = [(img - np.min(img)) / (np.max(img) - np.min(img)) for img in imgs]
+        imgs = [normalise_image(img) for img in imgs]
         # convert to tensor
         imgs = torch.stack([torch.from_numpy(img.astype(np.float32)) for img in imgs])
         imgs = torch.permute(imgs, (0, 3, 1, 2)) 
@@ -326,7 +327,7 @@ class CellClassifierFCNN(nn.Module):
         :rtype: torch.Tensor
         """
         # normalise
-        img = (img - np.min(img)) / (np.max(img) - np.min(img))
+        img = normalise(img)
         # convert to tensor
         img = torch.permute(torch.tensor(img.astype(np.float32)), (2, 0, 1)).unsqueeze(0) 
         preds = self.forward(img)

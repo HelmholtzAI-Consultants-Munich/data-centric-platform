@@ -1,5 +1,3 @@
-from pathlib import Path
-import json
 from copy import deepcopy
 import numpy as np
 from scipy.ndimage import find_objects
@@ -8,45 +6,21 @@ from copy import deepcopy
 import SimpleITK as sitk
 from radiomics import  shape2D
 
-def read_config(name, config_path = 'config.cfg') -> dict:   
-    """Reads the configuration file
-
-    :param name: name of the section you want to read (e.g. 'setup','train')
-    :type name: string
-    :param config_path: path to the configuration file, defaults to 'config.cfg'
-    :type config_path: str, optional
-    :return: dictionary from the config section given by name
-    :rtype: dict
-    """     
-    with open(config_path) as config_file:
-        config_dict = json.load(config_file)
-        # Check if config file has main mandatory keys
-        assert all([i in config_dict.keys() for i in ['setup', 'service', 'model', 'train', 'eval']])
-        return config_dict[name]
-
-def get_path_stem(filepath): return str(Path(filepath).stem)
-
-
-def get_path_name(filepath): return str(Path(filepath).name)
-
-
-def get_path_parent(filepath): return str(Path(filepath).parent)
-
-
-def join_path(root_dir, filepath): return str(Path(root_dir, filepath))
-
-
-def get_file_extension(file): return str(Path(file).suffix)
-
-
+def normalise(img, norm='min-max'):
+    """ Normalises the image based on the chosen method. Currently available methods are:
+    - min max normalisation
+    param
+    """
+    if norm=='min-max':
+        return (img - np.min(img)) / (np.max(img) - np.min(img)) 
+    
 def crop_centered_padded_patch(img: np.ndarray, 
                                patch_center_xy, 
                                patch_size, 
                                obj_label,
                                mask: np.ndarray=None,
                                noise_intensity=None) -> np.ndarray:
-    """
-    Crop a patch from an array `x` centered at coordinates `c` with size `p`, and apply padding if necessary.
+    """ Crop a patch from an array `x` centered at coordinates `c` with size `p`, and apply padding if necessary.
 
     Args:
         img (np.ndarray): The input array from which the patch will be cropped.
