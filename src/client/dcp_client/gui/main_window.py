@@ -63,7 +63,7 @@ class MainWindow(MyWidget):
         '''
         self.setWindowTitle(self.title)
         self.resize(1000, 700)
-        self.setStyleSheet("background-color: #e5e5e5;")
+        self.setStyleSheet("background-color: #f3f3f3;")
         main_layout = QVBoxLayout()
         dir_layout = QHBoxLayout()  
         
@@ -80,7 +80,13 @@ class MainWindow(MyWidget):
         self.label_eval.setMinimumWidth(200) 
         self.label_eval.setAlignment(Qt.AlignCenter)
         self.label_eval.setStyleSheet(
-            "font-size: 20px; font-weight: bold; background-color: #14213d; color: #ffffff; border-radius: 5px; padding: 8px 16px;"
+            """
+            font-size: 20px;
+            font-weight: bold; 
+            background-color: #015998;
+            color: #ffffff;
+            border-radius: 5px; 
+            padding: 8px 16px;"""
         )
 
         self.eval_dir_layout.addWidget(self.label_eval)
@@ -108,9 +114,16 @@ class MainWindow(MyWidget):
         # add buttons
         self.inference_button = QPushButton("Generate Labels", self)
         self.inference_button.setStyleSheet(
-            "QPushButton { background-color: #fca311; color: #000000; border-radius: 5px; padding: 8px 16px; }"
-            "QPushButton:hover { background-color: #74c69d; }"
-            "QPushButton:pressed { background-color: #74c69d; }"
+       """QPushButton 
+            { 
+                  background-color: #3d81d1;
+                  font-size: 12px; 
+                  font-weight: bold;
+                  color: #ffffff; 
+                  border-radius: 5px;
+                  padding: 8px 16px; }"""
+            "QPushButton:hover { background-color: #7bc432; }"
+            "QPushButton:pressed { background-color: #7bc432; }"
         )
         self.inference_button.clicked.connect(self.on_run_inference_button_clicked)  # add selected image    
         self.uncurated_layout.addWidget(self.inference_button, alignment=Qt.AlignCenter)
@@ -126,7 +139,7 @@ class MainWindow(MyWidget):
         self.label_inprogr.setMinimumWidth(200) 
         self.label_inprogr.setAlignment(Qt.AlignCenter)
         self.label_inprogr.setStyleSheet(
-            "font-size: 20px; font-weight: bold; background-color: #14213d; color: #ffffff; border-radius: 5px; padding: 8px 16px;"
+            "font-size: 20px; font-weight: bold; background-color: #015998; color: #ffffff; border-radius: 5px; padding: 8px 16px;"
         )
 
 
@@ -175,7 +188,7 @@ class MainWindow(MyWidget):
         self.label_train.setMinimumWidth(200) 
         self.label_train.setAlignment(Qt.AlignCenter)
         self.label_train.setStyleSheet(
-            "font-size: 20px; font-weight: bold; background-color: #14213d; color: #ffffff; border-radius: 5px; padding: 8px 16px;"
+            "font-size: 20px; font-weight: bold; background-color: #015998; color: #ffffff; border-radius: 5px; padding: 8px 16px;"
         )
         self.train_dir_layout.addWidget(self.label_train)
         # add train dir list
@@ -202,9 +215,16 @@ class MainWindow(MyWidget):
         
         self.train_button = QPushButton("Train Model", self)
         self.train_button.setStyleSheet(
-            "QPushButton { background-color: #fca311; color: #000000; border-radius: 5px; padding: 8px 16px; }"
-            "QPushButton:hover { background-color: #74c69d; }"
-            "QPushButton:pressed { background-color: #74c69d; }"
+            """QPushButton 
+            { 
+                  background-color: #3d81d1;
+                  font-size: 12px; 
+                  font-weight: bold;
+                  color: #ffffff; 
+                  border-radius: 5px;
+                  padding: 8px 16px; }"""
+            "QPushButton:hover { background-color: #7bc432; }"
+            "QPushButton:pressed { background-color: #7bc432; }"
         )
         self.train_button.clicked.connect(self.on_train_button_clicked)  # add selected image    
         self.curated_layout.addWidget(self.train_button, alignment=Qt.AlignCenter)

@@ -21,7 +21,7 @@ class WelcomeWindow(MyWidget):
         super().__init__()
         self.app = app
         self.setWindowTitle("Welcome to Helmholtz AI Data-Centric Tool")
-        self.setStyleSheet("background-color: #ffffff;")
+        self.setStyleSheet("background-color: #f3f3f3;")
         self.resize(590, 250)
 
         self.main_layout = QVBoxLayout()
@@ -29,7 +29,7 @@ class WelcomeWindow(MyWidget):
         title_label = QLabel("Welcome to Helmholtz AI Data-Centric Tool")
         title_label.setAlignment(Qt.AlignCenter)
         title_label.setStyleSheet(
-            "font-size: 24px; font-weight: bold; color: #14213d;"
+            "font-size: 24px; font-weight: bold; color: #015998;"
         )
         self.main_layout.addWidget(title_label)
 
@@ -80,9 +80,16 @@ class WelcomeWindow(MyWidget):
         self.start_button = QPushButton('Start', self)
         self.start_button.setFixedSize(120, 30)
         self.start_button.setStyleSheet(
-            "QPushButton { background-color: #fca311; color: #000000; border-radius: 5px; padding: 8px 16px; }"
-            "QPushButton:hover { background-color: #74c69d; }"
-            "QPushButton:pressed { background-color: #74c69d; }"
+            """QPushButton 
+            { 
+                  background-color: #3d81d1;
+                  font-size: 12px; 
+                  font-weight: bold;
+                  color: #ffffff; 
+                  border-radius: 5px;
+                  padding: 8px 16px; }"""
+            "QPushButton:hover { background-color: #7bc432; }"
+            "QPushButton:pressed { background-color: #7bc432; }"
         )
         self.start_button.show()
         # check if we need to upload data to server
