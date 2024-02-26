@@ -158,14 +158,13 @@ def cleanup_files(request):
     # This code runs after all tests from all files have completed
     yield
     # Clean up
-    for fname in os.listdir('train_data_path'):
-        os.remove(os.path.join('train_data_path', fname))
-    os.rmdir('train_data_path')
-
-    for fname in os.listdir('in_prog'):
-        os.remove(os.path.join('in_prog', fname))
-    os.rmdir('in_prog')
-
-    for fname in os.listdir('eval_data_path'):
-        os.remove(os.path.join('eval_data_path', fname))
-    os.rmdir('eval_data_path')
+    paths_to_clean = ['train_data_path', 'in_prog', 'eval_data_path']
+    for path in paths_to_clean:
+        try:
+            for fname in os.listdir(path):
+                os.remove(os.path.join(path, fname))
+            os.rmdir(path)
+        except FileNotFoundError: pass
+        except Exception as e:
+            # Handle other exceptions
+            print(f"An error occurred while cleaning up {path}: {e}")
