@@ -21,8 +21,10 @@ sphinx:
   
 # Optionally declare the Python requirements required to build your docs
 python:
-  # Install our python package before building the docs
+  # Install both Python packages before building the docs
   install:
     - method: pip
-      path: .
+      path: src/client
+    - method: pip
+      path: src/server
     - requirements: docs/requirements.txt
