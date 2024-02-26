@@ -11,7 +11,7 @@ dependencies = {file = ["requirements.txt"]}
 [project]
 name = "data-centric-tool-client"
 version = "0.1"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 description = ""
 # license = {file = "LICENSE.txt"}
 keywords = []
@@ -23,7 +23,9 @@ readme = "README.md"
 dynamic = ["dependencies"]
 authors = [
   {name="Christina Bukas", email="christina.bukas@helmholtz-muenchen.de"},
-  {name="Helena Pelin", email="helena.pelin@helmholtz-muenchen.de"}
+  {name="Helena Pelin", email="helena.pelin@helmholtz-muenchen.de"},
+  {name="Mariia Koren", email="mariia.koren@helmholtz-muenchen.de"},
+  {name="Marie Piraud", email="marie.piraud@helmholtz-muenchen.de"},
 ]
 maintainers = [
   {name="Christina Bukas", email="christina.bukas@helmholtz-muenchen.de"},
@@ -38,7 +40,7 @@ dev = [
 [project.urls]
 repository = "https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform"
 # homepage = "https://example.com"
-# documentation = "https://readthedocs.org"
+documentation = "https://readthedocs.org/projects/data-centric-platform"
 
 [project.scripts]
 dcp-client = "dcp_client.main:main"
