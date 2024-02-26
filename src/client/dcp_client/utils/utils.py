@@ -125,12 +125,14 @@ class Compute4Mask:
     """
 
     @staticmethod
-    def get_contours(instance_mask):
+    def get_contours(instance_mask, contours_level=None):
         """ Find contours of objects in the instance mask. This function is used to identify the contours of the objects to prevent the problem of the merged
         objects in napari window (mask).
 
         :param instance_mask: The instance mask array.
         :type instance_mask: numpy.ndarray
+        :param contours_level: Value along which to find contours in the array. See skimage.measure.find_contours for more.
+        :type: None or float
         :return: A binary mask where the contours of all objects in the instance segmentation mask are one and the rest is background.
         :rtype: numpy.ndarray
 
@@ -142,7 +144,7 @@ class Compute4Mask:
             single_obj_mask = np.zeros_like(instance_mask)
             single_obj_mask[instance_mask==instance_id] = 1
             # compute contours for mask
-            contours = find_contours(single_obj_mask, 0.8)
+            contours = find_contours(single_obj_mask, contours_level)
             # sometimes little dots appeas as additional contours so remove these
             if len(contours)>1: 
                 contour_sizes = [contour.shape[0] for contour in contours]
