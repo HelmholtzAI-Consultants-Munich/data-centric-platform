@@ -1,3 +1,4 @@
+from typing import List
 import torch
 from torch import nn
 from torch.optim import Adam
@@ -27,7 +28,10 @@ class UNet(Model, nn.Module):
         batch normalization and ReLU activation functions.
         """
 
-        def __init__(self, in_channels, out_channels):
+        def __init__(self,
+                     in_channels: int, 
+                     out_channels: int
+                     ) -> None:
             """
             Initialize DoubleConv module.
 
@@ -48,7 +52,9 @@ class UNet(Model, nn.Module):
                 nn.ReLU(),
             )
 
-        def forward(self, x):
+        def forward(self,
+                    x: torch.Tensor
+                    ) -> torch.Tensor:
             """Forward pass through the DoubleConv module.
 
             :param x: Input tensor.
@@ -57,10 +63,14 @@ class UNet(Model, nn.Module):
             return self.conv(x)
     
 
-    def __init__(self, model_config, train_config, eval_config, model_name):
+    def __init__(self,
+                 model_config: dict,
+                 train_config: dict,
+                 eval_config: dict,
+                 model_name: str
+                 ) -> None:
         """Constructs all the necessary attributes for the UNet model.
-   
-   
+
         :param model_config: Model configuration.
         :type model_config: dict
         :param train_config: Training configuration.
@@ -106,7 +116,9 @@ class UNet(Model, nn.Module):
         self.bottle_neck = UNet.DoubleConv(self.features[-1], self.features[-1]*2)
         self.output_conv = nn.Conv2d(self.features[0], self.out_channels, kernel_size=1)
 
-    def forward(self, x):
+    def forward(self,
+                x: torch.Tensor
+                ) -> torch.Tensor:
         """
         Forward pass of the UNet model.
 
@@ -132,7 +144,10 @@ class UNet(Model, nn.Module):
 
         return self.output_conv(x)
 
-    def train(self, imgs, masks):
+    def train(self,
+              imgs: List[np.ndarray],
+              masks: List[np.ndarray]
+              ) -> None:
         """
         Trains the UNet model using the provided images and masks.
 
@@ -185,7 +200,9 @@ class UNet(Model, nn.Module):
 
             self.loss /= len(train_dataloader) 
 
-    def eval(self, img):
+    def eval(self,
+             img: np.ndarray
+             ) -> np.ndarray:
         """
         Evaluate the model on the provided image and return the predicted label.
           

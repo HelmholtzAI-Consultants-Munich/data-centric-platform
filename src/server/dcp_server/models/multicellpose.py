@@ -1,3 +1,4 @@
+from typing import List
 import numpy as np
 from skimage.measure import label as label_mask
 
@@ -9,7 +10,12 @@ class MultiCellpose(Model):
     Run the separate CustomCellposeModel models for each channel return the mask corresponding to each object type.
     '''
 
-    def __init__(self, model_config, train_config, eval_config, model_name="Cellpose"):
+    def __init__(self,
+                 model_config: dict,
+                 train_config: dict,
+                 eval_config: dict,
+                 model_name="Cellpose"
+                 ) -> None:
         """Constructs all the necessary attributes for the MultiCellpose model.
    
         :param model_config: Model configuration.
@@ -36,7 +42,10 @@ class MultiCellpose(Model):
             ) for _ in range(self.num_of_channels)
         ]  
 
-    def train(self, imgs, masks):
+    def train(self,
+              imgs: List[np.ndarray],
+              masks: List[np.ndarray]
+              ) -> None:
         """
         Train the model on the provided images and masks.
 
@@ -62,7 +71,9 @@ class MultiCellpose(Model):
         self.loss = np.mean([self.cellpose_models[i].loss for i in range(self.num_of_channels)])
 
 
-    def eval(self, img):
+    def eval(self,
+             img: np.ndarray
+             ) -> np.ndarray:
         """Evaluate the model on the provided image. The instance mask are computed as the union of the predicted model outputs, while the class of
         each object is assigned based on majority voting between the models.
 
@@ -99,7 +110,11 @@ class MultiCellpose(Model):
         
         return final_mask
     
-    def merge_masks(self, inst_masks, class_masks, probabilities):
+    def merge_masks(self,
+                    inst_masks: List[np.ndarray],
+                    class_masks: List[np.ndarray],
+                    probabilities: List[np.ndarray]
+                    ) -> tuple:
         """Merges the instance and class masks resulting from the different models using the pixel-wise cell probability. The output of the model
         with the maximum probability is selected for each pixel.
 

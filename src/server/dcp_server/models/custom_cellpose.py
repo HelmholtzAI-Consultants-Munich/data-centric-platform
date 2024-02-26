@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import List
 import numpy as np
 
 import torch
@@ -14,7 +15,12 @@ class CustomCellposeModel(models.CellposeModel, Model):
     """Custom cellpose model inheriting the attributes and functions from the original CellposeModel and implementing
     additional attributes and methods needed for this project.
     """    
-    def __init__(self, model_config, train_config, eval_config, model_name):
+    def __init__(self,
+                 model_config: dict,
+                 train_config: dict,
+                 eval_config: dict,
+                 model_name: str
+                 ) -> None:
         """Constructs all the necessary attributes for the CustomCellposeModel. 
         The model inherits all attributes from the parent class, the init allows to pass any other argument that the parent class accepts.
         Please, visit here https://cellpose.readthedocs.io/en/latest/api.html#id4 for more details on arguments accepted. 
@@ -37,31 +43,23 @@ class CustomCellposeModel(models.CellposeModel, Model):
         self.model_name = model_name
         self.mkldnn = False # otherwise we get error with saving model
         self.loss = 1e6
-        
 
-    def update_configs(self, train_config, eval_config):
-        """Update the training and evaluation configurations.
-
-        :param train_config: Dictionary containing the training configuration.
-        :type train_config: dict
-        :param eval_config: Dictionary containing the evaluation configuration.
-        :type eval_config: dict
-        """
-        self.train_config = train_config
-        self.eval_config = eval_config
-
-    def eval_all_outputs(self, img):
+    def eval_all_outputs(self,
+                         img: np.ndarray
+                         ) -> tuple:
         """Get all outputs of the model when running eval.
 
         :param img: Input image for segmentation.
         :type img: numpy.ndarray
-        :return: Probability mask for the input image.
-        :rtype: numpy.ndarray
+        :return: mask, flows, styles etc. Returns the same as cellpose.models.CellposeModel.eval - see Cellpose API Guide for more details. 
+        :rtype: tuple
         """
 
         return super().eval(x=img, **self.eval_config["segmentor"])
 
-    def eval(self, img):
+    def eval(self,
+             img: np.ndarray
+             ) -> np.ndarray:
         """Evaluate the model - find mask of the given image
         Calls the original eval function. 
 
@@ -72,7 +70,10 @@ class CustomCellposeModel(models.CellposeModel, Model):
         """  
         return super().eval(x=img, **self.eval_config["segmentor"])[0] # 0 to take only mask
 
-    def train(self, imgs, masks):
+    def train(self,
+              imgs: List[np.ndarray],
+              masks: List[np.ndarray]
+              ) -> None:
         """Trains the given model
         Calls the original train function.
 
@@ -109,7 +110,9 @@ class CustomCellposeModel(models.CellposeModel, Model):
         self.loss = self.loss_fn(true_lbl, pred_flows) 
         self.metric = np.mean(aggregated_jaccard_index(masks, pred_masks))
     
-    def masks_to_outlines(self, mask):
+    def masks_to_outlines(self,
+                          mask: np.ndarray
+                          ) -> np.ndarray:
         """ get outlines of masks as a 0-1 array
         Calls the original cellpose.utils.masks_to_outlines function
 

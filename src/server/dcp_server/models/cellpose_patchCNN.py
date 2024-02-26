@@ -1,5 +1,6 @@
 from copy import deepcopy
 from tqdm import tqdm
+from typing import List
 import numpy as np
 
 import torch
@@ -26,7 +27,12 @@ class CellposePatchCNN(Model):
     Cellpose & patches of cells and then cnn to classify each patch
     """
     
-    def __init__(self, model_config, train_config, eval_config, model_name):
+    def __init__(self,
+                 model_config: dict,
+                 train_config: dict,
+                 eval_config:dict,
+                 model_name:str
+                 ) -> None:
         """Constructs all the necessary attributes for the CellposePatchCNN
 
         :param model_config: Model configuration.
@@ -65,18 +71,11 @@ class CellposePatchCNN(Model):
             # make sure include mask is set to False if we are using the random forest model 
             self.include_mask = False 
             
-    def update_configs(self, train_config, eval_config):
-        """Update the training and evaluation configurations.
-
-        :param train_config: Dictionary containing the training configuration.
-        :type train_config: dict
-        :param eval_config: Dictionary containing the evaluation configuration.
-        :type eval_config: dict
-        """
-        self.train_config = train_config
-        self.eval_config = eval_config
         
-    def train(self, imgs, masks):
+    def train(self,
+              imgs: List[np.ndarray],
+              masks: List[np.ndarray]
+              ) -> None:
         """Trains the given model. First trains the segmentor and then the clasiffier.
 
         :param imgs: images to train on (training data)
@@ -106,7 +105,9 @@ class CellposePatchCNN(Model):
         self.metric = (self.segmentor.metric + self.classifier.metric) / 2
         self.loss = (self.segmentor.loss + self.classifier.loss)/2
 
-    def eval(self, img):
+    def eval(self,
+             img: np.ndarray
+             ) -> np.ndarray:
         """Evaluate the model on the provided image and return the final mask.
 
         :param img: Input image for evaluation.
@@ -161,7 +162,11 @@ class CellClassifierFCNN(nn.Module):
         
     """
 
-    def __init__(self, model_config, train_config, eval_config):
+    def __init__(self,
+                 model_config: dict,
+                 train_config: dict,
+                 eval_config: dict
+                 ) -> None:
         """Initialize the fully convolutional classifier.
 
         :param model_config: Model configuration.
@@ -207,7 +212,10 @@ class CellClassifierFCNN(nn.Module):
 
         self.metric_fn = F1Score(num_classes=self.num_classes, task="multiclass") 
 
-    def update_configs(self, train_config, eval_config):
+    def update_configs(self,
+                       train_config: dict,
+                       eval_config: dict
+                       ) -> None:
         """
         Update the training and evaluation configurations.
 
@@ -219,7 +227,9 @@ class CellClassifierFCNN(nn.Module):
         self.train_config = train_config
         self.eval_config = eval_config
 
-    def forward(self, x):
+    def forward(self, 
+                x: torch.Tensor
+                ) -> torch.Tensor:
         """ Performs forward pass of the CellClassifierFCNN.
 
         :param x: Input tensor.
@@ -237,7 +247,10 @@ class CellClassifierFCNN(nn.Module):
         x = x.view(x.size(0), -1)
         return x
 
-    def train (self, imgs, labels):        
+    def train (self,
+               imgs: List[np.ndarray],
+               labels: List[np.ndarray]
+               ) -> None:        
         """Trains the given model
 
         :param imgs: List of input images with shape (3, dx, dy).
@@ -287,7 +300,9 @@ class CellClassifierFCNN(nn.Module):
             self.loss /= len(train_dataloader) 
             self.metric /= len(train_dataloader)
     
-    def eval(self, img):
+    def eval(self,
+             img: np.ndarray
+             ) -> torch.Tensor:
         """Evaluates the model on the provided image and return the predicted label.
 
         :param img: Input image for evaluation.
@@ -309,7 +324,11 @@ class CellClassifierShallowModel:
     This class implements a shallow model for cell classification using scikit-learn.
     """
 
-    def __init__(self, model_config, train_config, eval_config):
+    def __init__(self,
+                 model_config: dict,
+                 train_config: dict,
+                 eval_config: dict
+                 ) -> None:
         """Constructs all the necessary attributes for the CellClassifierShallowModel
 
         :param model_config: Model configuration.
@@ -327,7 +346,10 @@ class CellClassifierShallowModel:
         self.model = RandomForestClassifier() # TODO chnage config so RandomForestClassifier accepts input params
 
    
-    def train(self, X_train, y_train):
+    def train(self, 
+              X_train: np.ndarray,
+              y_train: np.ndarray
+              ) -> None:
         """Trains the model using the provided training data.
 
         :param X_train: Features of the training data.
@@ -346,7 +368,9 @@ class CellClassifierShallowModel:
         self.loss = log_loss(y_train, y_hat_proba)
 
     
-    def eval(self, X_test):
+    def eval(self,
+             X_test: np.ndarray
+             ) -> np.ndarray:
         """Evaluates the model on the provided test data.
 
         :param X_test: Features of the test data.

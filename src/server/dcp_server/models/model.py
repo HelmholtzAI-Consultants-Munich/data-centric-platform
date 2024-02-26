@@ -3,19 +3,43 @@ from typing import List
 import numpy as np
 
 class Model(ABC):
-    def __init__(self, model_config, train_config, eval_config, model_name):
+    def __init__(self,
+                 model_config: dict,
+                 train_config: dict,
+                 eval_config: dict,
+                 model_name: str
+                 ) -> None:
         
         self.model_config = model_config
         self.train_config = train_config
         self.eval_config = eval_config
         self.model_name = model_name
 
+    def update_configs(self,
+                       train_config: dict,
+                       eval_config: dict
+                       ) -> None:
+        """ Update the training and evaluation configurations.
+
+        :param train_config: Dictionary containing the training configuration.
+        :type train_config: dict
+        :param eval_config: Dictionary containing the evaluation configuration.
+        :type eval_config: dict
+        """
+        self.train_config = train_config
+        self.eval_config = eval_config
+
     @abstractmethod
-    def train(self, imgs: List[np.array], masks: List[np.array]) -> None:
+    def train(self, 
+              imgs: List[np.array],
+              masks: List[np.array]
+              ) -> None:
         pass
     
     @abstractmethod
-    def eval(self, img: np.array) -> np.array:
+    def eval(self,
+             img: np.array
+             ) -> np.array:
         pass
 
 
