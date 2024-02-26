@@ -61,23 +61,33 @@ class MainWindow(MyWidget):
         Sets up the GUI
         '''
         self.setWindowTitle(self.title)
-        #self.resize(1000, 1500)
+        self.resize(1000, 700)
+        self.setStyleSheet("background-color: #e5e5e5;")
         main_layout = QVBoxLayout()
         dir_layout = QHBoxLayout()  
         
         self.uncurated_layout = QVBoxLayout()
         self.inprogress_layout = QVBoxLayout()
         self.curated_layout = QVBoxLayout()
-
+        
         self.eval_dir_layout = QVBoxLayout() 
         self.eval_dir_layout.setContentsMargins(0,0,0,0)
+
         self.label_eval = QLabel(self)
-        self.label_eval.setText("Uncurated dataset")
+        self.label_eval.setText("Uncurated Dataset")
+        self.label_eval.setMinimumHeight(50)  
+        self.label_eval.setMinimumWidth(200) 
+        self.label_eval.setAlignment(Qt.AlignCenter)
+        self.label_eval.setStyleSheet(
+            "font-size: 20px; font-weight: bold; background-color: #14213d; color: #ffffff; border-radius: 5px; padding: 8px 16px;"
+        )
+
         self.eval_dir_layout.addWidget(self.label_eval)
         # add eval dir list
         model_eval = QFileSystemModel()
         model_eval.setIconProvider(IconProvider())
         self.list_view_eval = QTreeView(self)
+        self.list_view_eval.setStyleSheet("background-color: #ffffff")
         self.list_view_eval.setModel(model_eval)
         for i in range(1,4):
             self.list_view_eval.hideColumn(i)
@@ -90,6 +100,11 @@ class MainWindow(MyWidget):
 
         # add buttons
         self.inference_button = QPushButton("Generate Labels", self)
+        self.inference_button.setStyleSheet(
+            "QPushButton { background-color: #fca311; color: #000000; border-radius: 5px; padding: 8px 16px; }"
+            "QPushButton:hover { background-color: #74c69d; }"
+            "QPushButton:pressed { background-color: #74c69d; }"
+        )
         self.inference_button.clicked.connect(self.on_run_inference_button_clicked)  # add selected image    
         self.uncurated_layout.addWidget(self.inference_button, alignment=Qt.AlignCenter)
 
@@ -98,13 +113,23 @@ class MainWindow(MyWidget):
         # In progress layout
         self.inprogr_dir_layout = QVBoxLayout() 
         self.inprogr_dir_layout.setContentsMargins(0,0,0,0)
+
         self.label_inprogr = QLabel(self)
+        self.label_inprogr.setMinimumHeight(50)  
+        self.label_inprogr.setMinimumWidth(200) 
+        self.label_inprogr.setAlignment(Qt.AlignCenter)
+        self.label_inprogr.setStyleSheet(
+            "font-size: 20px; font-weight: bold; background-color: #14213d; color: #ffffff; border-radius: 5px; padding: 8px 16px;"
+        )
+
+
         self.label_inprogr.setText("Curation in progress")
         self.inprogr_dir_layout.addWidget(self.label_inprogr)
         # add in progress dir list
         model_inprogr = QFileSystemModel()
         #self.list_view = QListView(self)
         self.list_view_inprogr = QTreeView(self)
+        self.list_view_inprogr.setStyleSheet("background-color: #ffffff")
         model_inprogr.setIconProvider(IconProvider())
         self.list_view_inprogr.setModel(model_inprogr)
         for i in range(1,4):
@@ -115,9 +140,16 @@ class MainWindow(MyWidget):
         self.inprogr_dir_layout.addWidget(self.list_view_inprogr)
         self.inprogress_layout.addLayout(self.inprogr_dir_layout)
 
-        self.launch_nap_button = QPushButton("View image and fix label", self)
-        self.launch_nap_button.clicked.connect(self.on_launch_napari_button_clicked)  # add selected image    
+        # self.launch_nap_button = QPushButton("View image and fix label", self)
+        # self.launch_nap_button.clicked.connect(self.on_launch_napari_button_clicked)     
+        # self.inprogress_layout.addWidget(self.launch_nap_button, alignment=Qt.AlignCenter)
+        self.launch_nap_button = QPushButton()
+        self.launch_nap_button.setStyleSheet(
+        "QPushButton { background-color: transparent; border: none; border-radius: 5px; padding: 8px 16px; }"
+        )
+        self.launch_nap_button.setEnabled(False)
         self.inprogress_layout.addWidget(self.launch_nap_button, alignment=Qt.AlignCenter)
+
         # Create a shortcut for the Enter key to click the button
         enter_shortcut = QShortcut(QKeySequence(Qt.Key_Return), self)
         enter_shortcut.activated.connect(self.on_launch_napari_button_clicked)
@@ -129,11 +161,18 @@ class MainWindow(MyWidget):
         self.train_dir_layout.setContentsMargins(0,0,0,0)
         self.label_train = QLabel(self)
         self.label_train.setText("Curated dataset")
+        self.label_train.setMinimumHeight(50)  
+        self.label_train.setMinimumWidth(200) 
+        self.label_train.setAlignment(Qt.AlignCenter)
+        self.label_train.setStyleSheet(
+            "font-size: 20px; font-weight: bold; background-color: #14213d; color: #ffffff; border-radius: 5px; padding: 8px 16px;"
+        )
         self.train_dir_layout.addWidget(self.label_train)
         # add train dir list
         model_train = QFileSystemModel()
         #self.list_view = QListView(self)
         self.list_view_train = QTreeView(self)
+        self.list_view_train.setStyleSheet("background-color: #ffffff")
         model_train.setIconProvider(IconProvider())
         self.list_view_train.setModel(model_train)
         for i in range(1,4):
@@ -145,6 +184,11 @@ class MainWindow(MyWidget):
         self.curated_layout.addLayout(self.train_dir_layout)
         
         self.train_button = QPushButton("Train Model", self)
+        self.train_button.setStyleSheet(
+            "QPushButton { background-color: #fca311; color: #000000; border-radius: 5px; padding: 8px 16px; }"
+            "QPushButton:hover { background-color: #74c69d; }"
+            "QPushButton:pressed { background-color: #74c69d; }"
+        )
         self.train_button.clicked.connect(self.on_train_button_clicked)  # add selected image    
         self.curated_layout.addWidget(self.train_button, alignment=Qt.AlignCenter)
         dir_layout.addLayout(self.curated_layout)
@@ -155,6 +199,8 @@ class MainWindow(MyWidget):
         progress_layout = QHBoxLayout()
         progress_layout.addStretch(1) 
         self.progress_bar = QProgressBar(self)
+        self.progress_bar.setMinimumWidth(1000)
+        self.progress_bar.setAlignment(Qt.AlignCenter)
         self.progress_bar.setRange(0,1)
         progress_layout.addWidget(self.progress_bar)
         main_layout.addLayout(progress_layout)
