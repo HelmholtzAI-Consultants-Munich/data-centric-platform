@@ -157,20 +157,24 @@ class UNet(Model, nn.Module):
         :type masks: list[numpy.ndarray]
         """
 
-        lr = self.train_config["classifier"]['lr']
-        epochs = self.train_config["classifier"]['n_epochs']
-        batch_size = self.train_config["classifier"]['batch_size']
+        lr = self.train_config["classifier"]["lr"]
+        epochs = self.train_config["classifier"]["n_epochs"]
+        batch_size = self.train_config["classifier"]["batch_size"]
 
         # Convert input images and labels to tensors
         # normalize images 
-        imgs = [(img-np.min(img))/(np.max(img)-np.min(img)) for img in imgs]
+        imgs = [(img - np.min(img)) / (np.max(img) - np.min(img)) for img in imgs]
         # convert to tensor
-        imgs = torch.stack([torch.from_numpy(img.astype(np.float32)) for img in imgs])
+        imgs = torch.stack([
+            torch.from_numpy(img.astype(np.float32)) for img in imgs
+        ])
         imgs = imgs.unsqueeze(1) if imgs.ndim == 3 else imgs
       
         # Classification label mask
         masks = np.array(masks)
-        masks = torch.stack([torch.from_numpy(mask[1].astype(np.int16)) for mask in masks])
+        masks = torch.stack([
+            torch.from_numpy(mask[1].astype(np.int16)) for mask in masks
+        ])
         
         # Create a training dataset and dataloader
         train_dataset = TensorDataset(imgs, masks)
@@ -213,7 +217,7 @@ class UNet(Model, nn.Module):
         """ 
         with torch.no_grad():
             # normalise
-            img = (img-np.min(img))/(np.max(img)-np.min(img))
+            img = (img - np.min(img)) / (np.max(img) - np.min(img))
             img = torch.from_numpy(img).float().unsqueeze(0)
 
             img = img.unsqueeze(1) if img.ndim == 3 else img
@@ -223,6 +227,11 @@ class UNet(Model, nn.Module):
 
             instance_mask = label((class_mask > 0).astype(int))[0]
 
-            final_mask = np.stack((instance_mask, class_mask), axis=self.eval_config['mask_channel_axis']).astype(np.uint16) 
+            final_mask = np.stack(
+                (instance_mask, class_mask), 
+                axis=self.eval_config['mask_channel_axis']
+            ).astype(
+                np.uint16
+            ) 
 
         return final_mask

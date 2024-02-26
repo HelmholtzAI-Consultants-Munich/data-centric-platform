@@ -54,20 +54,19 @@ class CellposePatchCNN(Model):
         self.classifier_class = self.model_config.get("classifier").get("model_class", "CellClassifierFCNN")
 
         # Initialize the cellpose model and the classifier
-        self.segmentor = CustomCellposeModel(self.model_config, 
-                                             self.train_config,
-                                             self.eval_config,
-                                             "Cellpose")
+        self.segmentor = CustomCellposeModel(
+            self.model_config, self.train_config, self.eval_config, "Cellpose"
+            )
         
         if self.classifier_class == "FCNN":
-            self.classifier = CellClassifierFCNN(self.model_config,
-                                                 self.train_config,
-                                                 self.eval_config)
+            self.classifier = CellClassifierFCNN(
+                self.model_config, self.train_config, self.eval_config
+                )
             
         elif self.classifier_class == "RandomForest":
-            self.classifier = CellClassifierShallowModel(self.model_config,
-                                                         self.train_config,
-                                                         self.eval_config)
+            self.classifier = CellClassifierShallowModel(
+                self.model_config, self.train_config, self.eval_config
+                )
             # make sure include mask is set to False if we are using the random forest model 
             self.include_mask = False 
             
@@ -89,13 +88,17 @@ class CellposePatchCNN(Model):
         masks_instances = list(masks[:,0,...]) #[mask.sum(-1) for mask in masks] if masks[0].ndim == 3 else masks
         self.segmentor.train(deepcopy(imgs), masks_instances)
         # create patch dataset to train classifier
-        masks_classes = list(masks[:,1,...]) #[((mask > 0) * np.arange(1, 4)).sum(-1) for mask in masks]
-        patches, patch_masks, labels = create_patch_dataset(imgs,
-                                                            masks_classes,
-                                                            masks_instances,
-                                                            noise_intensity = self.train_config["classifier"]["train_data"]["noise_intensity"],
-                                                            max_patch_size = self.train_config["classifier"]["train_data"]["patch_size"],
-                                                            include_mask = self.include_mask)
+        masks_classes = list(
+            masks[:,1,...]
+        ) #[((mask > 0) * np.arange(1, 4)).sum(-1) for mask in masks]
+        patches, patch_masks, labels = create_patch_dataset(
+            imgs,
+            masks_classes,
+            masks_instances,
+            noise_intensity = self.train_config["classifier"]["train_data"]["noise_intensity"],
+            max_patch_size = self.train_config["classifier"]["train_data"]["patch_size"],
+            include_mask = self.include_mask
+        )
         x = patches
         if self.classifier_class == "RandomForest":
             x = create_dataset_for_rf(patches, patch_masks)
@@ -125,15 +128,18 @@ class CellposePatchCNN(Model):
             class_mask = np.zeros(instance_mask.shape)
             
             max_patch_size = self.eval_config["classifier"]["data"]["patch_size"]
-            if max_patch_size is None: max_patch_size = find_max_patch_size(instance_mask)
+            if max_patch_size is None: 
+                max_patch_size = find_max_patch_size(instance_mask)
             noise_intensity = self.eval_config["classifier"]["data"]["noise_intensity"]
             
             # get patches centered around detected objects
-            patches, patch_masks, instance_labels, _ = get_centered_patches(img,
-                                                                            instance_mask,
-                                                                            max_patch_size,
-                                                                            noise_intensity=noise_intensity,
-                                                                            include_mask=self.include_mask)
+            patches, patch_masks, instance_labels, _ = get_centered_patches(
+                img,
+                instance_mask,
+                max_patch_size,
+                noise_intensity=noise_intensity,
+                include_mask=self.include_mask
+            )
             x = patches
             if self.classifier_class == "RandomForest":
                 x = create_dataset_for_rf(patches, patch_masks)
@@ -142,9 +148,15 @@ class CellposePatchCNN(Model):
                 patch_class = self.classifier.eval(x[idx])
                 # Assign predicted class to corresponding location in final_mask
                 patch_class = patch_class.item() if isinstance(patch_class, torch.Tensor) else patch_class
-                class_mask[instance_mask==instance_labels[idx]] = patch_class + 1
+                class_mask[instance_mask==instance_labels[idx]] = ( 
+                    patch_class + 1
+                )
             # Apply mask to final_mask, retaining only regions where cellpose_mask is greater than 0
-            final_mask = np.stack((instance_mask, class_mask), axis=self.eval_config['mask_channel_axis']).astype(np.uint16) # size 2xHxW
+            final_mask = np.stack(
+                (instance_mask, class_mask), axis=self.eval_config['mask_channel_axis']
+                ).astype(
+                    np.uint16
+                ) # size 2xHxW
         
         return final_mask
 
@@ -259,15 +271,15 @@ class CellClassifierFCNN(nn.Module):
         :type labels: List[int]
         """
 
-        lr = self.train_config['lr']
-        epochs = self.train_config['n_epochs']
-        batch_size = self.train_config['batch_size']
-        # optimizer_class = self.train_config['optimizer']
+        lr = self.train_config["lr"]
+        epochs = self.train_config["n_epochs"]
+        batch_size = self.train_config["batch_size"]
+        # optimizer_class = self.train_config["optimizer"]
 
         # Convert input images and labels to tensors
 
         # normalize images 
-        imgs = [(img-np.min(img))/(np.max(img)-np.min(img)) for img in imgs]
+        imgs = [(img - np.min(img)) / (np.max(img) - np.min(img)) for img in imgs]
         # convert to tensor
         imgs = torch.stack([torch.from_numpy(img.astype(np.float32)) for img in imgs])
         imgs = torch.permute(imgs, (0, 3, 1, 2)) 
@@ -279,7 +291,10 @@ class CellClassifierFCNN(nn.Module):
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size)
 
         loss_fn = nn.CrossEntropyLoss()
-        optimizer = Adam(params=self.parameters(), lr=lr) #eval(f'{optimizer_class}(params={self.parameters()}, lr={lr})')
+        optimizer = Adam(
+            params=self.parameters(),
+            lr=lr
+            ) #eval(f'{optimizer_class}(params={self.parameters()}, lr={lr})')
         # TODO check if we should replace self.parameters with super.parameters()
         
         for _ in tqdm(range(epochs), desc="Running CellClassifierFCNN training"):
@@ -311,7 +326,7 @@ class CellClassifierFCNN(nn.Module):
         :rtype: torch.Tensor
         """
         # normalise
-        img = (img-np.min(img))/(np.max(img)-np.min(img))
+        img = (img - np.min(img)) / (np.max(img) - np.min(img))
         # convert to tensor
         img = torch.permute(torch.tensor(img.astype(np.float32)), (2, 0, 1)).unsqueeze(0) 
         preds = self.forward(img)

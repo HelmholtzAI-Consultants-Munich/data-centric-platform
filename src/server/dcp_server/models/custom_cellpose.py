@@ -34,7 +34,7 @@ class CustomCellposeModel(models.CellposeModel, Model):
         """
         
         # Initialize the cellpose model
-        #super().__init__(**model_config["segmentor"])
+        # super().__init__(**model_config["segmentor"])
         nn.Module.__init__(self)
         models.CellposeModel.__init__(self, **model_config["segmentor"])
         self.model_config = model_config
@@ -68,7 +68,9 @@ class CustomCellposeModel(models.CellposeModel, Model):
         :return: mask of the image, list of 2D arrays, or single 3D array (if do_3D=True) labelled image.
         :rtype: np.ndarray
         """  
-        return super().eval(x=img, **self.eval_config["segmentor"])[0] # 0 to take only mask
+        return super().eval(x=img, **self.eval_config["segmentor"])[
+            0
+        ] # 0 to take only mask
 
     def train(self,
               imgs: List[np.ndarray],
@@ -88,7 +90,11 @@ class CustomCellposeModel(models.CellposeModel, Model):
             
         if masks[0].shape[0] == 2:
             masks = list(masks[:,0,...]) 
-        super().train(train_data=deepcopy(imgs), train_labels=masks, **self.train_config["segmentor"])
+        super().train(
+            train_data=deepcopy(imgs),
+            train_labels=masks,
+            **self.train_config["segmentor"]
+            )
 
         # compute loss and metric
         true_bin_masks = [mask>0 for mask in masks] # get binary masks
@@ -121,4 +127,4 @@ class CustomCellposeModel(models.CellposeModel, Model):
         :return: outlines
         :rtype: ndarray
         """        
-        return utils.masks_to_outlines(mask) #[True, False] outputs
+        return utils.masks_to_outlines(mask) # [True, False] outputs
