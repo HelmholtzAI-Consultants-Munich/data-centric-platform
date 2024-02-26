@@ -68,6 +68,7 @@ def test_run_inference_run(app):
         "--reload",
         "--port=7010",
     ]
+    print("Going to start subprocess!")
     process = subprocess.Popen(command, stdin=subprocess.PIPE, shell=False)
     # and wait until it is setup
     if sys.platform == 'win32' or sys.platform == 'cygwin': time.sleep(240) 
