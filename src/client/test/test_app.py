@@ -68,13 +68,14 @@ def test_run_inference_run(app):
         "--reload",
         "--port=7010",
     ]
-    process = subprocess.Popen(command)
+    process = subprocess.Popen(command, stdin=subprocess.PIPE, shell=False)
     # and wait until it is setup
-    if sys.platform == 'win32' or sys.platform == 'cygwin': time.sleep(120) 
+    if sys.platform == 'win32' or sys.platform == 'cygwin': time.sleep(240) 
     else: time.sleep(60)
     # then do model serving
     message_text, message_title = app.run_inference()
     # and assert returning message
+    print(f"HERE: {message_text, message_title}")
     assert message_text== "Success! Masks generated for all images"
     assert message_title=="Information"
     # finally clean up process

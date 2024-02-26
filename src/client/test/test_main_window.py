@@ -153,10 +153,6 @@ def test_launch_napari_button_click(qtbot, app):
     assert hasattr(app, 'nap_win')
     assert app.nap_win.isVisible()
 
-
-
-
-
 @pytest.fixture(scope='session', autouse=True)
 def cleanup_files(request):
     # This code runs after all tests from all files have completed

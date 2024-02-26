@@ -1,5 +1,5 @@
 wheel==0.42.0
-cellpose>=2.2
+cellpose==2.2.3
 bentoml==1.0.16
 scikit-image>=0.19.3
 torchmetrics>=0.11.4
