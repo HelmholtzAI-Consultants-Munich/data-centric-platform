@@ -153,15 +153,13 @@ class Compute4Mask:
         return contour_mask
     
     @staticmethod
-    def add_contour(labels_mask, instance_mask, contours_mask):
+    def add_contour(labels_mask, instance_mask):
         """ Add contours of objects to the labels mask.
 
         :param labels_mask: The class mask array without the contour pixels annotated.
         :type labels_mask: numpy.ndarray
         :param instance_mask: The instance mask array.
         :type instance_mask: numpy.ndarray
-        :param contours_mask: The contours mask array, where each contour holds the instance_id.
-        :type contours_mask: numpy.ndarray
         :return: The updated class mask including contours.
         :rtype: numpy.ndarray
         """
