@@ -46,6 +46,10 @@ class CustomRunnable(bentoml.Runnable):
         return mask
     
     def check_and_load_model(self):
+        """Checks if the specified model exists in BentoML's model repository.
+           If the model exists, it loads the latest version of the model into
+           memory.
+        """
         bento_model_list = [model.tag.name for model in bentoml.models.list()]
         if self.save_model_path in bento_model_list:
             loaded_model = bentoml.picklable_model.load_model(self.save_model_path+":latest")

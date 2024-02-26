@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="English" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Centric Platform &mdash; DCP 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=2ed17a75"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="DCP Client" href="dcp_client_installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            DCP
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dcp_client_installation.html">DCP Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server_installation.html">DCP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_client.html">dcp_client package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">DCP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Data Centric Platform</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="data-centric-platform">
+<h1>Data Centric Platform<a class="headerlink" href="#data-centric-platform" title="Link to this heading"></a></h1>
+<p><em>A data centric platform for all-kinds segmentation in microscopy imaging</em></p>
+<img alt="stability-wip" src="https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg" /><img alt="tests" src="https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/actions/workflows/test.yml/badge.svg?event=push" />
+<a class="reference external image-reference" href="https://codecov.io/gh/HelmholtzAI-Consultants-Munich/data-centric-platform"><img alt="https://codecov.io/gh/HelmholtzAI-Consultants-Munich/data-centric-platform/branch/main/graph/badge.svg" src="https://codecov.io/gh/HelmholtzAI-Consultants-Munich/data-centric-platform/branch/main/graph/badge.svg" /></a>
+<section id="how-to-use-it">
+<h2>How to use it?<a class="headerlink" href="#how-to-use-it" title="Link to this heading"></a></h2>
+<p>The client and server communicate via the <a class="reference external" href="https://www.bentoml.com/?gclid=Cj0KCQiApKagBhC1ARIsAFc7Mc6iqOLi2OcLtqMbGx1KrFjtLUEZ-bhnqlT2zWREE0x7JImhtNmKlFEaAvSSEALw_wcB">bentoml</a> library.
+The client interacts with the server every time we run model inference or training.
+For full functionality of the software the server should be running, either locally or remotely.</p>
+<p>To install and start the server side follow the instructions described in <a class="reference internal" href="dcp_server_installation.html#dcp-server"><span class="std std-ref">DCP Server</span></a>.
+To run the client GUI follow the instructions described in <a class="reference internal" href="dcp_client_installation.html#dcp-client"><span class="std std-ref">DCP Client</span></a></p>
+<p>DCP handles all kinds of <strong>segmentation tasks</strong>! Try it out if you need to do:</p>
+<ul class="simple">
+<li><p><strong>Instance</strong> segmentation</p></li>
+<li><p><strong>Semantic</strong> segmentation</p></li>
+<li><p><strong>Panoptic</strong> segmentation</p></li>
+</ul>
+</section>
+<section id="toy-data">
+<h2>Toy data<a class="headerlink" href="#toy-data" title="Link to this heading"></a></h2>
+<p>Our github repo includes the <code class="docutils literal notranslate"><span class="pre">data/</span></code> directory with some toy data which you can use as the <em>Uncurated dataset</em> folder. You can create (empty) folders for the other two directories required in the welcome window and start playing around.</p>
+</section>
+<section id="enabling-data-centric-development">
+<h2>Enabling data centric development<a class="headerlink" href="#enabling-data-centric-development" title="Link to this heading"></a></h2>
+<p>Our platform encourages the use of data centric practices. With the user friendly client interface you can:</p>
+<ul class="simple">
+<li><p><strong>Detect and remove outliers</strong> from your training data: only confirmed samples are used to train our models</p></li>
+<li><p><strong>Detect and correct labeling errors</strong>: editing labels with the integrated napari visualisation tool</p></li>
+<li><p><strong>Establish consensus</strong>: allows for multiple annotators before curated label is passed to train model</p></li>
+<li><p><strong>Focus on data curation</strong>: no interaction with model parameters during training and inference</p></li>
+</ul>
+<a class="reference internal image-reference" href="https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/dcp_pipeline.png"><img alt="https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/dcp_pipeline.png" class="align-center" src="https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/dcp_pipeline.png" style="width: 400px; height: 400px;" /></a>
+<p class="centered">
+<strong><em>Get more with less!</em></strong></p></section>
+<section id="dcp-imaging-conventions">
+<h2>DCP Imaging Conventions<a class="headerlink" href="#dcp-imaging-conventions" title="Link to this heading"></a></h2>
+<p>DCP currently follows the imaging conventions described below:</p>
+<ul class="simple">
+<li><p>Only 2D images are accepted</p></li>
+<li><p>The accepted imaging formats are: <code class="docutils literal notranslate"><span class="pre">(&quot;.jpg&quot;,</span> <span class="pre">&quot;.jpeg&quot;,</span> <span class="pre">&quot;.png&quot;,</span> <span class="pre">&quot;.tiff&quot;,</span> <span class="pre">&quot;.tif&quot;)</span></code></p></li>
+<li><p>RGB and RGBA images are accepted, however they will be converted to grayscale after read into DCP. The dims can be [C, H, W] or [H, W, C]</p></li>
+<li><p>Existing segementations can be used, however they need to be TIFF files and have the same name as the corresponding image followed by '_seg', e.g. image1_seg.tiff</p></li>
+</ul>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dcp_client_installation.html">DCP Client</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client_installation.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client_installation.html#running-the-client-a-step-by-step-guide">Running the client: A step-by-step guide!</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client_installation.html#configurations">1. <strong>Configurations</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client_installation.html#launching-the-client">2. <strong>Launching the client</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client_installation.html#welcome-window">3. <strong>Welcome window</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client_installation.html#setting-paths">4. <strong>Setting paths</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client_installation.html#data-overview">5. <strong>Data Overview</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client_installation.html#the-viewer">6. <strong>The viewer</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client_installation.html#data-centric-workflow-intended-usage-summary">Data centric workflow [intended usage summary]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client_installation.html#dcp-shortcuts">DCP Shortcuts</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server_installation.html">DCP Server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server_installation.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server_installation.html#launch-dcp-server">Launch DCP Server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server_installation.html#customization-for-developers">Customization (for developers)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server_installation.html#models">Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server_installation.html#running-with-docker">Running with Docker</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server_installation.html#docker-compose">Docker-Compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server_installation.html#docker-non-interactively">Docker Non-Interactively</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server_installation.html#docker-interactively">Docker Interactively</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server.html">dcp_server package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#overview-of-dcp-server-package">Overview of dcp_server Package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#submodules">Submodules:</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#id1">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#module-dcp_server.fsimagestorage">dcp_server.fsimagestorage module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.fsimagestorage.FilesystemImageStorage"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#module-dcp_server.models">dcp_server.models module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierFCNN"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellClassifierShallowModel"><code class="docutils literal notranslate"><span class="pre">CellClassifierShallowModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CellposePatchCNN"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.CustomCellposeModel"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.models.UNet"><code class="docutils literal notranslate"><span class="pre">UNet</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#module-dcp_server.segmentationclasses">dcp_server.segmentationclasses module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.segmentationclasses.GFPProjectSegmentation"><code class="docutils literal notranslate"><span class="pre">GFPProjectSegmentation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.segmentationclasses.GeneralSegmentation"><code class="docutils literal notranslate"><span class="pre">GeneralSegmentation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.segmentationclasses.MitoProjectSegmentation"><code class="docutils literal notranslate"><span class="pre">MitoProjectSegmentation</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#module-dcp_server.serviceclasses">dcp_server.serviceclasses module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.serviceclasses.CustomBentoService"><code class="docutils literal notranslate"><span class="pre">CustomBentoService</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.serviceclasses.CustomRunnable"><code class="docutils literal notranslate"><span class="pre">CustomRunnable</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_server.html#module-dcp_server.utils">dcp_server.utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.create_dataset_for_rf"><code class="docutils literal notranslate"><span class="pre">create_dataset_for_rf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.create_patch_dataset"><code class="docutils literal notranslate"><span class="pre">create_patch_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.crop_centered_padded_patch"><code class="docutils literal notranslate"><span class="pre">crop_centered_padded_patch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.extract_intensity_features"><code class="docutils literal notranslate"><span class="pre">extract_intensity_features()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.find_max_patch_size"><code class="docutils literal notranslate"><span class="pre">find_max_patch_size()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_center_of_mass_and_label"><code class="docutils literal notranslate"><span class="pre">get_center_of_mass_and_label()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_centered_patches"><code class="docutils literal notranslate"><span class="pre">get_centered_patches()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_file_extension"><code class="docutils literal notranslate"><span class="pre">get_file_extension()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_objects"><code class="docutils literal notranslate"><span class="pre">get_objects()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_path_name"><code class="docutils literal notranslate"><span class="pre">get_path_name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_path_parent"><code class="docutils literal notranslate"><span class="pre">get_path_parent()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_path_stem"><code class="docutils literal notranslate"><span class="pre">get_path_stem()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.get_shape_features"><code class="docutils literal notranslate"><span class="pre">get_shape_features()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.join_path"><code class="docutils literal notranslate"><span class="pre">join_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_server.html#dcp_server.utils.read_config"><code class="docutils literal notranslate"><span class="pre">read_config()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_client.html">dcp_client package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.gui.html">dcp_client.gui package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.gui.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.gui.html#module-dcp_client.gui.main_window">dcp_client.gui.main_window module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.gui.html#module-dcp_client.gui.napari_window">dcp_client.gui.napari_window module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.gui.html#module-dcp_client.gui.welcome_window">dcp_client.gui.welcome_window module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.utils.html">dcp_client.utils package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#module-dcp_client.utils.bentoml_model">dcp_client.utils.bentoml_model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#module-dcp_client.utils.fsimagestorage">dcp_client.utils.fsimagestorage module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#module-dcp_client.utils.settings">dcp_client.utils.settings module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#module-dcp_client.utils.sync_src_dst">dcp_client.utils.sync_src_dst module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.utils.html#module-dcp_client.utils.utils">dcp_client.utils.utils module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dcp_client.html#module-dcp_client.app">dcp_client.app module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.html#dcp_client.app.Application"><code class="docutils literal notranslate"><span class="pre">Application</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.html#dcp_client.app.DataSync"><code class="docutils literal notranslate"><span class="pre">DataSync</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.html#dcp_client.app.ImageStorage"><code class="docutils literal notranslate"><span class="pre">ImageStorage</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dcp_client.html#dcp_client.app.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="dcp_client_installation.html" class="btn btn-neutral float-right" title="DCP Client" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Christina Bukas, Mariia Koren, Helena Pelin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

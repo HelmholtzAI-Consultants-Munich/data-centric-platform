@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="English" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dcp_server package &mdash; DCP 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=2ed17a75"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="dcp_client package" href="dcp_client.html" />
+    <link rel="prev" title="DCP Server" href="dcp_server_installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DCP
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="dcp_client_installation.html">DCP Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_server_installation.html">DCP Server</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">dcp_server package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview-of-dcp-server-package">Overview of dcp_server Package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules:</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-dcp_server.fsimagestorage">dcp_server.fsimagestorage module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.fsimagestorage.FilesystemImageStorage"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.fsimagestorage.FilesystemImageStorage.get_image_seg_pairs"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.get_image_seg_pairs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.fsimagestorage.FilesystemImageStorage.get_image_size_properties"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.get_image_size_properties()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.fsimagestorage.FilesystemImageStorage.get_unsupported_files"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.get_unsupported_files()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.fsimagestorage.FilesystemImageStorage.load_image"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.load_image()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.fsimagestorage.FilesystemImageStorage.prepare_images_and_masks_for_training"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.prepare_images_and_masks_for_training()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.fsimagestorage.FilesystemImageStorage.rescale_image"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.rescale_image()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.fsimagestorage.FilesystemImageStorage.resize_mask"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.resize_mask()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.fsimagestorage.FilesystemImageStorage.save_image"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.save_image()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.fsimagestorage.FilesystemImageStorage.search_images"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.search_images()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.fsimagestorage.FilesystemImageStorage.search_segs"><code class="docutils literal notranslate"><span class="pre">FilesystemImageStorage.search_segs()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-dcp_server.models">dcp_server.models module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CellClassifierFCNN"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.CellClassifierFCNN.eval"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.eval()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.CellClassifierFCNN.forward"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.CellClassifierFCNN.train"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.train()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.CellClassifierFCNN.training"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.training</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.CellClassifierFCNN.update_configs"><code class="docutils literal notranslate"><span class="pre">CellClassifierFCNN.update_configs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CellClassifierShallowModel"><code class="docutils literal notranslate"><span class="pre">CellClassifierShallowModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.CellClassifierShallowModel.eval"><code class="docutils literal notranslate"><span class="pre">CellClassifierShallowModel.eval()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.CellClassifierShallowModel.train"><code class="docutils literal notranslate"><span class="pre">CellClassifierShallowModel.train()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CellposePatchCNN"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.CellposePatchCNN.eval"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN.eval()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.CellposePatchCNN.train"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN.train()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.CellposePatchCNN.training"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN.training</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.CellposePatchCNN.update_configs"><code class="docutils literal notranslate"><span class="pre">CellposePatchCNN.update_configs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.CustomCellposeModel"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.CustomCellposeModel.eval"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.eval()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.CustomCellposeModel.masks_to_outlines"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.masks_to_outlines()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.CustomCellposeModel.train"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.train()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.CustomCellposeModel.training"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.training</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.CustomCellposeModel.update_configs"><code class="docutils literal notranslate"><span class="pre">CustomCellposeModel.update_configs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.models.UNet"><code class="docutils literal notranslate"><span class="pre">UNet</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.UNet.DoubleConv"><code class="docutils literal notranslate"><span class="pre">UNet.DoubleConv</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.UNet.eval"><code class="docutils literal notranslate"><span class="pre">UNet.eval()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.UNet.forward"><code class="docutils literal notranslate"><span class="pre">UNet.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.UNet.train"><code class="docutils literal notranslate"><span class="pre">UNet.train()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.models.UNet.training"><code class="docutils literal notranslate"><span class="pre">UNet.training</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-dcp_server.segmentationclasses">dcp_server.segmentationclasses module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.segmentationclasses.GFPProjectSegmentation"><code class="docutils literal notranslate"><span class="pre">GFPProjectSegmentation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.segmentationclasses.GFPProjectSegmentation.segment_image"><code class="docutils literal notranslate"><span class="pre">GFPProjectSegmentation.segment_image()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.segmentationclasses.GeneralSegmentation"><code class="docutils literal notranslate"><span class="pre">GeneralSegmentation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.segmentationclasses.GeneralSegmentation.segment_image"><code class="docutils literal notranslate"><span class="pre">GeneralSegmentation.segment_image()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.segmentationclasses.GeneralSegmentation.train"><code class="docutils literal notranslate"><span class="pre">GeneralSegmentation.train()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.segmentationclasses.MitoProjectSegmentation"><code class="docutils literal notranslate"><span class="pre">MitoProjectSegmentation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.segmentationclasses.MitoProjectSegmentation.segment_image"><code class="docutils literal notranslate"><span class="pre">MitoProjectSegmentation.segment_image()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-dcp_server.serviceclasses">dcp_server.serviceclasses module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.serviceclasses.CustomBentoService"><code class="docutils literal notranslate"><span class="pre">CustomBentoService</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.serviceclasses.CustomBentoService.start_service"><code class="docutils literal notranslate"><span class="pre">CustomBentoService.start_service()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.serviceclasses.CustomRunnable"><code class="docutils literal notranslate"><span class="pre">CustomRunnable</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.serviceclasses.CustomRunnable.SUPPORTED_RESOURCES"><code class="docutils literal notranslate"><span class="pre">CustomRunnable.SUPPORTED_RESOURCES</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.serviceclasses.CustomRunnable.SUPPORTS_CPU_MULTI_THREADING"><code class="docutils literal notranslate"><span class="pre">CustomRunnable.SUPPORTS_CPU_MULTI_THREADING</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.serviceclasses.CustomRunnable.bentoml_runnable_methods__"><code class="docutils literal notranslate"><span class="pre">CustomRunnable.bentoml_runnable_methods__</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.serviceclasses.CustomRunnable.check_and_load_model"><code class="docutils literal notranslate"><span class="pre">CustomRunnable.check_and_load_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.serviceclasses.CustomRunnable.evaluate"><code class="docutils literal notranslate"><span class="pre">CustomRunnable.evaluate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp_server.serviceclasses.CustomRunnable.train"><code class="docutils literal notranslate"><span class="pre">CustomRunnable.train()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-dcp_server.utils">dcp_server.utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.utils.create_dataset_for_rf"><code class="docutils literal notranslate"><span class="pre">create_dataset_for_rf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.utils.create_patch_dataset"><code class="docutils literal notranslate"><span class="pre">create_patch_dataset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.utils.crop_centered_padded_patch"><code class="docutils literal notranslate"><span class="pre">crop_centered_padded_patch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.utils.extract_intensity_features"><code class="docutils literal notranslate"><span class="pre">extract_intensity_features()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.utils.find_max_patch_size"><code class="docutils literal notranslate"><span class="pre">find_max_patch_size()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.utils.get_center_of_mass_and_label"><code class="docutils literal notranslate"><span class="pre">get_center_of_mass_and_label()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.utils.get_centered_patches"><code class="docutils literal notranslate"><span class="pre">get_centered_patches()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.utils.get_file_extension"><code class="docutils literal notranslate"><span class="pre">get_file_extension()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.utils.get_objects"><code class="docutils literal notranslate"><span class="pre">get_objects()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.utils.get_path_name"><code class="docutils literal notranslate"><span class="pre">get_path_name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.utils.get_path_parent"><code class="docutils literal notranslate"><span class="pre">get_path_parent()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.utils.get_path_stem"><code class="docutils literal notranslate"><span class="pre">get_path_stem()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.utils.get_shape_features"><code class="docutils literal notranslate"><span class="pre">get_shape_features()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.utils.join_path"><code class="docutils literal notranslate"><span class="pre">join_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dcp_server.utils.read_config"><code class="docutils literal notranslate"><span class="pre">read_config()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dcp_client.html">dcp_client package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">DCP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">dcp_server package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/dcp_server.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-dcp_server">
+<span id="dcp-server-package"></span><h1>dcp_server package<a class="headerlink" href="#module-dcp_server" title="Link to this heading"></a></h1>
+<section id="overview-of-dcp-server-package">
+<h2>Overview of dcp_server Package<a class="headerlink" href="#overview-of-dcp-server-package" title="Link to this heading"></a></h2>
+<p>The dcp_server package is structured to handle various server-side functionalities related to image processing, segmentation, and model serving.</p>
+<section id="submodules">
+<h3>Submodules:<a class="headerlink" href="#submodules" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>dcp_server.fsimagestorage</dt><dd><p>Provides a class FilesystemImageStorage for dealing with image storage, loading, saving, and processing.
+Contains methods for retrieving image-segmentation pairs, getting image size properties, loading images, preparing images and masks for training, rescaling images, resizing masks, saving images, and searching for images and segmentations in directories.</p>
+</dd>
+<dt>dcp_server.models</dt><dd><p>Defines various models for cell classification and segmentation, including CellClassifierFCNN, CellClassifierShallowModel, CellposePatchCNN, CustomCellposeModel, and UNet.
+These models handle tasks such as evaluation, forward pass, training, and updating configurations.</p>
+</dd>
+<dt>dcp_server.segmentationclasses</dt><dd><p>Defines segmentation classes for specific projects, such as GFPProjectSegmentation, GeneralSegmentation, and MitoProjectSegmentation.
+These classes contain methods for segmenting images and training models on images and masks.</p>
+</dd>
+<dt>dcp_server.serviceclasses</dt><dd><p>Defines service classes, such as CustomBentoService and CustomRunnable, for serving the models with BentoML and handling computation on remote Python workers.</p>
+</dd>
+<dt>dcp_server.utils</dt><dd><p>Provides various utility functions for image processing, feature extraction, file handling, configuration reading, and path manipulation.</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="id1">
+<h2>Submodules<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+</section>
+<section id="module-dcp_server.fsimagestorage">
+<span id="dcp-server-fsimagestorage-module"></span><h2>dcp_server.fsimagestorage module<a class="headerlink" href="#module-dcp_server.fsimagestorage" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dcp_server.fsimagestorage.FilesystemImageStorage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dcp_server.fsimagestorage.</span></span><span class="sig-name descname"><span class="pre">FilesystemImageStorage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_used</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.fsimagestorage.FilesystemImageStorage" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class used to deal with everything related to image storing and processing - loading, saving, transforming.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.fsimagestorage.FilesystemImageStorage.get_image_seg_pairs">
+<span class="sig-name descname"><span class="pre">get_image_seg_pairs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.fsimagestorage.FilesystemImageStorage.get_image_seg_pairs" title="Link to this definition"></a></dt>
+<dd><p>Get pairs of (image, image_seg).</p>
+<p>Used, e.g., in training to create training data-training labels pairs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>directory</strong> (<em>str</em>) -- Path to the directory to search images and segmentations in.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of tuple pairs (image, image_seg).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.fsimagestorage.FilesystemImageStorage.get_image_size_properties">
+<span class="sig-name descname"><span class="pre">get_image_size_properties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_extension</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.fsimagestorage.FilesystemImageStorage.get_image_size_properties" title="Link to this definition"></a></dt>
+<dd><p>Get properties of the image size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<em>ndarray</em>) -- Image (numpy array).</p></li>
+<li><p><strong>file_extension</strong> (<em>str</em>) -- File extension of the image as saved in the directory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Size properties:
+- height
+- width
+- z_axis</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.fsimagestorage.FilesystemImageStorage.get_unsupported_files">
+<span class="sig-name descname"><span class="pre">get_unsupported_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.fsimagestorage.FilesystemImageStorage.get_unsupported_files" title="Link to this definition"></a></dt>
+<dd><p>Get unsupported files found in the given directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>directory</strong> (<em>str</em>) -- Directory path to search for files in.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of unsupported files.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.fsimagestorage.FilesystemImageStorage.load_image">
+<span class="sig-name descname"><span class="pre">load_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cur_selected_img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_gray</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.fsimagestorage.FilesystemImageStorage.load_image" title="Link to this definition"></a></dt>
+<dd><p>Load the image using skimage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cur_selected_img</strong> (<em>str</em>) -- full path of the image that needs to be loaded</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>loaded image</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.fsimagestorage.FilesystemImageStorage.prepare_images_and_masks_for_training">
+<span class="sig-name descname"><span class="pre">prepare_images_and_masks_for_training</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_img_mask_pairs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.fsimagestorage.FilesystemImageStorage.prepare_images_and_masks_for_training" title="Link to this definition"></a></dt>
+<dd><p>Image and mask processing for training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>train_img_mask_pairs</strong> (<em>list</em>) -- List pairs of (image, image_seg) (as returned by get_image_seg_pairs() function).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Lists of processed images and masks.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.fsimagestorage.FilesystemImageStorage.rescale_image">
+<span class="sig-name descname"><span class="pre">rescale_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.fsimagestorage.FilesystemImageStorage.rescale_image" title="Link to this definition"></a></dt>
+<dd><p>Rescale image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<em>ndarray</em>) -- Image.</p></li>
+<li><p><strong>height</strong> (<em>int</em>) -- Height of the image.</p></li>
+<li><p><strong>width</strong> (<em>int</em>) -- Width of the image.</p></li>
+<li><p><strong>channel_ax</strong> (<em>int</em>) -- Channel axis.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Rescaled image.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.fsimagestorage.FilesystemImageStorage.resize_mask">
+<span class="sig-name descname"><span class="pre">resize_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.fsimagestorage.FilesystemImageStorage.resize_mask" title="Link to this definition"></a></dt>
+<dd><p>Resize the mask so it matches the original image size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mask</strong> (<em>ndarray</em>) -- Image.</p></li>
+<li><p><strong>height</strong> (<em>int</em>) -- Height of the image.</p></li>
+<li><p><strong>width</strong> (<em>int</em>) -- Width of the image.</p></li>
+<li><p><strong>order</strong> (<em>int</em>) -- From scikit-image - the order of the spline interpolation. Default is 0 if image.dtype is bool and 1 otherwise.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Resized image.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.fsimagestorage.FilesystemImageStorage.save_image">
+<span class="sig-name descname"><span class="pre">save_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">to_save_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.fsimagestorage.FilesystemImageStorage.save_image" title="Link to this definition"></a></dt>
+<dd><p>Save given image using skimage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>to_save_path</strong> (<em>str</em>) -- full path to the directory that the image needs to be save into (use also image name in the path, eg. '/users/new_image.png')</p></li>
+<li><p><strong>img</strong> (<em>ndarray</em>) -- image you wish to save</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.fsimagestorage.FilesystemImageStorage.search_images">
+<span class="sig-name descname"><span class="pre">search_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.fsimagestorage.FilesystemImageStorage.search_images" title="Link to this definition"></a></dt>
+<dd><p>Get a list of full paths of the images in the directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>directory</strong> (<em>str</em>) -- Path to the directory to search for images.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of image paths found in the directory (only image types that are supported - see config.cfg 'setup' section).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.fsimagestorage.FilesystemImageStorage.search_segs">
+<span class="sig-name descname"><span class="pre">search_segs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cur_selected_img</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.fsimagestorage.FilesystemImageStorage.search_segs" title="Link to this definition"></a></dt>
+<dd><p>Returns a list of full paths of segmentations for an image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cur_selected_img</strong> (<em>str</em>) -- Full path of the image for which segmentations are needed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of segmentation paths for the given image.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-dcp_server.models">
+<span id="dcp-server-models-module"></span><h2>dcp_server.models module<a class="headerlink" href="#module-dcp_server.models" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dcp_server.models.CellClassifierFCNN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dcp_server.models.</span></span><span class="sig-name descname"><span class="pre">CellClassifierFCNN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CellClassifierFCNN" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Fully convolutional classifier for cell images.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This model cannot be used as a standalone model in DCP.</p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.CellClassifierFCNN.eval">
+<span class="sig-name descname"><span class="pre">eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CellClassifierFCNN.eval" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the model on the provided image and return the predicted label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>img</strong> (<em>np.ndarray</em><em>[</em><em>np.uint8</em><em>]</em>) -- Input image for evaluation.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>y_hat - predicted label.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.CellClassifierFCNN.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CellClassifierFCNN.forward" title="Link to this definition"></a></dt>
+<dd><p>Perform forward pass of the CellClassifierFCNN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>) -- Input tensor.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Output tensor after passing through the network.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.CellClassifierFCNN.train">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imgs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CellClassifierFCNN.train" title="Link to this definition"></a></dt>
+<dd><p>Train the given model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>imgs</strong> (<em>List</em><em>[</em><em>np.ndarray</em><em>[</em><em>np.uint8</em><em>]</em><em>]</em>) -- List of input images with shape (3, dx, dy).</p></li>
+<li><p><strong>labels</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) -- List of classification labels.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dcp_server.models.CellClassifierFCNN.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#dcp_server.models.CellClassifierFCNN.training" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.CellClassifierFCNN.update_configs">
+<span class="sig-name descname"><span class="pre">update_configs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CellClassifierFCNN.update_configs" title="Link to this definition"></a></dt>
+<dd><p>Update the training and evaluation configurations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train_config</strong> (<em>dict</em>) -- Dictionary containing the training configuration.</p></li>
+<li><p><strong>eval_config</strong> (<em>dict</em>) -- Dictionary containing the evaluation configuration.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dcp_server.models.CellClassifierShallowModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dcp_server.models.</span></span><span class="sig-name descname"><span class="pre">CellClassifierShallowModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CellClassifierShallowModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class implements a shallow model for cell classification using scikit-learn.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.CellClassifierShallowModel.eval">
+<span class="sig-name descname"><span class="pre">eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_test</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CellClassifierShallowModel.eval" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the model on the provided test data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X_test</strong> (<em>numpy.ndarray</em>) -- Features of the test data.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>y_hat - predicted labels.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.CellClassifierShallowModel.train">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_train</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CellClassifierShallowModel.train" title="Link to this definition"></a></dt>
+<dd><p>Train the model using the provided training data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X_train</strong> (<em>numpy.ndarray</em>) -- Features of the training data.</p></li>
+<li><p><strong>y_train</strong> (<em>numpy.ndarray</em>) -- Labels of the training data.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dcp_server.models.CellposePatchCNN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dcp_server.models.</span></span><span class="sig-name descname"><span class="pre">CellposePatchCNN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CellposePatchCNN" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Cellpose &amp; patches of cells and then cnn to classify each patch.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.CellposePatchCNN.eval">
+<span class="sig-name descname"><span class="pre">eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CellposePatchCNN.eval" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the model on the provided image and return the final mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>img</strong> (<em>np.ndarray</em><em>[</em><em>np.uint8</em><em>]</em>) -- Input image for evaluation.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Final mask containing instance mask and class masks.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray[np.uint16]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.CellposePatchCNN.train">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imgs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masks</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CellposePatchCNN.train" title="Link to this definition"></a></dt>
+<dd><p>Trains the given model. First trains the segmentor and then the clasiffier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>imgs</strong> (<em>List</em><em>[</em><em>np.ndarray</em><em>]</em>) -- images to train on (training data)</p></li>
+<li><p><strong>masks</strong> (<em>List</em><em>[</em><em>np.ndarray</em><em>] of </em><em>same shape as output</em><em> of </em><em>eval</em><em>, </em><em>i.e. one channel instances</em><em>,
+</em><em>second channel classes</em><em>, </em><em>so</em><em> [</em><em>2</em><em>, </em><em>H</em><em>, </em><em>W</em><em>] or </em><em>[</em><em>2</em><em>, </em><em>3</em><em>, </em><em>H</em><em>, </em><em>W</em><em>] </em><em>for 3D</em>) -- masks of the given images (training labels)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dcp_server.models.CellposePatchCNN.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#dcp_server.models.CellposePatchCNN.training" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.CellposePatchCNN.update_configs">
+<span class="sig-name descname"><span class="pre">update_configs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CellposePatchCNN.update_configs" title="Link to this definition"></a></dt>
+<dd><p>Update the training and evaluation configurations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train_config</strong> (<em>dict</em>) -- Dictionary containing the training configuration.</p></li>
+<li><p><strong>eval_config</strong> (<em>dict</em>) -- Dictionary containing the evaluation configuration.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dcp_server.models.CustomCellposeModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dcp_server.models.</span></span><span class="sig-name descname"><span class="pre">CustomCellposeModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CustomCellposeModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">CellposeModel</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Custom cellpose model inheriting the attributes and functions from the original CellposeModel and implementing
+additional attributes and methods needed for this project.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.CustomCellposeModel.eval">
+<span class="sig-name descname"><span class="pre">eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CustomCellposeModel.eval" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the model - find mask of the given image
+Calls the original eval function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>img</strong> (<em>np.ndarray</em>) -- image to evaluate on</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>mask of the image, list of 2D arrays, or single 3D array (if do_3D=True) labelled image.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.CustomCellposeModel.masks_to_outlines">
+<span class="sig-name descname"><span class="pre">masks_to_outlines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CustomCellposeModel.masks_to_outlines" title="Link to this definition"></a></dt>
+<dd><p>Get outlines of masks as a 0-1 array
+Calls the original cellpose.utils.masks_to_outlines function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mask</strong> (<em>ndarray</em>) -- int, 2D or 3D array, mask of an image</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>outlines</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.CustomCellposeModel.train">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imgs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masks</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CustomCellposeModel.train" title="Link to this definition"></a></dt>
+<dd><p>Train the given model
+Calls the original train function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>imgs</strong> (<em>List</em><em>[</em><em>np.ndarray</em><em>]</em>) -- images to train on (training data)</p></li>
+<li><p><strong>masks</strong> (<em>List</em><em>[</em><em>np.ndarray</em><em>]</em>) -- masks of the given images (training labels)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dcp_server.models.CustomCellposeModel.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#dcp_server.models.CustomCellposeModel.training" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.CustomCellposeModel.update_configs">
+<span class="sig-name descname"><span class="pre">update_configs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_config</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.CustomCellposeModel.update_configs" title="Link to this definition"></a></dt>
+<dd><p>Update the training and evaluation configurations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train_config</strong> (<em>dict</em>) -- Dictionary containing the training configuration.</p></li>
+<li><p><strong>eval_config</strong> (<em>dict</em>) -- Dictionary containing the evaluation configuration.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dcp_server.models.UNet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dcp_server.models.</span></span><span class="sig-name descname"><span class="pre">UNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.UNet" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Unet is a convolutional neural network architecture for semantic segmentation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_config</strong> (<em>dict</em>) -- Model configuration.</p></li>
+<li><p><strong>train_config</strong> (<em>dict</em>) -- Training configuration.</p></li>
+<li><p><strong>eval_config</strong> (<em>dict</em>) -- Evaluation configuration.</p></li>
+<li><p><strong>model_name</strong> (<em>str</em>) -- Name of the model.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="dcp_server.models.UNet.DoubleConv">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DoubleConv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.UNet.DoubleConv" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>DoubleConv module consists of two consecutive convolutional layers with
+batch normalization and ReLU activation functions.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.UNet.DoubleConv.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.UNet.DoubleConv.forward" title="Link to this definition"></a></dt>
+<dd><p>Forward pass through the DoubleConv module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>) -- Input tensor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dcp_server.models.UNet.DoubleConv.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#dcp_server.models.UNet.DoubleConv.training" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.UNet.eval">
+<span class="sig-name descname"><span class="pre">eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.UNet.eval" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the model on the provided image and return the predicted label.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>img</strong> (<em>np.ndarray</em><em>[</em><em>np.uint8</em><em>]</em>) -- Input image for evaluation.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>predicted mask consists of instance and class masks</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.UNet.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.UNet.forward" title="Link to this definition"></a></dt>
+<dd><p>Forward pass of the UNet model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>) -- Input tensor.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Output tensor.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.models.UNet.train">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imgs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masks</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.models.UNet.train" title="Link to this definition"></a></dt>
+<dd><p>Train the UNet model using the provided images and masks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>imgs</strong> (<em>list</em><em>[</em><em>numpy.ndarray</em><em>]</em>) -- Input images for training.</p></li>
+<li><p><strong>masks</strong> (<em>list</em><em>[</em><em>numpy.ndarray</em><em>]</em>) -- Masks corresponding to the input images.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dcp_server.models.UNet.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#dcp_server.models.UNet.training" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-dcp_server.segmentationclasses">
+<span id="dcp-server-segmentationclasses-module"></span><h2>dcp_server.segmentationclasses module<a class="headerlink" href="#module-dcp_server.segmentationclasses" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dcp_server.segmentationclasses.GFPProjectSegmentation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dcp_server.segmentationclasses.</span></span><span class="sig-name descname"><span class="pre">GFPProjectSegmentation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imagestorage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runner</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.segmentationclasses.GFPProjectSegmentation" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dcp_server.segmentationclasses.GeneralSegmentation" title="dcp_server.segmentationclasses.GeneralSegmentation"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralSegmentation</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.segmentationclasses.GFPProjectSegmentation.segment_image">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">segment_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_of_images</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.segmentationclasses.GFPProjectSegmentation.segment_image" title="Link to this definition"></a></dt>
+<dd><p>Segments images from the given  directory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_path</strong> (<em>str</em>) -- directory where the images are saved</p></li>
+<li><p><strong>list_of_images</strong> (<em>list</em>) -- list of image objects from the directory that are currently supported</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dcp_server.segmentationclasses.GeneralSegmentation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dcp_server.segmentationclasses.</span></span><span class="sig-name descname"><span class="pre">GeneralSegmentation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imagestorage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runner</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.segmentationclasses.GeneralSegmentation" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Segmentation class. Defining the main functions needed for this project and served by service - segment image and train on images.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.segmentationclasses.GeneralSegmentation.segment_image">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">segment_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_of_images</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.segmentationclasses.GeneralSegmentation.segment_image" title="Link to this definition"></a></dt>
+<dd><p>Segments images from the given  directory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_path</strong> (<em>str</em>) -- directory where the images are saved</p></li>
+<li><p><strong>list_of_images</strong> (<em>list</em>) -- list of image objects from the directory that are currently supported</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.segmentationclasses.GeneralSegmentation.train">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.segmentationclasses.GeneralSegmentation.train" title="Link to this definition"></a></dt>
+<dd><p>train model on images and masks in the given input directory.
+Calls the runner's train function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_path</strong> (<em>str</em>) -- directory where the images are saved</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>runner's train function output - path of the saved model</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dcp_server.segmentationclasses.MitoProjectSegmentation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dcp_server.segmentationclasses.</span></span><span class="sig-name descname"><span class="pre">MitoProjectSegmentation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imagestorage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runner</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.segmentationclasses.MitoProjectSegmentation" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dcp_server.segmentationclasses.GeneralSegmentation" title="dcp_server.segmentationclasses.GeneralSegmentation"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralSegmentation</span></code></a></p>
+<p>Segmentation class inheriting the attributes and functions from the original GeneralSegmentation and implementing
+additional attributes and methods needed for this project.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.segmentationclasses.MitoProjectSegmentation.segment_image">
+<em class="property"><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">segment_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_of_images</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.segmentationclasses.MitoProjectSegmentation.segment_image" title="Link to this definition"></a></dt>
+<dd><p>Segments images from the given  directory.
+The function differs from the parent class' function in obtaining the outlines of the masks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_path</strong> (<em>str</em>) -- directory where the images are saved</p></li>
+<li><p><strong>list_of_images</strong> (<em>list</em>) -- list of image objects from the directory that are currently supported</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-dcp_server.serviceclasses">
+<span id="dcp-server-serviceclasses-module"></span><h2>dcp_server.serviceclasses module<a class="headerlink" href="#module-dcp_server.serviceclasses" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dcp_server.serviceclasses.CustomBentoService">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dcp_server.serviceclasses.</span></span><span class="sig-name descname"><span class="pre">CustomBentoService</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">runner</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmentation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.serviceclasses.CustomBentoService" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>BentoML Service class. Contains all the functions necessary to serve the service with BentoML</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.serviceclasses.CustomBentoService.start_service">
+<span class="sig-name descname"><span class="pre">start_service</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.serviceclasses.CustomBentoService.start_service" title="Link to this definition"></a></dt>
+<dd><p>Starts the service</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>service object needed in service.py and for the bentoml serve call.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dcp_server.serviceclasses.CustomRunnable">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dcp_server.serviceclasses.</span></span><span class="sig-name descname"><span class="pre">CustomRunnable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_model_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.serviceclasses.CustomRunnable" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Runnable</span></code></p>
+<p>BentoML, Runner represents a unit of computation that can be executed on a remote Python worker and scales independently.
+CustomRunnable is a custom runner defined to meet all the requirements needed for this project.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dcp_server.serviceclasses.CustomRunnable.SUPPORTED_RESOURCES">
+<span class="sig-name descname"><span class="pre">SUPPORTED_RESOURCES</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('cpu',)</span></em><a class="headerlink" href="#dcp_server.serviceclasses.CustomRunnable.SUPPORTED_RESOURCES" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dcp_server.serviceclasses.CustomRunnable.SUPPORTS_CPU_MULTI_THREADING">
+<span class="sig-name descname"><span class="pre">SUPPORTS_CPU_MULTI_THREADING</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#dcp_server.serviceclasses.CustomRunnable.SUPPORTS_CPU_MULTI_THREADING" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dcp_server.serviceclasses.CustomRunnable.bentoml_runnable_methods__">
+<span class="sig-name descname"><span class="pre">bentoml_runnable_methods__</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">RunnableMethod</span><span class="p"><span class="pre">[</span></span><span class="pre">t.Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">t.Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">t.Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'evaluate':</span> <span class="pre">RunnableMethod(func=&lt;function</span> <span class="pre">CustomRunnable.evaluate&gt;,</span> <span class="pre">config=RunnableMethodConfig(batchable=False,</span> <span class="pre">batch_dim=(0,</span> <span class="pre">0),</span> <span class="pre">input_spec=None,</span> <span class="pre">output_spec=None),</span> <span class="pre">_bentoml_runnable_method=None),</span> <span class="pre">'train':</span> <span class="pre">RunnableMethod(func=&lt;function</span> <span class="pre">CustomRunnable.train&gt;,</span> <span class="pre">config=RunnableMethodConfig(batchable=False,</span> <span class="pre">batch_dim=(0,</span> <span class="pre">0),</span> <span class="pre">input_spec=None,</span> <span class="pre">output_spec=None),</span> <span class="pre">_bentoml_runnable_method=None)}</span></em><a class="headerlink" href="#dcp_server.serviceclasses.CustomRunnable.bentoml_runnable_methods__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.serviceclasses.CustomRunnable.check_and_load_model">
+<span class="sig-name descname"><span class="pre">check_and_load_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.serviceclasses.CustomRunnable.check_and_load_model" title="Link to this definition"></a></dt>
+<dd><p>Checks if the specified model exists in BentoML's model repository.
+If the model exists, it loads the latest version of the model into
+memory.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.serviceclasses.CustomRunnable.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">P.kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">R</span></span></span><a class="headerlink" href="#dcp_server.serviceclasses.CustomRunnable.evaluate" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dcp_server.serviceclasses.CustomRunnable.train">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">P.kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">R</span></span></span><a class="headerlink" href="#dcp_server.serviceclasses.CustomRunnable.train" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-dcp_server.utils">
+<span id="dcp-server-utils-module"></span><h2>dcp_server.utils module<a class="headerlink" href="#module-dcp_server.utils" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="dcp_server.utils.create_dataset_for_rf">
+<span class="sig-prename descclassname"><span class="pre">dcp_server.utils.</span></span><span class="sig-name descname"><span class="pre">create_dataset_for_rf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imgs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masks</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.utils.create_dataset_for_rf" title="Link to this definition"></a></dt>
+<dd><p>Extracts shape and intensity-based features from images within regions defined by masks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>imgs</strong> (<em>list</em>) -- A list of input images.</p></li>
+<li><p><strong>masks</strong> (<em>list</em>) -- A list of corresponding masks defining regions of interest.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of arrays containing shape and intensity-based features.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dcp_server.utils.create_patch_dataset">
+<span class="sig-prename descclassname"><span class="pre">dcp_server.utils.</span></span><span class="sig-name descname"><span class="pre">create_patch_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imgs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masks_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masks_instances</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_intensity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_patch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_mask</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.utils.create_patch_dataset" title="Link to this definition"></a></dt>
+<dd><p>Splits images and masks into patches of equal size centered around the cells.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>imgs</strong> (<em>list</em><em> of </em><em>numpy.ndarray</em><em> or </em><em>torch.Tensor</em>) -- A list of input images.</p></li>
+<li><p><strong>masks_classes</strong> (<em>list</em><em> of </em><em>numpy.ndarray</em><em> or </em><em>torch.Tensor</em>) -- A list of binary masks representing classes.</p></li>
+<li><p><strong>masks_instances</strong> (<em>list</em><em> of </em><em>numpy.ndarray</em><em> or </em><em>torch.Tensor</em>) -- A list of binary masks representing instances.</p></li>
+<li><p><strong>noise_intensity</strong> (<em>float</em>) -- The intensity of noise to add to the patches.</p></li>
+<li><p><strong>max_patch_size</strong> (<em>float</em>) -- The maximum size of the bounding box edge for objects in the mask.</p></li>
+<li><p><strong>include_mask</strong> (<em>bool</em>) -- A flag indicating whether to include the mask along with patches.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing the patches, patch masks, and labels.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If patch_size is not given, the algorithm should first run through all images to find the max cell size, and use
+the max cell size to define the patch size. All patches and masks should then be returned
+in the same format as imgs and masks (same type, i.e. check if tensor or np.array and same
+convention of dims, e.g.  CxHxW)</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dcp_server.utils.crop_centered_padded_patch">
+<span class="sig-prename descclassname"><span class="pre">dcp_server.utils.</span></span><span class="sig-name descname"><span class="pre">crop_centered_padded_patch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_center_xy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#dcp_server.utils.crop_centered_padded_patch" title="Link to this definition"></a></dt>
+<dd><p>Crops a patch from an array <cite>x</cite> centered at coordinates <cite>c</cite> with size <cite>p</cite>,
+and apply padding if necessary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<em>np.ndarray</em>) -- the input array from which the patch will be cropped</p></li>
+<li><p><strong>patch_center_xy</strong> (<em>tuple</em>) -- the coordinates (row, column) at the center of the patch</p></li>
+<li><p><strong>patch_size</strong> (<em>tuple</em>) -- the size of the patch to be cropped (height, width)</p></li>
+<li><p><strong>obj_label</strong> (<em>int</em>) -- the instance label of the mask at the patch</p></li>
+<li><p><strong>mask</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) -- The mask array associated with the array x.
+Mask is used during training to mask out non-central elements.
+For RandomForest, it is used to calculate pyradiomics features.</p></li>
+<li><p><strong>noise_intensity</strong> (<em>float</em><em>, </em><em>optional</em>) -- intensity of noise to be added to the background</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the cropped patch with applied padding</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dcp_server.utils.extract_intensity_features">
+<span class="sig-prename descclassname"><span class="pre">dcp_server.utils.</span></span><span class="sig-name descname"><span class="pre">extract_intensity_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.utils.extract_intensity_features" title="Link to this definition"></a></dt>
+<dd><p>Extracts intensity-based features from an image within the region defined by the mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>numpy.ndarray</em>) -- The input image.</p></li>
+<li><p><strong>mask</strong> (<em>numpy.ndarray</em>) -- The mask defining the region of interest.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An array containing the extracted intensity-based features, including median intensity, mean intensity, and 25th/75th percentile intensity within the masked region.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dcp_server.utils.find_max_patch_size">
+<span class="sig-prename descclassname"><span class="pre">dcp_server.utils.</span></span><span class="sig-name descname"><span class="pre">find_max_patch_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.utils.find_max_patch_size" title="Link to this definition"></a></dt>
+<dd><p>Finds the maximum patch size in a mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mask</strong> (<em>numpy.ndarray</em>) -- The binary mask representing objects.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The maximum size of the bounding box edge for objects in the mask.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dcp_server.utils.get_center_of_mass_and_label">
+<span class="sig-prename descclassname"><span class="pre">dcp_server.utils.</span></span><span class="sig-name descname"><span class="pre">get_center_of_mass_and_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#dcp_server.utils.get_center_of_mass_and_label" title="Link to this definition"></a></dt>
+<dd><p>Computes the centers of mass for each object in a mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mask</strong> (<em>np.ndarray</em>) -- the input mask containing labeled objects</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>A list of tuples representing the coordinates (row, column) of the centers of mass for each object.</p></li>
+<li><p>A list of ints representing the labels for each object in the mask.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p>list of tuple</p></li>
+<li><p>list of int</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dcp_server.utils.get_centered_patches">
+<span class="sig-prename descclassname"><span class="pre">dcp_server.utils.</span></span><span class="sig-name descname"><span class="pre">get_centered_patches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.utils.get_centered_patches" title="Link to this definition"></a></dt>
+<dd><p>Extracts centered patches from the input image based on the centers of objects identified in the mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<em>numpy.ndarray</em>) -- The input image.</p></li>
+<li><p><strong>mask</strong> (<em>numpy.ndarray</em>) -- The mask representing the objects in the image.</p></li>
+<li><p><strong>p_size</strong> (<em>int</em>) -- The size of the patches to extract.</p></li>
+<li><p><strong>noise_intensity</strong> (<em>float</em>) -- The intensity of noise to add to the patches.</p></li>
+<li><p><strong>mask_class</strong> (<em>int</em>) -- The class represented in the patch.</p></li>
+<li><p><strong>include_mask</strong> (<em>bool</em>) -- Whether or not to include the mask as an input argument to the model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing the following elements:
+- patches (numpy.ndarray): Extracted patches.
+- patch_masks (numpy.ndarray): Masks corresponding to the extracted patches.
+- instance_labels (list): Labels identifying each object instance in the extracted patches.
+- class_labels (list): Labels identifying the class of each object instance in the extracted patches.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dcp_server.utils.get_file_extension">
+<span class="sig-prename descclassname"><span class="pre">dcp_server.utils.</span></span><span class="sig-name descname"><span class="pre">get_file_extension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.utils.get_file_extension" title="Link to this definition"></a></dt>
+<dd><p>Returns the extension of a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>str</em>) -- The file path.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The extension of the file.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dcp_server.utils.get_objects">
+<span class="sig-prename descclassname"><span class="pre">dcp_server.utils.</span></span><span class="sig-name descname"><span class="pre">get_objects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.utils.get_objects" title="Link to this definition"></a></dt>
+<dd><p>Finds labeled connected components in a binary mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mask</strong> (<em>numpy.ndarray</em>) -- The binary mask representing objects.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of slices indicating the bounding boxes of the found objects.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dcp_server.utils.get_path_name">
+<span class="sig-prename descclassname"><span class="pre">dcp_server.utils.</span></span><span class="sig-name descname"><span class="pre">get_path_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.utils.get_path_name" title="Link to this definition"></a></dt>
+<dd><p>Returns the name of a file or directory from a given path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filepath</strong> (<em>str</em>) -- The file path.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The name of the file or directory.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dcp_server.utils.get_path_parent">
+<span class="sig-prename descclassname"><span class="pre">dcp_server.utils.</span></span><span class="sig-name descname"><span class="pre">get_path_parent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.utils.get_path_parent" title="Link to this definition"></a></dt>
+<dd><p>Returns the parent directory of a file or directory from a given path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filepath</strong> (<em>str</em>) -- The file path.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The parent directory of the file or directory.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dcp_server.utils.get_path_stem">
+<span class="sig-prename descclassname"><span class="pre">dcp_server.utils.</span></span><span class="sig-name descname"><span class="pre">get_path_stem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.utils.get_path_stem" title="Link to this definition"></a></dt>
+<dd><p>Returns the stem of a file path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filepath</strong> (<em>str</em>) -- The file path.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The stem of the file path.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dcp_server.utils.get_shape_features">
+<span class="sig-prename descclassname"><span class="pre">dcp_server.utils.</span></span><span class="sig-name descname"><span class="pre">get_shape_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.utils.get_shape_features" title="Link to this definition"></a></dt>
+<dd><p>Calculate shape-based radiomic features from an image within the region defined by the mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<em>numpy.ndarray</em>) -- The input image.</p></li>
+<li><p><strong>mask</strong> (<em>numpy.ndarray</em>) -- The mask corresponding to the image.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An array containing the calculated shape-based radiomic features, such as elongation, sphericity, and perimeter surface.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dcp_server.utils.join_path">
+<span class="sig-prename descclassname"><span class="pre">dcp_server.utils.</span></span><span class="sig-name descname"><span class="pre">join_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dcp_server.utils.join_path" title="Link to this definition"></a></dt>
+<dd><p>Joins a root directory with a file or directory path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root_dir</strong> (<em>str</em>) -- The root directory.</p></li>
+<li><p><strong>filepath</strong> (<em>str</em>) -- The file or directory path.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The joined path.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dcp_server.utils.read_config">
+<span class="sig-prename descclassname"><span class="pre">dcp_server.utils.</span></span><span class="sig-name descname"><span class="pre">read_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'config.cfg'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#dcp_server.utils.read_config" title="Link to this definition"></a></dt>
+<dd><p>Reads the configuration file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) -- name of the section you want to read (e.g. 'setup','train')</p></li>
+<li><p><strong>config_path</strong> (<em>str</em><em>, </em><em>optional</em>) -- path to the configuration file, defaults to 'config.cfg'</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dictionary from the config section given by name</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="dcp_server_installation.html" class="btn btn-neutral float-left" title="DCP Server" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dcp_client.html" class="btn btn-neutral float-right" title="dcp_client package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Christina Bukas, Mariia Koren, Helena Pelin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

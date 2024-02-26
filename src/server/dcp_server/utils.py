@@ -9,7 +9,7 @@ import SimpleITK as sitk
 from radiomics import  shape2D
 
 def read_config(name, config_path = 'config.cfg') -> dict:   
-    """Reads the configuration file
+    """ Reads the configuration file
 
     :param name: name of the section you want to read (e.g. 'setup','train')
     :type name: string
@@ -24,19 +24,61 @@ def read_config(name, config_path = 'config.cfg') -> dict:
         assert all([i in config_dict.keys() for i in ['setup', 'service', 'model', 'train', 'eval']])
         return config_dict[name]
 
-def get_path_stem(filepath): return str(Path(filepath).stem)
+def get_path_stem(filepath):
+    """ Returns the stem of a file path.
+
+    :param filepath: The file path.
+    :type filepath: str
+    :return: The stem of the file path.
+    :rtype: str
+    """
+    return str(Path(filepath).stem)
 
 
-def get_path_name(filepath): return str(Path(filepath).name)
+def get_path_name(filepath):
+    """ Returns the name of a file or directory from a given path.
+
+    :param filepath: The file path.
+    :type filepath: str
+    :return: The name of the file or directory.
+    :rtype: str
+    """
+    return str(Path(filepath).name)
 
 
-def get_path_parent(filepath): return str(Path(filepath).parent)
+def get_path_parent(filepath):
+    """ Returns the parent directory of a file or directory from a given path.
+
+    :param filepath: The file path.
+    :type filepath: str
+    :return: The parent directory of the file or directory.
+    :rtype: str
+    """
+    return str(Path(filepath).parent)
 
 
-def join_path(root_dir, filepath): return str(Path(root_dir, filepath))
+def join_path(root_dir, filepath):
+    """ Joins a root directory with a file or directory path.
+
+    :param root_dir: The root directory.
+    :type root_dir: str
+    :param filepath: The file or directory path.
+    :type filepath: str
+    :return: The joined path.
+    :rtype: str
+    """
+    return str(Path(root_dir, filepath))
 
 
-def get_file_extension(file): return str(Path(file).suffix)
+def get_file_extension(file):
+    """ Returns the extension of a file.
+
+    :param file: The file path.
+    :type file: str
+    :return: The extension of the file.
+    :rtype: str
+    """
+    return str(Path(file).suffix)
 
 
 def crop_centered_padded_patch(img: np.ndarray, 
@@ -45,22 +87,27 @@ def crop_centered_padded_patch(img: np.ndarray,
                                obj_label,
                                mask: np.ndarray=None,
                                noise_intensity=None) -> np.ndarray:
-    """
-    Crop a patch from an array `x` centered at coordinates `c` with size `p`, and apply padding if necessary.
+    """ Crops a patch from an array `x` centered at coordinates `c` with size `p`, 
+    and apply padding if necessary.
 
-    Args:
-        img (np.ndarray): The input array from which the patch will be cropped.
-        patch_center_xy (tuple): The coordinates (row, column) at the center of the patch.
-        patch_size (tuple): The size of the patch to be cropped (height, width).
-        obj_label (int): The instance label of the mask at the patch
-        mask (np.ndarray, optional): The mask array that asociated with the array x; 
-                                    mask is used during training to mask out non-central elements; 
-                                    for RandomForest, it is used to calculate pyradiomics features.
-        noise_intensity (float, optional): Intensity of noise to be added to the background. 
+    :param img: the input array from which the patch will be cropped
+    :type img: np.ndarray
+    :param patch_center_xy: the coordinates (row, column) at the center of the patch
+    :type patch_center_xy: tuple
+    :param patch_size: the size of the patch to be cropped (height, width)
+    :type patch_size: tuple
+    :param obj_label: the instance label of the mask at the patch
+    :type obj_label: int
+    :param mask: The mask array associated with the array x. 
+        Mask is used during training to mask out non-central elements. 
+        For RandomForest, it is used to calculate pyradiomics features.
+    :type mask: np.ndarray, optional
+    :param noise_intensity: intensity of noise to be added to the background
+    :type noise_intensity: float, optional
 
-    Returns:
-        np.ndarray: The cropped patch with applied padding.
-    """           
+    :return: the cropped patch with applied padding
+    :rtype: np.ndarray
+    """  
 
     height, width = patch_size  # Size of the patch
     img_height, img_width = img.shape[0], img.shape[1] # Size of the input image
@@ -125,22 +172,25 @@ def crop_centered_padded_patch(img: np.ndarray,
 
 
 def get_center_of_mass_and_label(mask: np.ndarray) -> np.ndarray:
-    """
-    Compute the centers of mass for each object in a mask.
+    """ Computes the centers of mass for each object in a mask.
 
-    Args:
-        mask (np.ndarray): The input mask containing labeled objects.
+    :param mask: the input mask containing labeled objects
+    :type mask: np.ndarray
 
-    Returns:
-        list of tuples: A list of coordinates (row, column) representing the centers of mass for each object.
-        list of ints: Holds the label for each object in the mask
+    :return: 
+        - A list of tuples representing the coordinates (row, column) of the centers of mass for each object.
+        - A list of ints representing the labels for each object in the mask.
+    
+    :rtype: 
+        - List [tuple]
+        - List [int]
     """
 
     # Compute the centers of mass for each labeled object in the mask
-    '''
-    return [(int(x[0]), int(x[1])) 
-            for x in center_of_mass(mask, mask, np.arange(1, mask.max() + 1))]
-    '''
+    
+    #return [(int(x[0]), int(x[1])) 
+           # for x in center_of_mass(mask, mask, np.arange(1, mask.max() + 1))]
+    
     centers = []
     labels = []
     for region in measure.regionprops(mask):
@@ -158,18 +208,27 @@ def get_centered_patches(img,
                          mask_class=None,
                          include_mask=False):
 
-    ''' 
-    Extracts centered patches from the input image based on the centers of objects identified in the mask.
+    """ Extracts centered patches from the input image based on the centers of objects identified in the mask.
 
-    Args:
-        img (np.array): The input image.
-        mask (np.array): The mask representing the objects in the image.
-        p_size (int): The size of the patches to extract.
-        noise_intensity (float): The intensity of noise to add to the patches.
-        mask_class (np.array): The mask representing the classes of the objects in the image.
-        include_mask (bool): Whether or not to include mask as input argument to model.
-
-    '''
+    :param img: The input image.
+    :type img: numpy.ndarray
+    :param mask: The mask representing the objects in the image.
+    :type mask: numpy.ndarray
+    :param p_size: The size of the patches to extract.
+    :type p_size: int
+    :param noise_intensity: The intensity of noise to add to the patches.
+    :type noise_intensity: float
+    :param mask_class: The class represented in the patch.
+    :type mask_class: int
+    :param include_mask: Whether or not to include the mask as an input argument to the model.
+    :type include_mask: bool  
+    :return: A tuple containing the following elements:
+            - patches (numpy.ndarray): Extracted patches.
+            - patch_masks (numpy.ndarray): Masks corresponding to the extracted patches.
+            - instance_labels (list): Labels identifying each object instance in the extracted patches.
+            - class_labels (list): Labels identifying the class of each object instance in the extracted patches.
+    :rtype: tuple  
+    """ 
 
     patches, patch_masks, instance_labels, class_labels  = [], [], [], []
     # if image is 2D add an additional dim for channels
@@ -204,9 +263,23 @@ def get_centered_patches(img,
     return patches, patch_masks, instance_labels, class_labels
 
 def get_objects(mask):
+    """ Finds labeled connected components in a binary mask.
+
+    :param mask: The binary mask representing objects.
+    :type mask: numpy.ndarray
+    :return: A list of slices indicating the bounding boxes of the found objects.
+    :rtype: list
+    """
     return find_objects(mask)
 
 def find_max_patch_size(mask):
+    """ Finds the maximum patch size in a mask.
+
+    :param mask: The binary mask representing objects.
+    :type mask: numpy.ndarray
+    :return: The maximum size of the bounding box edge for objects in the mask.
+    :rtype: float
+    """
 
     # Find objects in the mask
     objects = get_objects(mask)
@@ -238,15 +311,29 @@ def find_max_patch_size(mask):
         return max_patch_size_edge
     
 def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, max_patch_size, include_mask):
-    '''
-    Splits img and masks into patches of equal size which are centered around the cells.
-    If patch_size is not given, the algorithm should first run through all images to find the max cell size, and use
-    the max cell size to define the patch size. All patches and masks should then be returned
-    in the same format as imgs and masks (same type, i.e. check if tensor or np.array and same 
-    convention of dims, e.g.  CxHxW)
-    include_mask(bool) : Flag indicating whether to include the mask along with patches. 
-    '''
+    """ Splits images and masks into patches of equal size centered around the cells.
 
+    :param imgs: A list of input images.
+    :type imgs: list of numpy.ndarray or torch.Tensor
+    :param masks_classes: A list of binary masks representing classes.
+    :type masks_classes: list of numpy.ndarray or torch.Tensor
+    :param masks_instances: A list of binary masks representing instances.
+    :type masks_instances: list of numpy.ndarray or torch.Tensor
+    :param noise_intensity: The intensity of noise to add to the patches.
+    :type noise_intensity: float
+    :param max_patch_size: The maximum size of the bounding box edge for objects in the mask.
+    :type max_patch_size: float
+    :param include_mask: A flag indicating whether to include the mask along with patches.
+    :type include_mask: bool
+    :return: A tuple containing the patches, patch masks, and labels.
+    :rtype: tuple
+
+    .. note::
+        If patch_size is not given, the algorithm should first run through all images to find the max cell size, and use
+        the max cell size to define the patch size. All patches and masks should then be returned
+        in the same format as imgs and masks (same type, i.e. check if tensor or np.array and same 
+        convention of dims, e.g.  CxHxW)
+    """
     if max_patch_size is None:
         max_patch_size = np.max([find_max_patch_size(mask) for mask in masks_instances])
         
@@ -267,16 +354,14 @@ def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, 
 
 
 def get_shape_features(img, mask):
-    """
-    Calculate shape-based radiomic features from an image within the region defined by the mask.
+    """ Calculate shape-based radiomic features from an image within the region defined by the mask.
 
-    Args:
-    - img (np.ndarray): The input image.
-    - mask (np.ndarray): The mask corresponding to the image.
-
-    Returns:
-    - np.ndarray: An array containing the calculated shape-based radiomic features, such as:
-    Elongation, Sphericity, Perimeter surface.
+    :param img: The input image.
+    :type img: numpy.ndarray
+    :param mask: The mask corresponding to the image.
+    :type mask: numpy.ndarray
+    :return: An array containing the calculated shape-based radiomic features, such as elongation, sphericity, and perimeter surface.
+    :rtype: numpy.ndarray
     """
 
     mask = 255 * ((mask) > 0).astype(np.uint8)
@@ -291,17 +376,14 @@ def get_shape_features(img, mask):
     return np.array(list(shape_features.values()))
 
 def extract_intensity_features(image, mask):
-    """
-    Extract intensity-based features from an image within the region defined by the mask.
+    """ Extracts intensity-based features from an image within the region defined by the mask.
 
-    Args:
-    - image (np.ndarray): The input image.
-    - mask (np.ndarray): The mask defining the region of interest.
-
-    Returns:
-    - np.ndarray: An array containing the extracted intensity-based features:
-      median intensity, mean intensity, 25th/75th percentile intensity within the masked region.
-    
+    :param image: The input image.
+    :type image: numpy.ndarray
+    :param mask: The mask defining the region of interest.
+    :type mask: numpy.ndarray
+    :return: An array containing the extracted intensity-based features, including median intensity, mean intensity, and 25th/75th percentile intensity within the masked region.
+    :rtype: numpy.ndarray
     """
    
     features = {}
@@ -322,16 +404,14 @@ def extract_intensity_features(image, mask):
     return np.array(list(features.values()))
 
 def create_dataset_for_rf(imgs, masks):
-    """
-    Extract intensity-based features from an image within the region defined by the mask.
+    """ Extracts shape and intensity-based features from images within regions defined by masks.
 
-    Args:
-    - imgs (List): A list of all input images.
-    - mask (List): A list of all corresponding masks defining the region of interest.
-
-    Returns:
-    - List: A list of arrays containing shape and intensity-based features
-        
+    :param imgs: A list of input images.
+    :type imgs: list
+    :param masks: A list of corresponding masks defining regions of interest.
+    :type masks: list
+    :return: A list of arrays containing shape and intensity-based features.
+    :rtype: list  
     """
     X = []
     for img, mask in zip(imgs, masks):

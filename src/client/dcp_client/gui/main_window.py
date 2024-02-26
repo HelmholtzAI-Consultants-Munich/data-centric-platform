@@ -15,15 +15,30 @@ if TYPE_CHECKING:
     from dcp_client.app import Application
 
 class WorkerThread(QThread):
-    ''' Worker thread for displaying Pulse ProgressBar during model serving '''
+    """
+     Worker thread for displaying Pulse ProgressBar during model serving.
+    
+    """
     task_finished = pyqtSignal(tuple)
     def __init__(self, app: Application, task: str = None, parent = None,):
+        """
+        Initialize the WorkerThread.
+
+        :param app: The Application instance. See dcp_client.app for more information.
+        :type app: dcp_client.app.Application
+        :param task: The task performed by the worker thread. Can be 'inference' or 'train'.
+        :type task: str, optional
+        :param parent: The parent QObject (default is None).
+        """
         super().__init__(parent)
         self.app = app
         self.task = task
 
     def run(self):
-        ''' Once run_inference the tuple of (message_text, message_title) will be returned to on_finished'''
+        """
+        Once run_inference or run_train is executed, the tuple of 
+        (message_text, message_title) will be returned to on_finished.
+        """
         try:
             if self.task == 'inference':
                 message_text, message_title = self.app.run_inference()
@@ -39,17 +54,28 @@ class WorkerThread(QThread):
         self.task_finished.emit((message_text, message_title))
 
 class MainWindow(MyWidget):
-    '''
+    """
     Main Window Widget object.
     Opens the main window of the app where selected images in both directories are listed. 
-    User can view the images, train the mdoel to get the labels, and visualise the result.
+    User can view the images, train the model to get the labels, and visualise the result.
+    
     :param eval_data_path: Chosen path to images without labeles, selected by the user in the WelcomeWindow
     :type eval_data_path: string
     :param train_data_path: Chosen path to images with labeles, selected by the user in the WelcomeWindow
     :type train_data_path: string
-    '''    
+    """   
 
     def __init__(self, app: Application):
+        """
+        Initializes the MainWindow.
+
+        :param app: The Application instance. See dcp_client.app for more information.
+        :type app: dcp_client.app.Application
+        :param app.eval_data_path: Chosen path to images without labels, selected by the user in the WelcomeWindow.
+        :type app.eval_data_path: str
+        :param app.train_data_path: Chosen path to images with labels, selected by the user in the WelcomeWindow.
+        :type app.train_data_path: str
+        """
         super().__init__()
         self.app = app
         self.title = "Data Overview"
@@ -57,9 +83,8 @@ class MainWindow(MyWidget):
         self.main_window()
         
     def main_window(self):
-        '''
-        Sets up the GUI
-        '''
+        """Sets up the GUI
+        """
         self.setWindowTitle(self.title)
         #self.resize(1000, 1500)
         main_layout = QVBoxLayout()
@@ -163,30 +188,39 @@ class MainWindow(MyWidget):
         self.show()
 
     def on_item_train_selected(self, item):
-        '''
-        Is called once an image is selected in the 'curated dataset' folder
-        '''
+        """
+        Is called once an image is selected in the 'curated dataset' folder.
+
+        :param item: The selected item from the 'curated dataset' folder.
+        :type item: QModelIndex
+        """
         self.app.cur_selected_img = item.data()
         self.app.cur_selected_path = self.app.train_data_path
 
     def on_item_eval_selected(self, item):
-        '''
-        Is called once an image is selected in the 'uncurated dataset' folder
-        '''
+        """
+        Is called once an image is selected in the 'uncurated dataset' folder.
+
+        :param item: The selected item from the 'uncurated dataset' folder.
+        :type item: QModelIndex
+        """
         self.app.cur_selected_img = item.data()
         self.app.cur_selected_path = self.app.eval_data_path
 
     def on_item_inprogr_selected(self, item):
-        '''
-        Is called once an image is selected in the 'in progress' folder
-        '''
+        """
+        Is called once an image is selected in the 'in progress' folder.
+
+        :param item: The selected item from the 'in progress' folder.
+        :type item: QModelIndex
+        """
         self.app.cur_selected_img = item.data()
         self.app.cur_selected_path = self.app.inprogr_data_path
 
     def on_train_button_clicked(self):
-        ''' 
-        Is called once user clicks the "Train Model" button
-        '''
+        """
+        Is called once user clicks the "Train Model" button.
+        """
         self.train_button.setEnabled(False)
         self.progress_bar.setRange(0,0)
         # initialise the worker thread
@@ -196,9 +230,9 @@ class MainWindow(MyWidget):
         self.worker_thread.start()
 
     def on_run_inference_button_clicked(self):
-        ''' 
-        Is called once user clicks the "Generate Labels" button
-        '''
+        """
+        Is called once user clicks the "Generate Labels" button.
+        """
         self.inference_button.setEnabled(False)
         self.progress_bar.setRange(0,0)
         # initialise the worker thread
@@ -208,9 +242,9 @@ class MainWindow(MyWidget):
         self.worker_thread.start()
 
     def on_launch_napari_button_clicked(self):   
-        ''' 
+        """ 
         Launches the napari window after the image is selected.
-        '''
+        """
         if not self.app.cur_selected_img or '_seg.tiff' in self.app.cur_selected_img:
             message_text = "Please first select an image you wish to visualise. The selected image must be an original image, not a mask."
             _ = self.create_warning_box(message_text, message_title="Warning")
@@ -219,9 +253,12 @@ class MainWindow(MyWidget):
             self.nap_win.show() 
 
     def on_finished(self, result):
-        ''' 
-        Is called once the worker thread emits the on finished signal
-        '''
+        """
+        Is called once the worker thread emits the on finished signal.
+
+        :param result: The result emitted by the worker thread. See return type of WorkerThread.run
+        :type result: tuple
+        """ 
         # Stop the pulsation
         self.progress_bar.setRange(0,1) 
         # Display message of result

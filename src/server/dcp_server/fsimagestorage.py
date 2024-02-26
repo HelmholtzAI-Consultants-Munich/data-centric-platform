@@ -6,17 +6,19 @@ from skimage.transform import resize, rescale
 from dcp_server import utils
 
 # Import configuration
-setup_config = utils.read_config('setup', config_path = 'config.cfg')
+dirname = os.path.dirname(__file__)
+setup_config = utils.read_config('setup', config_path = os.path.join(dirname, 'config.cfg'))
 
 class FilesystemImageStorage():
-    """Class used to deal with everything related to image storing and processing - loading, saving, transforming...
+    """ 
+    Class used to deal with everything related to image storing and processing - loading, saving, transforming.
     """    
     def __init__(self, data_root, model_used):
         self.root_dir = data_root
         self.model_used = model_used
     
     def load_image(self, cur_selected_img, is_gray=True):
-        """Load the image (using skiimage)
+        """ Load the image using skimage.
 
         :param cur_selected_img: full path of the image that needs to be loaded
         :type cur_selected_img: str
@@ -28,7 +30,7 @@ class FilesystemImageStorage():
         except ValueError: return None
     
     def save_image(self, to_save_path, img):
-        """Save given image (using skiimage)
+        """ Save given image using skimage.
 
         :param to_save_path: full path to the directory that the image needs to be save into (use also image name in the path, eg. '/users/new_image.png')
         :type to_save_path: str
@@ -38,11 +40,11 @@ class FilesystemImageStorage():
         imsave(os.path.join(self.root_dir, to_save_path), img)
     
     def search_images(self, directory):
-        """Get a list of full paths of the images in the directory
+        """ Get a list of full paths of the images in the directory.
 
-        :param directory: path to the directory to search images in
+        :param directory: Path to the directory to search for images.
         :type directory: str
-        :return: list of image paths found in the directory (only image types that are supported - see config.cfg 'setup' section)
+        :return: List of image paths found in the directory (only image types that are supported - see config.cfg 'setup' section).
         :rtype: list
         """
         # Take all segmentations of the image from the current directory:
@@ -53,13 +55,14 @@ class FilesystemImageStorage():
         return image_files
     
     def search_segs(self, cur_selected_img):
-        """Returns a list of full paths of segmentations for an image
+        """ Returns a list of full paths of segmentations for an image.
 
-        :param cur_selected_img: full path of the image which segmentations we need to find
+        :param cur_selected_img: Full path of the image for which segmentations are needed.
         :type cur_selected_img: str
-        :return: list segmentation paths for the given image
+        :return: List of segmentation paths for the given image.
         :rtype: list
-        """        
+        """
+      
         # Check the directory the image was selected from:
         img_directory = utils.get_path_parent(os.path.join(self.root_dir, cur_selected_img))
         # Take all segmentations of the image from the current directory:
@@ -72,14 +75,16 @@ class FilesystemImageStorage():
         return seg_files
     
     def get_image_seg_pairs(self, directory):
-        """Get pairs of (image, image_seg)
-        Used, e.g., in training to create training data-training labels pairs
+        """ Get pairs of (image, image_seg).
 
-        :param directory: path to the directory to search images and segmentations in
+        Used, e.g., in training to create training data-training labels pairs.
+
+        :param directory: Path to the directory to search images and segmentations in.
         :type directory: str
-        :return: list of tuple pairs (image, image_seg)
+        :return: List of tuple pairs (image, image_seg).
         :rtype: list
-        """        
+        """
+     
         image_files = self.search_images(os.path.join(self.root_dir, directory))
         seg_files = []
         for image in image_files:
@@ -89,31 +94,29 @@ class FilesystemImageStorage():
         return list(zip(image_files, seg_files))
             
     def get_unsupported_files(self, directory):
-        """Get unsupported files found in the given directory
+        """ Get unsupported files found in the given directory.
 
-        :param directory: direcory path to search for files in
+        :param directory: Directory path to search for files in.
         :type directory: str
-        :return: list of unsupported files
-        :rtype: list
-        """        
-
+        :return: List of unsupported files.
+        :rtype: list     
+        """
         return [file_name for file_name in os.listdir(os.path.join(self.root_dir, directory)) 
                 if not file_name.startswith('.') and utils.get_file_extension(file_name) not in setup_config['accepted_types']]
         
     def get_image_size_properties(self, img, file_extension):
-        """Get properties of the image size
+        """ Get properties of the image size.
 
-        :param img: image (numpy array)
+        :param img: Image (numpy array).
         :type img: ndarray
-        :param file_extension: file extension of the image as saved in the directory
+        :param file_extension: File extension of the image as saved in the directory.
         :type file_extension: str
-        :return: size properties:
+        :return: Size properties:
             - height
             - width
             - z_axis
-        
-        """        
-    
+        :rtype: dict
+        """
         orig_size = img.shape
         # png and jpeg will be RGB by default and 2D 
         # tif can be grayscale 2D or 3D [Z, H, W]
@@ -135,19 +138,20 @@ class FilesystemImageStorage():
         return height, width, z_axis
     
     def rescale_image(self, img, height, width, channel_ax=None, order=2):
-        """rescale image
+        """ Rescale image.
 
-        :param img: image
+        :param img: Image.
         :type img: ndarray
-        :param height: height of the image
+        :param height: Height of the image.
         :type height: int
-        :param width: width of the image
+        :param width: Width of the image.
         :type width: int
-        :param channel_ax: channel axis 
+        :param channel_ax: Channel axis.
         :type channel_ax: int
-        :return: rescaled image
+        :return: Rescaled image.
         :rtype: ndarray
-        """    
+        """
+    
         if self.model_used == "UNet":
             height_pad = (height//16 + 1)*16 - height
             width_pad = (width//16 + 1)*16 - width
@@ -159,20 +163,20 @@ class FilesystemImageStorage():
             return rescale(img, 1/rescale_factor, order=order, channel_axis=channel_ax)
     
     def resize_mask(self, mask, height, width, channel_ax=None, order=2):
-        """resize the mask so it matches the original image size
+        """ Resize the mask so it matches the original image size.
 
-        :param mask: image
+        :param mask: Image.
         :type mask: ndarray
-        :param height: height of the image
+        :param height: Height of the image.
         :type height: int
-        :param width: width of the image
+        :param width: Width of the image.
         :type width: int
-        :param order: from scikit-image - the order of the spline interpolation, default is 0 if image.dtype is bool and 1 otherwise.
+        :param order: From scikit-image - the order of the spline interpolation. Default is 0 if image.dtype is bool and 1 otherwise.
         :type order: int
-        :return: resized image
+        :return: Resized image.
         :rtype: ndarray
         """
-
+        
         if self.model_used == "UNet":
             # we assume an order C, H, W
             if channel_ax is not None and channel_ax==0:
@@ -197,13 +201,14 @@ class FilesystemImageStorage():
             return resize(mask, output_size, order=order)
     
     def prepare_images_and_masks_for_training(self, train_img_mask_pairs):
-        """Image and mask processing for training.
+        """ Image and mask processing for training.
 
-        :param train_img_mask_pairs: list pairs of (image, image_seg) (as returned by get_image_seg_pairs() function)
+        :param train_img_mask_pairs: List pairs of (image, image_seg) (as returned by get_image_seg_pairs() function).
         :type train_img_mask_pairs: list
-        :return: lists of processed images and masks 
-        :rtype: list, list
-        """        
+        :return: Lists of processed images and masks.
+        :rtype: tuple
+        """
+      
         imgs=[]
         masks=[]
         for img_file, mask_file in train_img_mask_pairs:
