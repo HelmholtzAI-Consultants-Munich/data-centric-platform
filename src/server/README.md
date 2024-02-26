@@ -9,6 +9,12 @@ The client and server communicate via the [bentoml](https://www.bentoml.com/?gcl
 ## How to use?
 
 ### Installation
+This has been tested on Python versions 3.9, 3.10 and 3.11 on latest versions of Windows, Ubuntu and MacOS. In your dedicated environment run:
+```
+pip install dcp_server
+```
+
+### Installation for developers
 Before starting make sure you have navigated to ```data-centric-platform/src/server```. All future steps expect you are in the server directory. In your dedicated environment run:
 ```
 pip install -e .
