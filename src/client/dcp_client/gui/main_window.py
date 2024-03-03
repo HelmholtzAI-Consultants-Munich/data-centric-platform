@@ -39,6 +39,32 @@ class WorkerThread(QThread):
 
         self.task_finished.emit((message_text, message_title))
 
+class MyQFileSystemModel(QFileSystemModel):
+    """
+    Custom QFileSystemModel subclass with overridden headerData method.
+    This class allows setting custom header data for the model's headers.
+    """
+
+    def headerData(self, section, orientation, role):
+        """
+        Reimplemented method to provide custom header data for the model's headers.
+
+        Args:
+            section (int): The section (column) index.
+            orientation (Qt.Orientation): The orientation of the header.
+            role (int): The role of the header data.
+
+        Returns:
+            QVariant: The header data for the specified section, orientation, and role.
+        """
+        if section == 0 and role == Qt.DisplayRole:
+            return ""  
+        else:
+           
+            return super().headerData(section, orientation, role)
+        
+
+
 class MainWindow(MyWidget):
     '''
     Main Window Widget object.
@@ -49,6 +75,7 @@ class MainWindow(MyWidget):
     :param train_data_path: Chosen path to images with labeles, selected by the user in the WelcomeWindow
     :type train_data_path: string
     '''    
+
 
     def __init__(self, app: Application):
         super().__init__()
@@ -91,9 +118,10 @@ class MainWindow(MyWidget):
 
         self.eval_dir_layout.addWidget(self.label_eval)
        
-        model_eval = QFileSystemModel()
+        model_eval = MyQFileSystemModel()
         model_eval.setIconProvider(IconProvider())
         self.list_view_eval = QTreeView(self)
+        self.list_view_eval.setToolTip("Select an image, click it, then press Enter")
         self.list_view_eval.setIconSize(QSize(50,50))
         self.list_view_eval.setStyleSheet("background-color: #ffffff")
         self.list_view_eval.setModel(model_eval)
@@ -145,7 +173,7 @@ class MainWindow(MyWidget):
         self.label_inprogr.setText("Curation in progress")
         self.inprogr_dir_layout.addWidget(self.label_inprogr)
         # add in progress dir list
-        model_inprogr = QFileSystemModel()
+        model_inprogr = MyQFileSystemModel()
         #self.list_view = QListView(self)
         self.list_view_inprogr = QTreeView(self)
         self.list_view_inprogr.setIconSize(QSize(50,50))
@@ -191,8 +219,7 @@ class MainWindow(MyWidget):
         )
         self.train_dir_layout.addWidget(self.label_train)
         # add train dir list
-        model_train = QFileSystemModel()
-
+        model_train = MyQFileSystemModel()
         #self.list_view = QListView(self)
         self.list_view_train = QTreeView(self)
         self.list_view_train.setIconSize(QSize(50,50))
