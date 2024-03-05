@@ -1,8 +1,8 @@
-from dcp_server import utils
 import os
+from dcp_server.utils import helpers
 
 # Import configuration
-setup_config = utils.read_config('setup', config_path = 'config.cfg')
+setup_config = helpers.read_config('setup', config_path = 'config.cfg')
 
 class GeneralSegmentation():
     """Segmentation class. Defining the main functions needed for this project and served by service - segment image and train on images.
@@ -35,7 +35,7 @@ class GeneralSegmentation():
             # Load the image
             img = self.imagestorage.load_image(img_filepath)
             # Get size properties
-            height, width, z_axis = self.imagestorage.get_image_size_properties(img, utils.get_file_extension(img_filepath))
+            height, width, z_axis = self.imagestorage.get_image_size_properties(img, helpers.get_file_extension(img_filepath))
             img = self.imagestorage.rescale_image(img, height, width)
             # Add channel ax into the model's evaluation parameters dictionary
             self.model.eval_config['segmentor']['z_axis'] = z_axis
@@ -44,7 +44,7 @@ class GeneralSegmentation():
             # Resize the mask
             mask = self.imagestorage.resize_mask(mask, height, width, self.model.eval_config['mask_channel_axis'], order=0)
             # Save segmentation
-            seg_name = utils.get_path_stem(img_filepath) + setup_config['seg_name_string'] + '.tiff'
+            seg_name = helpers.get_path_stem(img_filepath) + setup_config['seg_name_string'] + '.tiff'
             self.imagestorage.save_image(os.path.join(input_path, seg_name), mask)
 
     async def train(self, input_path):
@@ -108,7 +108,7 @@ class MitoProjectSegmentation(GeneralSegmentation):
             # Load the image
             img = self.imagestorage.load_image(img_filepath)
             # Get size properties
-            height, width, channel_ax = self.imagestorage.get_image_size_properties(img, utils.get_file_extension(img_filepath))
+            height, width, channel_ax = self.imagestorage.get_image_size_properties(img, helpers.get_file_extension(img_filepath))
             img = self.imagestorage.rescale_image(img, height, width, channel_ax)
             
             # Add channel ax into the model's evaluation parameters dictionary
@@ -128,5 +128,5 @@ class MitoProjectSegmentation(GeneralSegmentation):
             new_mask[outlines==True] = 1
             
             # Save segmentation
-            seg_name = utils.get_path_stem(img_filepath) + setup_config['seg_name_string'] + '.tiff'
+            seg_name = helpers.get_path_stem(img_filepath) + setup_config['seg_name_string'] + '.tiff'
             self.imagestorage.save_image(os.path.join(input_path, seg_name), new_mask)

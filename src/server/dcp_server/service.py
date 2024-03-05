@@ -1,9 +1,10 @@
 from __future__ import annotations
 import bentoml
 import typing as t
-from dcp_server.fsimagestorage import FilesystemImageStorage
 from dcp_server.serviceclasses import CustomBentoService, CustomRunnable
-from dcp_server.utils import read_config
+
+from dcp_server.utils.fsimagestorage import FilesystemImageStorage
+from dcp_server.utils.helpers import read_config
 
 import sys, inspect
 

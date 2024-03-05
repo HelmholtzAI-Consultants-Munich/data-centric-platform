@@ -1,7 +1,7 @@
 import subprocess
 from os import path
 import sys
-from utils import read_config
+from dcp_server.utils.helpers import read_config
 
 def main(): 
     '''entry point to bentoml

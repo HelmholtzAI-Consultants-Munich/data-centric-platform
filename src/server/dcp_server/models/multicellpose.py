@@ -2,9 +2,9 @@ from typing import List
 import numpy as np
 from skimage.measure import label as label_mask
 
-from dcp_server.models import Model, CustomCellposeModel
+from dcp_server.models import CustomCellposeModel # Model, 
 
-class MultiCellpose(Model):
+class MultiCellpose(): #Model):
     '''
     Multichannel image segmentation model.
     Run the separate CustomCellposeModel models for each channel return the mask corresponding to each object type.

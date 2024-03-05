@@ -3,10 +3,10 @@ import numpy as np
 from skimage.io import imread, imsave
 from skimage.transform import resize, rescale
 
-from dcp_server import utils
+from dcp_server.utils import helpers
 
 # Import configuration
-setup_config = utils.read_config('setup', config_path = 'config.cfg')
+setup_config = helpers.read_config('setup', config_path = 'config.cfg')
 
 class FilesystemImageStorage():
     """Class used to deal with everything related to image storing and processing - loading, saving, transforming...
@@ -49,7 +49,7 @@ class FilesystemImageStorage():
         directory = os.path.join(self.root_dir, directory)
         seg_files = [file_name for file_name in os.listdir(directory) if setup_config['seg_name_string'] in file_name]
         # Take the image files - difference between the list of all the files in the directory and the list of seg files and only file extensions currently accepted
-        image_files = [os.path.join(directory, file_name) for file_name in os.listdir(directory) if (file_name not in seg_files) and (utils.get_file_extension(file_name) in setup_config['accepted_types'])]
+        image_files = [os.path.join(directory, file_name) for file_name in os.listdir(directory) if (file_name not in seg_files) and (helpers.get_file_extension(file_name) in setup_config['accepted_types'])]
         return image_files
     
     def search_segs(self, cur_selected_img):
@@ -61,13 +61,13 @@ class FilesystemImageStorage():
         :rtype: list
         """        
         # Check the directory the image was selected from:
-        img_directory = utils.get_path_parent(os.path.join(self.root_dir, cur_selected_img))
+        img_directory = helpers.get_path_parent(os.path.join(self.root_dir, cur_selected_img))
         # Take all segmentations of the image from the current directory:
-        search_string = utils.get_path_stem(cur_selected_img) + setup_config['seg_name_string']
+        search_string = helpers.get_path_stem(cur_selected_img) + setup_config['seg_name_string']
         #seg_files = [os.path.join(img_directory, file_name) for file_name in os.listdir(img_directory) if search_string in file_name]
         # TODO: check where this is used - copied the command from app's search_segs function (to fix the 1_seg and 11_seg bug)
 
-        seg_files = [os.path.join(img_directory, file_name) for file_name in os.listdir(img_directory) if (search_string == utils.get_path_stem(file_name) or str(file_name).startswith(search_string))]
+        seg_files = [os.path.join(img_directory, file_name) for file_name in os.listdir(img_directory) if (search_string == helpers.get_path_stem(file_name) or str(file_name).startswith(search_string))]
 
         return seg_files
     
@@ -98,7 +98,7 @@ class FilesystemImageStorage():
         """        
 
         return [file_name for file_name in os.listdir(os.path.join(self.root_dir, directory)) 
-                if not file_name.startswith('.') and utils.get_file_extension(file_name) not in setup_config['accepted_types']]
+                if not file_name.startswith('.') and helpers.get_file_extension(file_name) not in setup_config['accepted_types']]
         
     def get_image_size_properties(self, img, file_extension):
         """Get properties of the image size

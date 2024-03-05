@@ -13,7 +13,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import f1_score, log_loss
 from sklearn.exceptions import NotFittedError
 
-from dcp_server.models import Model, CustomCellposeModel
+from dcp_server.models import CustomCellposeModel #  Model,
 from dcp_server.utils.processing import (
     normalise,
     get_centered_patches,
@@ -23,7 +23,7 @@ from dcp_server.utils.processing import (
 )
 
 
-class CellposePatchCNN(Model):
+class CellposePatchCNN(): #Model):
     """
     Cellpose & patches of cells and then cnn to classify each patch
     """

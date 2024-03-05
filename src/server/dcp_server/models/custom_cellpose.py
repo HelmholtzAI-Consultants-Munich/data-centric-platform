@@ -9,9 +9,9 @@ from cellpose import models, utils
 from cellpose.metrics import aggregated_jaccard_index
 from cellpose.dynamics import labels_to_flows
 
-from dcp_server.models import Model
+#from dcp_server.models import Model
 
-class CustomCellposeModel(models.CellposeModel, Model):
+class CustomCellposeModel(models.CellposeModel): #, Model):
     """Custom cellpose model inheriting the attributes and functions from the original CellposeModel and implementing
     additional attributes and methods needed for this project.
     """    
@@ -35,7 +35,7 @@ class CustomCellposeModel(models.CellposeModel, Model):
         
         # Initialize the cellpose model
         # super().__init__(**model_config["segmentor"])
-        nn.Module.__init__(self)
+        #nn.Module.__init__(self)
         models.CellposeModel.__init__(self, **model_config["segmentor"])
         self.model_config = model_config
         self.train_config = train_config
