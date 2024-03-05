@@ -5,10 +5,10 @@ from dcp_server.utils import helpers
 setup_config = helpers.read_config('setup', config_path = 'config.cfg')
 
 class GeneralSegmentation():
-    """Segmentation class. Defining the main functions needed for this project and served by service - segment image and train on images.
+    """ Segmentation class. Defining the main functions needed for this project and served by service - segment image and train on images.
     """    
     def __init__(self, imagestorage, runner, model):
-        """Constructs all the necessary attributes for the GeneralSegmentation. 
+        """ Constructs all the necessary attributes for the GeneralSegmentation. 
 
         :param imagestorage: imagestorage system used (see fsimagestorage.py)
         :type imagestorage: FilesystemImageStorage class object
@@ -23,32 +23,28 @@ class GeneralSegmentation():
         self.no_files_msg = "No image-label pairs found in curated directory"
         
     async def segment_image(self, input_path, list_of_images):
-        """Segments images from the given  directory
+        """ Segments images from the given  directory
 
-        :param input_path: directory where the images are saved
+        :param input_path: directory where the images are saved and where segmentation results will be saved
         :type input_path: str
         :param list_of_images: list of image objects from the directory that are currently supported
         :type list_of_images: list
         """        
 
         for img_filepath in list_of_images:
-            # Load the image
-            img = self.imagestorage.load_image(img_filepath)
-            # Get size properties
-            height, width, z_axis = self.imagestorage.get_image_size_properties(img, helpers.get_file_extension(img_filepath))
-            img = self.imagestorage.rescale_image(img, height, width)
+            img = self.imagestorage.prepare_img_for_eval(img_filepath)
             # Add channel ax into the model's evaluation parameters dictionary
-            self.model.eval_config['segmentor']['z_axis'] = z_axis
+            self.model.eval_config['segmentor']['channel_axis'] = self.imagestorage.channel_ax
             # Evaluate the model
             mask = await self.runner.evaluate.async_run(img = img)
-            # Resize the mask
-            mask = self.imagestorage.resize_mask(mask, height, width, self.model.eval_config['mask_channel_axis'], order=0)
+            # And prepare the mask for saving
+            mask = self.imagestorage.prepare_mask_for_save(mask, self.model.eval_config['mask_channel_axis'])
             # Save segmentation
             seg_name = helpers.get_path_stem(img_filepath) + setup_config['seg_name_string'] + '.tiff'
             self.imagestorage.save_image(os.path.join(input_path, seg_name), mask)
 
     async def train(self, input_path):
-        """train model on images and masks in the given input directory.
+        """ Train model on images and masks in the given input directory.
         Calls the runner's train function.
 
         :param input_path: directory where the images are saved
@@ -59,8 +55,7 @@ class GeneralSegmentation():
 
         train_img_mask_pairs = self.imagestorage.get_image_seg_pairs(input_path)
 
-        if not train_img_mask_pairs:
-            return self.no_files_msg
+        if not train_img_mask_pairs: return self.no_files_msg
                 
         imgs, masks = self.imagestorage.prepare_images_and_masks_for_training(train_img_mask_pairs)
         model_save_path =  await self.runner.train.async_run(imgs, masks)
@@ -78,11 +73,11 @@ class GFPProjectSegmentation(GeneralSegmentation):
 
 
 class MitoProjectSegmentation(GeneralSegmentation):
-    """Segmentation class inheriting the attributes and functions from the original GeneralSegmentation and implementing
+    """ Segmentation class inheriting the attributes and functions from the original GeneralSegmentation and implementing
     additional attributes and methods needed for this project.
     """    
     def __init__(self, imagestorage, runner, model):
-        """Constructs all the necessary attributes for the MitoProjectSegmentation. Inherits all from the GeneralSegmentation
+        """ Constructs all the necessary attributes for the MitoProjectSegmentation. Inherits all from the GeneralSegmentation
 
         :param imagestorage: imagestorage system used (see fsimagestorage.py)
         :type imagestorage: FilesystemImageStorage class object
@@ -95,7 +90,7 @@ class MitoProjectSegmentation(GeneralSegmentation):
 
     # The only difference is in segment image
     async def segment_image(self, input_path, list_of_images):
-        """Segments images from the given  directory. 
+        """ Segments images from the given  directory. 
         The function differs from the parent class' function in obtaining the outlines of the masks.
 
         :param input_path: directory where the images are saved

@@ -5,15 +5,57 @@ from skimage import measure
 from copy import deepcopy
 import SimpleITK as sitk
 from radiomics import  shape2D
+import torch
 
-def normalise(img, norm='min-max'):
+def normalise(img, norm='min-max') -> np.ndarray:
     """ Normalises the image based on the chosen method. Currently available methods are:
     - min max normalisation
-    param
+    
+    :param img: image to be normalised
+    :type img: np.ndarray
+    :param norm: the normalisation method to apply
+    :type norm: str
+    :return: the normalised image
+    :rtype: np.ndarray
     """
     if norm=='min-max':
         return (img - np.min(img)) / (np.max(img) - np.min(img)) 
     
+
+def pad_image(img, height, width, channel_ax=None, dividable = 16) -> np.ndarray:
+    """ Pads the image such that it is dividable by a given number,
+    
+    :param img: image to be padded
+    :type img: np.ndarray
+    : param height: image height
+    : type height: int
+    : param width: image width
+    : type width: int    
+    :param channel_ax: 
+    :type channel_ax: int or None
+    :param dividable: the number with which the new image size should be perfectly dividable by
+    :type dividable: int
+    :return: the padded image
+    :rtype: np.ndarray
+    """
+    height_pad = (height//dividable + 1)*dividable - height
+    width_pad = (width//dividable + 1)*dividable - width
+    if channel_ax==0:
+        img = np.pad(img, ((0, 0), (0, height_pad), (0, width_pad)))
+    elif channel_ax==2:
+        img = np.pad(img, ((0, height_pad), (0, width_pad), (0, 0)))
+    else:
+        img = np.pad(img, ((0, height_pad), (0, width_pad))) 
+    return img
+
+def convert_to_tensor(imgs, dtype):
+    # Convert images tensors
+    imgs = torch.stack([
+        torch.from_numpy(img.astype(dtype)) for img in imgs
+    ])
+    imgs = imgs.unsqueeze(1) if imgs.ndim == 3 else imgs
+    return imgs
+
 def crop_centered_padded_patch(img: np.ndarray, 
                                patch_center_xy, 
                                patch_size, 

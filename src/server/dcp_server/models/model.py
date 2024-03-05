@@ -4,16 +4,21 @@ import numpy as np
 
 class Model(ABC):
     def __init__(self,
+                 model_name: str,
                  model_config: dict,
+                 data_config: dict,
                  train_config: dict,
                  eval_config: dict,
-                 model_name: str
                  ) -> None:
         
+        self.model_name = model_name
         self.model_config = model_config
+        self.data_config = data_config
         self.train_config = train_config
         self.eval_config = eval_config
-        self.model_name = model_name
+        
+        self.loss = 1e6
+        self.metric = 0
 
     def update_configs(self,
                        train_config: dict,

@@ -4,27 +4,36 @@ from skimage.io import imread, imsave
 from skimage.transform import resize, rescale
 
 from dcp_server.utils import helpers
+from dcp_server.utils.processing import pad_image, normalise
 
 # Import configuration
-setup_config = helpers.read_config('setup', config_path = 'config.cfg')
+setup_config = helpers.read_config("setup", config_path = "config.cfg")
 
 class FilesystemImageStorage():
     """Class used to deal with everything related to image storing and processing - loading, saving, transforming...
     """    
-    def __init__(self, data_root, model_used):
-        self.root_dir = data_root
+    def __init__(self, data_config, model_used):
+        self.root_dir = data_config["data_root"]
+        self.gray  = bool(data_config["gray"])
+        self.rescale = bool(data_config["rescale"])
         self.model_used = model_used
+        self.channel_ax = None
+        self.img_height = None
+        self.img_width = None
     
-    def load_image(self, cur_selected_img, is_gray=True):
+    def load_image(self, cur_selected_img, gray=None):
         """Load the image (using skiimage)
 
         :param cur_selected_img: full path of the image that needs to be loaded
         :type cur_selected_img: str
+        :param gray: whether to load the image as a grayscale or not
+        :type gray: bool, default=False
         :return: loaded image
         :rtype: ndarray
-        """      
+        """     
+        if gray is None:  gray = self.gray
         try:
-            return imread(os.path.join(self.root_dir , cur_selected_img), as_gray=is_gray)
+            return imread(os.path.join(self.root_dir , cur_selected_img), as_gray=gray)
         except ValueError: return None
     
     def save_image(self, to_save_path, img):
@@ -101,40 +110,39 @@ class FilesystemImageStorage():
                 if not file_name.startswith('.') and helpers.get_file_extension(file_name) not in setup_config['accepted_types']]
         
     def get_image_size_properties(self, img, file_extension):
-        """Get properties of the image size
+        """Set properties of the image size
 
         :param img: image (numpy array)
         :type img: ndarray
         :param file_extension: file extension of the image as saved in the directory
         :type file_extension: str
-        :return: size properties:
-            - height
-            - width
-            - z_axis
-        
         """        
-    
+        # TODO simplify!
+        
         orig_size = img.shape
         # png and jpeg will be RGB by default and 2D 
         # tif can be grayscale 2D or 3D [Z, H, W]
-        # image channels have already been removed in imread with is_gray=True
-        if file_extension in (".jpg", ".jpeg", ".png"):
-            height, width = orig_size[0], orig_size[1]
-            z_axis = None
+        # image channels have already been removed in imread if self.gray=True
+        # skimage.imread reads RGB or RGBA images in always with channel axis in dim=2
+        if file_extension in (".jpg", ".jpeg", ".png") and self.gray==False:
+            self.img_height, self.img_width = orig_size[0], orig_size[1]
+            self.channel_ax = 2
+        elif file_extension in (".jpg", ".jpeg", ".png") and self.gray==True:
+            self.img_height, self.img_width = orig_size[0], orig_size[1]
+            self.channel_ax = None
         elif file_extension in (".tiff", ".tif") and len(orig_size)==2:
-            height, width = orig_size[0], orig_size[1]
-            z_axis = None
+            self.img_height, self.img_width = orig_size[0], orig_size[1]
+            self.channel_ax = None
         # if we have 3 dimensions the [Z, H, W]
         elif file_extension in (".tiff", ".tif") and len(orig_size)==3:
-            print('Warning: 3D image stack found. We are assuming your first dimension is your stack dimension. Please cross check this.') 
-            height, width = orig_size[1], orig_size[2]   
-            z_axis = 0   
+            print('Warning: 3D image stack found. We are assuming your last dimension is your channel dimension. Please cross check this.') 
+            self.img_height, self.img_width = orig_size[0], orig_size[1]   
+            self.channel_ax = 2
         else:
             print('File not currently supported. See documentation for accepted types')
 
-        return height, width, z_axis
     
-    def rescale_image(self, img, height, width, channel_ax=None, order=2):
+    def rescale_image(self, img, order=2):
         """rescale image
 
         :param img: image
@@ -149,16 +157,14 @@ class FilesystemImageStorage():
         :rtype: ndarray
         """    
         if self.model_used == "UNet":
-            height_pad = (height//16 + 1)*16 - height
-            width_pad = (width//16 + 1)*16 - width
-            return np.pad(img, ((0, height_pad),(0, width_pad)))
+            return pad_image(img, self.img_height, self.img_width, self.channel_ax, dividable= 16)
         else:
             # Cellpose segmentation runs best with 512 size? TODO: check
-            max_dim  = max(height, width)
+            max_dim  = max(self.img_height, self.img_width)
             rescale_factor = max_dim/512
-            return rescale(img, 1/rescale_factor, order=order, channel_axis=channel_ax)
+            return rescale(img, 1/rescale_factor, order=order, channel_axis=self.channel_ax)
     
-    def resize_mask(self, mask, height, width, channel_ax=None, order=2):
+    def resize_mask(self, mask, channel_ax=None, order=0):
         """resize the mask so it matches the original image size
 
         :param mask: image
@@ -176,24 +182,24 @@ class FilesystemImageStorage():
         if self.model_used == "UNet":
             # we assume an order C, H, W
             if channel_ax is not None and channel_ax==0:
-                height_pad = mask.shape[1] - height
-                width_pad = mask.shape[2]- width
+                height_pad = mask.shape[1] - self.img_height
+                width_pad = mask.shape[2]- self.img_width
                 return mask[:, :-height_pad, :-width_pad]
             elif channel_ax is not None and channel_ax==2:
-                height_pad = mask.shape[0] - height
-                width_pad = mask.shape[1]- width
+                height_pad = mask.shape[0] - self.img_height
+                width_pad = mask.shape[1]-self.img_width
                 return mask[:-height_pad, :-width_pad, :]
             elif channel_ax is not None and channel_ax==1:
-                height_pad = mask.shape[2] - height
-                width_pad = mask.shape[0]- width
+                height_pad = mask.shape[2] - self.img_height
+                width_pad = mask.shape[0]- self.img_width
                 return mask[:-width_pad, :, :-height_pad]
 
         else: 
             if channel_ax is not None:
                 n_channel_dim = mask.shape[channel_ax]
-                output_size = [height, width]
+                output_size = [self.img_height, self.img_width]
                 output_size.insert(channel_ax, n_channel_dim)
-            else: output_size = [height, width]
+            else: output_size = [self.img_height, self.img_width]
             return resize(mask, output_size, order=order)
     
     def prepare_images_and_masks_for_training(self, train_img_mask_pairs):
@@ -208,13 +214,48 @@ class FilesystemImageStorage():
         masks=[]
         for img_file, mask_file in train_img_mask_pairs:
             img = self.load_image(img_file)
-            mask = imread(mask_file)
+            img = normalise(img)
+            mask = self.load_image(mask_file, gray=False)
+            self.get_image_size_properties(img, helpers.get_file_extension(img_file))
+            # Unet only accepts image sizes divisable by 16
             if self.model_used == "UNet":
-                # Unet only accepts image sizes divisable by 16
-                height_pad = (img.shape[0]//16 + 1)*16 - img.shape[0]
-                width_pad = (img.shape[1]//16 + 1)*16 - img.shape[1]
-                img = np.pad(img, ((0, height_pad),(0, width_pad)))
-                mask = np.pad(mask, ((0, 0), (0, height_pad),(0, width_pad)))
+                img = pad_image(img, self.img_height, self.img_width, channel_ax=self.channel_ax, dividable= 16)
+                mask = pad_image(mask, self.img_height, self.img_width, channel_ax=0, dividable= 16)
+            if self.model_used == "CustomCellpose" and len(mask.shape)==3:
+                # if we also have class mask drop it
+                mask = masks[0] #assuming mask_channel_axis=0
             imgs.append(img)
             masks.append(mask)
         return imgs, masks
+    
+    def prepare_img_for_eval(self, img_file):
+        """Image processing for model inference.
+
+        :param img_file: the path to the image 
+        :type img_file: str
+        :return: the loaded and processed image
+        :rtype: np.ndarray
+        """        
+        # Load and normalise the image
+        img = self.load_image(img_file)
+        img = normalise(img)
+        # Get size properties
+        self.get_image_size_properties(img, helpers.get_file_extension(img_file))
+        if self.rescale:
+            img = self.rescale_image(img)
+        return img
+    
+    def prepare_mask_for_save(self, mask, channel_ax):
+        """Prepares the mask output of the model to be saved.
+
+        :param mask: the mask
+        :type mask: np.ndarray
+        :param channel_ax: the channel dimension of the mask
+        :rype channel_ax: int
+        :return: the ready to save mask
+        :rtype: np.ndarray
+        """  
+        # Resize the mask if rescaling took place before
+        if self.rescale: 
+            return self.resize_mask(mask, channel_ax)
+        else: return mask

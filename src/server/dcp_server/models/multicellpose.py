@@ -2,44 +2,47 @@ from typing import List
 import numpy as np
 from skimage.measure import label as label_mask
 
-from dcp_server.models import CustomCellposeModel # Model, 
+from dcp_server.models import CustomCellpose # Model, 
 
 class MultiCellpose(): #Model):
     '''
     Multichannel image segmentation model.
-    Run the separate CustomCellposeModel models for each channel return the mask corresponding to each object type.
+    Run the separate CustomCellpose models for each channel return the mask corresponding to each object type.
     '''
 
     def __init__(self,
+                 model_name: str, 
                  model_config: dict,
+                 data_config: dict, 
                  train_config: dict,
                  eval_config: dict,
-                 model_name="Cellpose"
                  ) -> None:
         """Constructs all the necessary attributes for the MultiCellpose model.
-   
+        
+        :param model_name: Name of the model.
+        :type model_name: str
         :param model_config: Model configuration.
         :type model_config: dict
         :param train_config: Training configuration.
         :type train_config: dict
         :param eval_config: Evaluation configuration.
         :type eval_config: dict
-        :param model_name: Name of the model.
-        :type model_name: str
         """
 
         self.model_config = model_config
+        self.data_config = data_config
         self.train_config = train_config
         self.eval_config = eval_config
         self.model_name = model_name
         self.num_of_channels = self.model_config["classifier"]["num_classes"]
 
         self.cellpose_models = [
-            CustomCellposeModel(
+            CustomCellpose(
+                "Cellpose",
                 self.model_config, 
+                self.data_config,
                 self.train_config,
                 self.eval_config,
-                self.model_name
             ) for _ in range(self.num_of_channels)
         ]  
 
@@ -55,13 +58,13 @@ class MultiCellpose(): #Model):
         :param masks: Masks corresponding to the input images.
         :type masks: list[numpy.ndarray]
         """
-
+    
         for i in range(self.num_of_channels):
-
+            
             masks_class = []
 
             for mask in masks:
-                mask_class = mask.copy()
+                mask_class = mask.copy() # TODO - Do we need copy??
                 # set all instances in the instance mask not corresponding to the class in question to zero
                 mask_class[0][
                     mask_class[1]!=(i+1)
@@ -91,14 +94,14 @@ class MultiCellpose(): #Model):
         for i in range(self.num_of_channels):
             # get the instance mask and pixel-wise cell probability mask
             instance_mask, probs, _  = self.cellpose_models[i].eval_all_outputs(img)
-            confidence = probs[2]
+            confidence_map = probs[2]
             # assign the appropriate class to all objects detected by this model
             class_mask = np.zeros_like(instance_mask)
             class_mask[instance_mask>0]=(i + 1)
                         
             instance_masks.append(instance_mask)
             class_masks.append(class_mask)
-            model_confidences.append(confidence)
+            model_confidences.append(confidence_map)
         # merge the outputs of the different models using the pixel-wise cell probability mask
         merged_mask_instances, class_mask = self.merge_masks(
             instance_masks, class_masks, model_confidences
