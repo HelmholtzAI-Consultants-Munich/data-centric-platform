@@ -17,7 +17,7 @@ warnings.simplefilter('ignore')
 def main():
     settings.init()
     dir_name = path.dirname(path.abspath(sys.argv[0]))
-    server_config = read_config('server', config_path = path.join(dir_name, 'config.cfg'))
+    server_config = read_config('server', config_path = path.join(dir_name, 'config.yaml'))
 
     image_storage = FilesystemImageStorage()
     ml_model = BentomlModel()

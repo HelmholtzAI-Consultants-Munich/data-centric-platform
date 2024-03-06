@@ -2,7 +2,7 @@ import os
 from dcp_server.utils import helpers
 
 # Import configuration
-setup_config = helpers.read_config('setup', config_path = 'config.cfg')
+setup_config = helpers.read_config('setup', config_path = 'config.yaml')
 
 class GeneralSegmentation():
     """ Segmentation class. Defining the main functions needed for this project and served by service - segment image and train on images.
@@ -34,7 +34,8 @@ class GeneralSegmentation():
         for img_filepath in list_of_images:
             img = self.imagestorage.prepare_img_for_eval(img_filepath)
             # Add channel ax into the model's evaluation parameters dictionary
-            self.model.eval_config['segmentor']['channel_axis'] = self.imagestorage.channel_ax
+            if self.imagestorage.model_used!="UNet":
+                self.model.eval_config['segmentor']['channel_axis'] = self.imagestorage.channel_ax
             # Evaluate the model
             mask = await self.runner.evaluate.async_run(img = img)
             # And prepare the mask for saving

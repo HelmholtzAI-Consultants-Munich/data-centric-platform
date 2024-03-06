@@ -56,33 +56,25 @@ class Inst2MultiSeg(): #Model):
         self.train_config = train_config
         self.eval_config = eval_config
 
-        self.segmentor_class = self.model_config.get("classifier").get("model_class", "Cellpose")
-        self.classifier_class = self.model_config.get("classifier").get("model_class", "PatchClassifier")
+        self.segmentor_class = self.model_config.get("segmentor_name", "Cellpose")
+        self.classifier_class = self.model_config.get("classifier_name", "PatchClassifier")
 
         # Initialize the cellpose model and the classifier
         segmentor = segmentor_mapping.get(self.segmentor_class)
         self.segmentor = segmentor(
             self.segmentor_class, self.model_config, self.data_config, self.train_config, self.eval_config
             )
-        '''
-        if self.classifier_class == "PatchClassifier":
-            self.classifier = PatchClassifier(
-                self.classifier_class, self.model_config, self.data_config, self.train_config, self.eval_config
-                )
-            
-        elif self.classifier_class == "RandomForest":
-            self.classifier = FeatureClassifier(
-                self.classifier_class, self.model_config, self.data_config, self.train_config, self.eval_config
-                )
-        '''
         classifier = classifier_mapping.get(self.classifier_class)
         self.classifier = classifier(
             self.classifier_class, self.model_config, self.data_config, self.train_config, self.eval_config
                 )
+        
         # make sure include mask is set to False if we are using the random forest model 
-        if self.model_config["classifier"]["include_mask"] == True and self.classifier_class=="RandomForest":
+        if self.classifier_class=="RandomForest":
+            if "include_mask" not in self.model_config["classifier"].keys() or self.model_config["classifier"]["include_mask"] is True:
             #print("Include mask=True was found, but for Random Forest, this parameter must be set to False. Doing this now.")
-            self.model_config["classifier"]["include_mask"] = False
+                self.model_config["classifier"]["include_mask"] = False
+        
         
     def train(self,
               imgs: List[np.ndarray],

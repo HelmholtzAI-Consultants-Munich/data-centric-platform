@@ -12,12 +12,12 @@ models_module = __import__("models")
 segmentation_module = __import__("segmentationclasses")
 
 # Import configuration
-service_config = read_config('service', config_path = 'config.cfg')
-model_config = read_config('model', config_path = 'config.cfg')
-data_config = read_config('data', config_path = 'config.cfg')
-train_config = read_config('train', config_path = 'config.cfg')
-eval_config = read_config('eval', config_path = 'config.cfg')
-setup_config = read_config('setup', config_path = 'config.cfg')
+service_config = read_config('service', config_path = 'config.yaml')
+model_config = read_config('model', config_path = 'config.yaml')
+data_config = read_config('data', config_path = 'config.yaml')
+train_config = read_config('train', config_path = 'config.yaml')
+eval_config = read_config('eval', config_path = 'config.yaml')
+setup_config = read_config('setup', config_path = 'config.yaml')
 
 # instantiate the model
 

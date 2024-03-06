@@ -81,7 +81,6 @@ class PatchClassifier(nn.Module):
         #eval(f'{optimizer_class}(params={self.parameters()}, lr={lr})')
         
         # TODO check if we should replace self.parameters with super.parameters()
-        
         for _ in tqdm(
             range(self.train_config["n_epochs"]),
             desc="Running PatchClassifier training"
@@ -125,7 +124,7 @@ class PatchClassifier(nn.Module):
         """
         in_channels = self.model_config["in_channels"]
         in_channels = in_channels + 1 if self.model_config["include_mask"] else in_channels
-        
+
         self.layer1 = nn.Sequential(
             nn.Conv2d(in_channels, 16, 3, 2, 5),
             nn.BatchNorm2d(16),
@@ -199,12 +198,12 @@ class FeatureClassifier:
         """
 
         self.model_name = model_name
-        self.model_config = model_config # use for initialising model
-        self.data_config = data_config
-        self.train_config = train_config
-        self.eval_config = eval_config
+        self.model_config = model_config["classifier"] # use for initialising model
+        # self.data_config = data_config
+        # self.train_config = train_config
+        # self.eval_config = eval_config
 
-        self.model = RandomForestClassifier() # TODO chnage config so RandomForestClassifier accepts input params
+        self.model = RandomForestClassifier(**self.model_config) # TODO chnage config so RandomForestClassifier accepts input params
 
    
     def train(self, 

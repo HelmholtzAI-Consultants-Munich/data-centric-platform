@@ -1,19 +1,18 @@
 from pathlib import Path
-import json
+import yaml
 
-
-def read_config(name, config_path = 'config.cfg') -> dict:   
+def read_config(name, config_path = 'config.yaml') -> dict:   
     """Reads the configuration file
 
     :param name: name of the section you want to read (e.g. 'setup','train')
     :type name: string
-    :param config_path: path to the configuration file, defaults to 'config.cfg'
+    :param config_path: path to the configuration file, defaults to 'config.yaml'
     :type config_path: str, optional
     :return: dictionary from the config section given by name
     :rtype: dict
     """     
     with open(config_path) as config_file:
-        config_dict = json.load(config_file)
+        config_dict = yaml.safe_load(config_file) # json.load(config_file) for .cfg file
         # Check if config file has main mandatory keys
         assert all([i in config_dict.keys() for i in ['setup', 'service', 'model', 'train', 'eval']])
         return config_dict[name]

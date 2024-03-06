@@ -39,7 +39,7 @@ class NapariWindow(MyWidget):
         layout.addWidget(main_window, 0, 0, 1, 4)
 
         # select the first seg as the currently selected layer if there are any segs
-        if len(self.seg_files):
+        if len(self.seg_files) and len(self.viewer.layers[get_path_stem(self.seg_files[0])].data.shape) > 2:
             self.cur_selected_seg = self.viewer.layers.selection.active.name
             self.layer = self.viewer.layers[self.cur_selected_seg]
             self.viewer.layers.selection.events.changed.connect(self.on_seg_channel_changed)
@@ -63,7 +63,7 @@ class NapariWindow(MyWidget):
             
             self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
 
-            if self.layer.data.shape[0] >= 2:
+            if len(self.layer.data.shape) > 2:
                 # User hint
                 message_label = QLabel('Choose an active mask')
                 message_label.setAlignment(Qt.AlignRight)

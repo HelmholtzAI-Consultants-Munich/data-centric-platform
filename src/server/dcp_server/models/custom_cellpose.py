@@ -63,6 +63,7 @@ class CustomCellpose(models.CellposeModel): #, Model):
         :param masks: masks of the given images (training labels)
         :type masks: List[np.ndarray]
         """  
+        if self.train_config["segmentor"]["n_epochs"]==0: return
         super().train(
             train_data=deepcopy(imgs),
             train_labels=masks,

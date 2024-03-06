@@ -6,7 +6,7 @@ from skimage.measure import find_contours, label
 from skimage.draw import polygon_perimeter
 
 from pathlib import Path, PurePath
-import json
+import yaml
 
 from dcp_client.utils import settings
 
@@ -27,18 +27,18 @@ class IconProvider(QFileIconProvider):
         else:
             return super().icon(type)
 
-def read_config(name, config_path = 'config.cfg') -> dict:   
+def read_config(name, config_path = 'config.yaml') -> dict:   
     """Reads the configuration file
 
     :param name: name of the section you want to read (e.g. 'setup','train')
     :type name: string
-    :param config_path: path to the configuration file, defaults to 'config.cfg'
+    :param config_path: path to the configuration file, defaults to 'config.yaml'
     :type config_path: str, optional
     :return: dictionary from the config section given by name
     :rtype: dict
     """     
     with open(config_path) as config_file:
-        config_dict = json.load(config_file)
+        config_dict =  yaml.safe_load(config_file) # json.load(config_file) for .cfg file
         # Check if config file has main mandatory keys
         assert all([i in config_dict.keys() for i in ['server']])
         return config_dict[name]
@@ -77,16 +77,18 @@ class Compute4Mask:
             # get a binary mask only of object
             single_obj_mask = np.zeros_like(instance_mask)
             single_obj_mask[instance_mask==instance_id] = 1
-            # compute contours for mask
-            contours = find_contours(single_obj_mask, contours_level)
-            # sometimes little dots appeas as additional contours so remove these
-            if len(contours)>1: 
-                contour_sizes = [contour.shape[0] for contour in contours]
-                contour = contours[contour_sizes.index(max(contour_sizes))].astype(int)
-            else: contour = contours[0]
-            # and draw onto contours mask
-            rr, cc = polygon_perimeter(contour[:, 0], contour[:, 1], contour_mask.shape)
-            contour_mask[rr, cc] = instance_id
+            try:
+                # compute contours for mask
+                contours = find_contours(single_obj_mask, contours_level)
+                # sometimes little dots appeas as additional contours so remove these
+                if len(contours)>1: 
+                    contour_sizes = [contour.shape[0] for contour in contours]
+                    contour = contours[contour_sizes.index(max(contour_sizes))].astype(int)
+                else: contour = contours[0]
+                # and draw onto contours mask
+                rr, cc = polygon_perimeter(contour[:, 0], contour[:, 1], contour_mask.shape)
+                contour_mask[rr, cc] = instance_id
+            except: print("Could not create contour for instance id", instance_id)
         return contour_mask
     
     @staticmethod

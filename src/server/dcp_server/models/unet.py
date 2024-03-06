@@ -114,7 +114,7 @@ class UNet(nn.Module): # Model
         """
 
         imgs = convert_to_tensor(imgs, np.float32)
-        masks = convert_to_tensor(masks, np.int16)
+        masks = convert_to_tensor([mask[1] for mask in masks], np.int16, unsqueeze=False)
         
         # Create a training dataset and dataloader
         train_dataloader = DataLoader(
@@ -135,7 +135,6 @@ class UNet(nn.Module): # Model
             self.loss = 0
 
             for imgs, masks in train_dataloader:
-
                 #forward path
                 preds = self.forward(imgs.float())
                 loss = loss_fn(preds, masks.long())
@@ -166,16 +165,16 @@ class UNet(nn.Module): # Model
             img = convert_to_tensor([img], np.float32)
         
             preds = self.forward(img)
-            class_mask = torch.argmax(preds, 1).numpy()[0]
-            # TODO - make instance mask calculation optional
-            instance_mask = label((class_mask > 0).astype(int))[0]
-
-            final_mask = np.stack(
-                (instance_mask, class_mask), 
-                axis=self.eval_config['mask_channel_axis']
-            ).astype(
-                np.uint16
-            ) 
+            class_mask = torch.argmax(preds, 1).numpy()[0]    
+            if self.eval_config["compute_instance"] is True:
+                instance_mask = label((class_mask > 0).astype(int))[0]
+                final_mask = np.stack(
+                    [instance_mask, class_mask], 
+                    axis=self.eval_config['mask_channel_axis']
+                ).astype(
+                    np.uint16
+                ) 
+            else: final_mask = class_mask.astype(np.uint16)
 
         return final_mask
     

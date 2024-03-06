@@ -64,13 +64,13 @@ class MultiCellpose(): #Model):
             masks_class = []
 
             for mask in masks:
-                mask_class = mask.copy() # TODO - Do we need copy??
+                mask_class = mask[0].copy() # TODO - Do we need copy??
                 # set all instances in the instance mask not corresponding to the class in question to zero
                 mask_class[0][
                     mask_class[1]!=(i+1)
                 ] = 0
                 masks_class.append(mask_class)
-            
+            print(masks_class[0].shape)
             self.cellpose_models[i].train(imgs, masks_class)
 
         self.metric = np.mean([self.cellpose_models[i].metric for i in range(self.num_of_channels)])

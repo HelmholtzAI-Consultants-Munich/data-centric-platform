@@ -7,7 +7,7 @@ from dcp_server.utils import helpers
 from dcp_server.utils.processing import pad_image, normalise
 
 # Import configuration
-setup_config = helpers.read_config("setup", config_path = "config.cfg")
+setup_config = helpers.read_config("setup", config_path = "config.yaml")
 
 class FilesystemImageStorage():
     """Class used to deal with everything related to image storing and processing - loading, saving, transforming...
@@ -43,7 +43,7 @@ class FilesystemImageStorage():
         :type to_save_path: str
         :param img: image you wish to save
         :type img: ndarray
-        """        
+        """       
         imsave(os.path.join(self.root_dir, to_save_path), img)
     
     def search_images(self, directory):
@@ -193,6 +193,10 @@ class FilesystemImageStorage():
                 height_pad = mask.shape[2] - self.img_height
                 width_pad = mask.shape[0]- self.img_width
                 return mask[:-width_pad, :, :-height_pad]
+            else: 
+                height_pad = mask.shape[0] - self.img_height
+                width_pad = mask.shape[1]-self.img_width
+                return mask[:-height_pad,:-width_pad]
 
         else: 
             if channel_ax is not None:
@@ -256,6 +260,7 @@ class FilesystemImageStorage():
         :rtype: np.ndarray
         """  
         # Resize the mask if rescaling took place before
-        if self.rescale: 
+        if self.rescale is True: 
+            if len(mask.shape)<3: channel_ax=None
             return self.resize_mask(mask, channel_ax)
         else: return mask

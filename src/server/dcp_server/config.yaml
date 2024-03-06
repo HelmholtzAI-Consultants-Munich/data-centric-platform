@@ -1,30 +1,31 @@
 {
     "setup": {
         "segmentation": "GeneralSegmentation",
-        "model_to_use": "Inst2MultiSeg", 
+        "model_to_use": "MultiCellpose", 
         "accepted_types": [".jpg", ".jpeg", ".png", ".tiff", ".tif"],
         "seg_name_string": "_seg"
     },
 
     "service": {
         "runner_name": "bento_runner",
-        "bento_model_path": "test5",
+        "bento_model_path": "test1w",
         "service_name": "data-centric-platform",
         "port": 7010
     },
 
     "model": { 
+        "segmentor_name": "Cellpose",
         "segmentor": {
             "model_type": "cyto"
             
         },
+        "classifier_name": "PatchClassifier",
         "classifier":{
-            "model_class": "PatchClassifier",
             "in_channels": 1,
-            "num_classses": 2,
+            "num_classes": 2,
             "features":[64,128,256,512],
-            "black_bg": "False",
-            "include_mask": "False"
+            "black_bg": False,
+            "include_mask": True
         }
     },
 
@@ -32,18 +33,18 @@
         "data_root": "data",
         "patch_size": 64,
         "noise_intensity": 5,
-        "gray": "True",
-        "rescale": "True"
+        "gray": True,
+        "rescale": True
     },
 
     "train":{
         "segmentor":{
-            "n_epochs": 3,
+            "n_epochs": 5,
             "channels": [0,0],
             "min_train_masks": 1
         },
         "classifier":{
-            "n_epochs": 2,
+            "n_epochs": 100,
             "lr": 0.001,
             "batch_size": 1,
             "optimizer": "Adam"

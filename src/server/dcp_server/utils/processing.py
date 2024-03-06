@@ -48,12 +48,12 @@ def pad_image(img, height, width, channel_ax=None, dividable = 16) -> np.ndarray
         img = np.pad(img, ((0, height_pad), (0, width_pad))) 
     return img
 
-def convert_to_tensor(imgs, dtype):
+def convert_to_tensor(imgs, dtype, unsqueeze=True):
     # Convert images tensors
     imgs = torch.stack([
         torch.from_numpy(img.astype(dtype)) for img in imgs
     ])
-    imgs = imgs.unsqueeze(1) if imgs.ndim == 3 else imgs
+    imgs = imgs.unsqueeze(1) if imgs.ndim == 3 and unsqueeze is True else imgs
     return imgs
 
 def crop_centered_padded_patch(img: np.ndarray, 
@@ -77,7 +77,6 @@ def crop_centered_padded_patch(img: np.ndarray,
     Returns:
         np.ndarray: The cropped patch with applied padding.
     """           
-
     height, width = patch_size  # Size of the patch
     img_height, img_width = img.shape[0], img.shape[1] # Size of the input image
     
@@ -99,7 +98,8 @@ def crop_centered_padded_patch(img: np.ndarray,
         # crop the mask
         mask = mask[max(top, 0):min(bottom, img_height), max(left, 0):min(right, img_width), :]
 
-    patch = img[max(top, 0):min(bottom, img_height), max(left, 0):min(right, img_width), :]    
+    patch = img[max(top, 0):min(bottom, img_height), max(left, 0):min(right, img_width), :]  
+
     # Calculate the required padding amounts and apply padding if necessary
     if left < 0: 
         patch = np.hstack((
@@ -136,7 +136,6 @@ def crop_centered_padded_patch(img: np.ndarray,
             mask = np.vstack((
             mask, 
             np.zeros((bottom - img_height, mask.shape[1], mask.shape[2])).astype(np.uint8)))
-    
     return patch, mask 
 
 
@@ -202,7 +201,7 @@ def get_centered_patches(img,
                                             obj_label,
                                             mask=deepcopy(mask),
                                             noise_intensity=noise_intensity)
-        if include_mask:
+        if include_mask is True:
             patch_mask = 255 * (patch_mask > 0).astype(np.uint8)
             patch = np.concatenate((patch, patch_mask), axis=-1)
             
@@ -296,7 +295,6 @@ def get_shape_features(img, mask):
     """
 
     mask = 255 * ((mask) > 0).astype(np.uint8)
-
     image = sitk.GetImageFromArray(img.squeeze())
     roi_mask = sitk.GetImageFromArray(mask.squeeze())
 
@@ -351,7 +349,6 @@ def create_dataset_for_rf(imgs, masks):
     """
     X = []
     for img, mask in zip(imgs, masks):
-
         shape_features = get_shape_features(img, mask)
         intensity_features = extract_intensity_features(img, mask)
         features_list = np.concatenate((shape_features, intensity_features), axis=0)
