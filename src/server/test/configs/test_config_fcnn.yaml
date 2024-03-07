@@ -1,34 +1,39 @@
 {
     "setup": {
         "segmentation": "GeneralSegmentation",
+        "model_to_use": "Inst2MultiSeg", 
         "accepted_types": [".jpg", ".jpeg", ".png", ".tiff", ".tif"],
         "seg_name_string": "_seg"
     },
 
     "service": {
-        "model_to_use": "CustomCellposeModel", 
-        "save_model_path": "mito",
-        "runner_name": "cellpose_runner",
+        "runner_name": "bento_runner",
+        "save_model_path": "test",
         "service_name": "data-centric-platform",
         "port": 7010
     },
 
     "model": { 
+        "segmentor_name": Cellpose,
         "segmentor": {
             "model_type": "cyto"
         },
-        "classifier":{
-            "model_class": "FCNN", 
+        "classifier_name": "PatchClassifier", 
+        "classifier":{ 
             "in_channels": 1,
             "num_classes": 3,
             "features":[64,128,256,512],
-            "black_bg": "False",
-            "include_mask": "False"
+            "black_bg": False,
+            "include_mask": False
         }
     },
 
     "data": {
-        "data_root": "data"
+        "data_root": "data",
+        "patch_size": 64,
+        "noise_intensity": 5,
+        "gray": True,
+        "rescale": True
     },
 
     "train":{
@@ -39,11 +44,6 @@
             "learning_rate":0.01
         },
         "classifier":{
-            "train_data":{
-                "patch_size": 64,
-                "noise_intensity": 5,
-                "num_classes": 3
-            },
             "n_epochs": 20,
             "lr": 0.005,
             "batch_size": 5,
@@ -59,10 +59,6 @@
             "batch_size": 1
         },
         "classifier": {
-            "data":{
-                "patch_size": 64,
-                "noise_intensity": 5
-            }
         },
         "mask_channel_axis": 0
     }
