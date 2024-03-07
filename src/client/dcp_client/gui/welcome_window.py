@@ -48,23 +48,32 @@ class WelcomeWindow(MyWidget):
 
         val_label = QLabel(self)
         val_label.setText('Uncurated dataset path:')
+
         inprogr_label = QLabel(self)
         inprogr_label.setText('Curation in progress path:')
         train_label = QLabel(self)
         train_label.setText('Curated dataset path:')
+
         self.text_layout.addWidget(val_label)
         self.text_layout.addWidget(inprogr_label)
         self.text_layout.addWidget(train_label)
 
         self.val_textbox = QLineEdit(self)
+        self.val_textbox.setPlaceholderText("Double-click to browse")
+        # self.val_textbox.setToolTip("Double-click to browse")
+       
         self.val_textbox.textEdited.connect(lambda x: self.on_text_changed(self.val_textbox, "eval", x))
         self.val_textbox.installEventFilter(self)
 
         self.inprogr_textbox = QLineEdit(self)
+        self.inprogr_textbox.setPlaceholderText("Double-click to browse")
+        # self.inprogr_textbox.setToolTip("Double-click to browse")
         self.inprogr_textbox.textEdited.connect(lambda x: self.on_text_changed(self.inprogr_textbox, "inprogress", x))
         self.inprogr_textbox.installEventFilter(self)
 
         self.train_textbox = QLineEdit(self)
+        self.train_textbox.setPlaceholderText("Double-click to browse")
+        # self.train_textbox.setToolTip("Double-click to browse")
         self.train_textbox.textEdited.connect(lambda x: self.on_text_changed(self.train_textbox, "train", x))
         self.train_textbox.installEventFilter(self)
 

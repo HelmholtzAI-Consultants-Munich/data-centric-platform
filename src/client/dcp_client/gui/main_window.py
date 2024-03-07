@@ -1,9 +1,15 @@
 from __future__ import annotations
+
+import os
 from typing import TYPE_CHECKING
 
 from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView, QProgressBar, QShortcut
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSize
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSize, QRect
 from PyQt5.QtGui import QKeySequence
+
+from PyQt5.QtCore import  QVariant
+from PyQt5.QtGui import QPixmap, QPainter, QImage, QBrush
+from PyQt5.QtWidgets import QApplication, QStyledItemDelegate
 
 from dcp_client.utils import settings
 from dcp_client.utils.utils import IconProvider, CustomItemDelegate
@@ -39,6 +45,83 @@ class WorkerThread(QThread):
 
         self.task_finished.emit((message_text, message_title))
 
+
+class MyQFileSystemModel(QFileSystemModel):
+    def __init__(self):
+        super().__init__()
+
+    def headerData(self, section, orientation, role):
+        """
+        Reimplemented method to provide custom header data for the model's headers.
+
+        Args:
+            section (int): The section (column) index.
+            orientation (Qt.Orientation): The orientation of the header.
+            role (int): The role of the header data.
+
+        Returns:
+            QVariant: The header data for the specified section, orientation, and role.
+        """
+        if section == 0 and role == Qt.DisplayRole:
+            return ""  
+        else:
+           
+            return super().headerData(section, orientation, role)
+
+    def data(self, index, role=Qt.DisplayRole):
+        if not index.isValid():
+            return QVariant()
+
+        if role == Qt.DecorationRole:
+            filepath_img = self.filePath(index)
+            if filepath_img.endswith('.tiff') or filepath_img.endswith('.png'):
+                if not '_seg' in filepath_img:
+
+                    painter = QPainter()
+
+                    filepath_mask = f"{filepath_img.split('.')[0]}_seg.tiff"
+                    img = QImage(filepath_img).scaled(96, 96)
+
+                    if os.path.exists(filepath_mask):
+
+                        painter.begin(img)
+
+                        rect_corner_left = QRect(0, 0, 32, 32)
+                        rect_corner_bot = QRect(64, 64, 32, 32)
+
+                        rect_left = QRect(32, 0, 64, 32)
+                        rect_bot = QRect(64, 0, 32, 64)
+
+                        painter.fillRect(rect_corner_left, QBrush(Qt.white, Qt.SolidPattern))
+                        painter.fillRect(rect_corner_bot, QBrush(Qt.white, Qt.SolidPattern))
+
+                        painter.fillRect(rect_left, QBrush(Qt.black, Qt.SolidPattern))
+                        painter.fillRect(rect_bot, QBrush(Qt.black, Qt.SolidPattern))
+
+                        painter.end()
+
+                        pixmap = QPixmap.fromImage(img)
+
+                        return pixmap
+
+                    else:
+
+                        return img
+
+                else:
+                    
+                    return None
+
+        return super().data(index, role)
+
+class ImageDelegate(QStyledItemDelegate):
+    def paint(self, painter, option, index):
+        if index.isValid() and index.data(Qt.DecorationRole):
+            pixmap = index.data(Qt.DecorationRole)
+            painter.drawPixmap(option.rect, pixmap)
+
+
+
 class MainWindow(MyWidget):
     '''
     Main Window Widget object.
@@ -49,6 +132,7 @@ class MainWindow(MyWidget):
     :param train_data_path: Chosen path to images with labeles, selected by the user in the WelcomeWindow
     :type train_data_path: string
     '''    
+
 
     def __init__(self, app: Application):
         super().__init__()
@@ -90,12 +174,16 @@ class MainWindow(MyWidget):
         )
 
         self.eval_dir_layout.addWidget(self.label_eval)
-        # add eval dir list
-
-        model_eval = QFileSystemModel()
+       
+        model_eval = MyQFileSystemModel()
         model_eval.setIconProvider(IconProvider())
+      
         self.list_view_eval = QTreeView(self)
-        self.list_view_eval.setIconSize(QSize(50,50))
+
+        self.list_view_eval.setItemDelegate(ImageDelegate())
+
+        self.list_view_eval.setToolTip("Select an image, click it, then press Enter")
+        # self.list_view_eval.setIconSize(QSize(50,50))
         self.list_view_eval.setStyleSheet("background-color: #ffffff")
         self.list_view_eval.setModel(model_eval)
         model_eval.setRootPath('/')
@@ -146,10 +234,11 @@ class MainWindow(MyWidget):
         self.label_inprogr.setText("Curation in progress")
         self.inprogr_dir_layout.addWidget(self.label_inprogr)
         # add in progress dir list
-        model_inprogr = QFileSystemModel()
+        model_inprogr = MyQFileSystemModel()
+      
         #self.list_view = QListView(self)
         self.list_view_inprogr = QTreeView(self)
-        self.list_view_inprogr.setIconSize(QSize(50,50))
+        # self.list_view_inprogr.setIconSize(QSize(50,50))
         self.list_view_inprogr.setStyleSheet("background-color: #ffffff")
         model_inprogr.setIconProvider(IconProvider())
         self.list_view_inprogr.setModel(model_inprogr)
@@ -170,6 +259,8 @@ class MainWindow(MyWidget):
         self.launch_nap_button.setStyleSheet(
         "QPushButton { background-color: transparent; border: none; border-radius: 5px; padding: 8px 16px; }"
         )
+        
+
         self.launch_nap_button.setEnabled(False)
         self.inprogress_layout.addWidget(self.launch_nap_button, alignment=Qt.AlignCenter)
 
@@ -192,11 +283,11 @@ class MainWindow(MyWidget):
         )
         self.train_dir_layout.addWidget(self.label_train)
         # add train dir list
-        model_train = QFileSystemModel()
-
+        model_train = MyQFileSystemModel()
+        # model_train.setNameFilters(["*_seg.tiff"])
         #self.list_view = QListView(self)
         self.list_view_train = QTreeView(self)
-        self.list_view_train.setIconSize(QSize(50,50))
+        # self.list_view_train.setIconSize(QSize(50,50))
         self.list_view_train.setStyleSheet("background-color: #ffffff")
         model_train.setIconProvider(IconProvider())
         self.list_view_train.setModel(model_train)
