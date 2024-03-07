@@ -4,7 +4,8 @@ from typing import List
 import numpy as np
 import torch
 
-from dcp_server.models import CustomCellpose #  Model,
+from .model import Model
+from .custom_cellpose import CustomCellpose
 from dcp_server.models.classifiers import PatchClassifier, FeatureClassifier
 from dcp_server.utils.processing import (
     get_centered_patches,
@@ -24,7 +25,7 @@ classifier_mapping = {
 }
 
 
-class Inst2MultiSeg(): #Model):
+class Inst2MultiSeg(Model):
     """ A two stage model for: 1. instance segmentation and 2. object wise classification  
     """
     

@@ -9,9 +9,9 @@ from cellpose import models, utils
 from cellpose.metrics import aggregated_jaccard_index
 from cellpose.dynamics import labels_to_flows
 
-#from dcp_server.models import Model
+from .model import Model
 
-class CustomCellpose(models.CellposeModel): #, Model):
+class CustomCellpose(models.CellposeModel, Model):
     """Custom cellpose model inheriting the attributes and functions from the original CellposeModel and implementing
     additional attributes and methods needed for this project.
     """    

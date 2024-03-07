@@ -8,11 +8,11 @@ from torch import nn
 from torch.optim import Adam
 from torch.utils.data import TensorDataset, DataLoader
 
-#from dcp_server.models import Model
+from .model import Model
 from dcp_server.utils.processing import convert_to_tensor
 
 
-class UNet(nn.Module): # Model
+class UNet(nn.Module, Model):
 
     """
     Unet is a convolutional neural network architecture for semantic segmentation.
