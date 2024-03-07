@@ -2,11 +2,26 @@ from PyQt5.QtWidgets import QWidget, QMessageBox
 from PyQt5.QtCore import QTimer
 
 class MyWidget(QWidget):
+    """
+    This class represents a custom widget.
+    """
 
     msg = None
     sim = False # will be used for testing to simulate user click
 
-    def create_warning_box(self, message_text: str=" ", message_title: str="Information", add_cancel_btn: bool=False, custom_dialog=None) -> None:    
+    def create_warning_box(self, message_text: str=" ", message_title: str="Information", add_cancel_btn: bool=False, custom_dialog=None) -> None: 
+        """Creates a warning box with the specified message and options.
+
+        :param message_text: The text to be displayed in the message box. 
+        :type message_text: str
+        :param message_title: The title of the message box. Default is "Information".
+        :type message_title: str
+        :param add_cancel_btn: Flag indicating whether to add a cancel button to the message box. Default is False.
+        :type add_cancel_btn: bool
+        :param custom_dialog: An optional custom dialog to use instead of creating a new QMessageBox instance. Default is None.
+        :type custom_dialog: Any
+        :return: None
+        """   
         #setup box
         if custom_dialog is not None: self.msg = custom_dialog
         else: self.msg = QMessageBox()

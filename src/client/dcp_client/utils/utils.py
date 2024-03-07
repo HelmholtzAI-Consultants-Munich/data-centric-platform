@@ -12,10 +12,19 @@ from dcp_client.utils import settings
 
 class IconProvider(QFileIconProvider):
     def __init__(self) -> None:
+        """ Initializes the IconProvider with the default icon size.
+        """
         super().__init__()
         self.ICON_SIZE = QSize(512,512)
 
     def icon(self, type: 'QFileIconProvider.IconType'):
+        """ Returns the icon for the specified file type.
+
+        :param type: The type of the file for which the icon is requested.
+        :type type: QFileIconProvider.IconType
+        :return: The icon for the file type.
+        :rtype: QIcon
+        """
         try:
             fn = type.filePath()
         except AttributeError: return super().icon(type) # TODO handle exception differently?
@@ -43,34 +52,88 @@ def read_config(name, config_path = 'config.yaml') -> dict:
         assert all([i in config_dict.keys() for i in ['server']])
         return config_dict[name]
 
-def get_relative_path(filepath): return PurePath(filepath).name
+def get_relative_path(filepath):
+    """ Returns the name of the file from the given filepath.
 
-def get_path_stem(filepath): return str(Path(filepath).stem)
+    :param filepath: The path of the file.
+    :type filepath: str
+    :return: The name of the file.
+    :rtype: str
+    """
+    return PurePath(filepath).name
 
-def get_path_name(filepath): return str(Path(filepath).name)
+def get_path_stem(filepath): 
+    """ Returns the stem (filename without its extension) from the given filepath.
 
-def get_path_parent(filepath): return str(Path(filepath).parent)
+    :param filepath: The path of the file.
+    :type filepath: str
+    :return: The stem of the file.
+    :rtype: str
+    """
+    return str(Path(filepath).stem)
 
-def join_path(root_dir, filepath): return str(Path(root_dir, filepath))
+def get_path_name(filepath):
+    """ Returns the name of the file from the given filepath.
+
+    :param filepath: The path of the file.
+    :type filepath: str
+    :return: The name of the file.
+    :rtype: str
+    """
+    return str(Path(filepath).name)
+
+def get_path_parent(filepath):
+    """ Returns the parent directory of the given filepath.
+
+    :param filepath: The path of the file.
+    :type filepath: str
+    :return: The parent directory of the file.
+    :rtype: str
+    """
+    return str(Path(filepath).parent)
+
+def join_path(root_dir, filepath):
+    """ Joins the root directory path with the given filepath.
+
+    :param root_dir: The root directory.
+    :type root_dir: str
+    :param filepath: The path of the file.
+    :type filepath: str
+    :return: The joined path.
+    :rtype: str
+    """
+    return str(Path(root_dir, filepath))
 
 def check_equal_arrays(array1, array2):
+    """ Checks if two arrays are equal.
+
+    :param array1: The first array.
+    :type array1: numpy.ndarray
+    :param array2: The second array.
+    :type array2: numpy.ndarray
+    :return: True if the arrays are equal, False otherwise.
+    :rtype: bool
+    """
     return np.array_equal(array1, array2)
 
 class Compute4Mask:
+    """
+    Compute4Mask provides methods for manipulating masks.
+    """
 
     @staticmethod
     def get_contours(instance_mask, contours_level=None):
-        '''
-        Find contours of objects in the instance mask.
-        This function is used to identify the contours of the objects to prevent 
-        the problem of the merged objects in napari window (mask).
+        """ Find contours of objects in the instance mask. This function is used to identify the contours of the objects to prevent the problem of the merged
+        objects in napari window (mask).
 
-        Parameters:
-        - instance_mask (numpy.ndarray): The instance mask array.
+        :param instance_mask: The instance mask array.
+        :type instance_mask: numpy.ndarray
+        :param contours_level: Value along which to find contours in the array. See skimage.measure.find_contours for more.
+        :type: None or float
+        :return: A binary mask where the contours of all objects in the instance segmentation mask are one and the rest is background.
+        :rtype: numpy.ndarray
 
-        Returns:
-        - contour_mask (numpy.ndarray): A binary mask where the contours of all objects in the instance segmentation mask are one and the rest is background.
-        '''
+        """
         instance_ids = Compute4Mask.get_unique_objects(instance_mask) # get object instance labels ignoring background
         contour_mask= np.zeros_like(instance_mask)
         for instance_id in instance_ids:
@@ -93,16 +156,15 @@ class Compute4Mask:
     
     @staticmethod
     def add_contour(labels_mask, instance_mask):
-        '''
-        Add contours of objects to the labels mask.
+        """ Add contours of objects to the labels mask.
 
-        Parameters:
-        - labels_mask (numpy.ndarray): The class mask array without the contour pixels annotated.
-        - instance_mask (numpy.ndarray): The instance mask array.
-
-        Returns:
-        - labels_mask (numpy.ndarray): The updated class mask including contours.
-        '''
+        :param labels_mask: The class mask array without the contour pixels annotated.
+        :type labels_mask: numpy.ndarray
+        :param instance_mask: The instance mask array.
+        :type instance_mask: numpy.ndarray
+        :return: The updated class mask including contours.
+        :rtype: numpy.ndarray
+        """
         instance_ids = Compute4Mask.get_unique_objects(instance_mask)
         for instance_id in instance_ids:
             where_instances = np.where(instance_mask==instance_id)
@@ -117,16 +179,18 @@ class Compute4Mask:
     
     @staticmethod
     def compute_new_instance_mask(labels_mask, instance_mask):
-        '''
-        Given an updated labels mask, update also the instance mask accordingly. So far the user can only remove an entire object in the labels mask view.
+        """ Given an updated labels mask, update also the instance mask accordingly. 
+        So far the user can only remove an entire object in the labels mask view by 
+        setting the color of the object to the background.
         Therefore the instance mask can only change by entirely removing an object.
 
-        Parameters:
-        - labels_mask (numpy.ndarray): The labels mask array, with changes made by the user.
-        - instance_mask (numpy.ndarray): The existing instance mask, which needs to be updated.
-        Returns:
-        - instance_mask (numpy.ndarray): The updated instance mask.
-        '''
+        :param labels_mask: The labels mask array, with changes made by the user.
+        :type labels_mask: numpy.ndarray
+        :param instance_mask: The existing instance mask, which needs to be updated.
+        :type instance_mask: numpy.ndarray
+        :return: The updated instance mask.
+        :rtype: numpy.ndarray
+        """
         instance_ids = Compute4Mask.get_unique_objects(instance_mask)
         for instance_id in instance_ids:
             unique_items_in_class_mask = list(np.unique(labels_mask[instance_mask==instance_id]))
@@ -137,17 +201,19 @@ class Compute4Mask:
 
     @staticmethod
     def compute_new_labels_mask(labels_mask, instance_mask, original_instance_mask, old_instances):
-        '''
-        Given the existing labels mask, the updated instance mask is used to update the labels mask.
+        """ Given the existing labels mask, the updated instance mask is used to update the labels mask.
 
-        Parameters:
-        - labels_mask (numpy.ndarray): The existing labels mask, which needs to be updated.
-        - instance_mask (numpy.ndarray): The instance mask array, with changes made by the user.
-        - original_instance_mask (numpy.ndarray): The instance mask array, before the changes made by the user.
-        - old_instances (List): A list of the instance label ids in original_instance_mask.
-        Returns:
-        - new_labels_mask (numpy.ndarray): The new labels mask, with updated changes according to those the user has made in the instance mask.
-        '''
+        :param labels_mask: The existing labels mask, which needs to be updated.
+        :type labels_mask: numpy.ndarray
+        :param instance_mask: The instance mask array, with changes made by the user.
+        :type instance_mask: numpy.ndarray
+        :param original_instance_mask: The instance mask array, before the changes made by the user.
+        :type original_instance_mask: numpy.ndarray
+        :param old_instances: A list of the instance label ids in original_instance_mask.
+        :type old_instances: list
+        :return: The new labels mask, with updated changes according to those the user has made in the instance mask.
+        :rtype: numpy.ndarray
+        """
         new_labels_mask = np.zeros_like(labels_mask)
         for instance_id in np.unique(instance_mask):
             where_instance = np.where(instance_mask==instance_id)
@@ -177,15 +243,18 @@ class Compute4Mask:
        
     @staticmethod
     def get_unique_objects(active_mask):
-        """
-        Get unique objects from the active mask.
+        """ Gets unique objects from the active mask.
+
+        :param active_mask: The mask array.
+        :type active_mask: numpy.ndarray
+        :return: A list of unique object labels.
+        :rtype: list
         """
         return list(np.unique(active_mask)[1:])
     
     @staticmethod
     def assert_consistent_labels(mask):
-        """
-        Before saving the final mask make sure the user has not mistakenly made an error during annotation,
+        """ Before saving the final mask make sure the user has not mistakenly made an error during annotation,
         such that one instance id does not correspond to exactly one class id. Also checks whether for one instance id
         multiple classes exist.
         :param mask: The mask which we want to test.

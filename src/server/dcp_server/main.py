@@ -4,8 +4,9 @@ import sys
 from dcp_server.utils.helpers import read_config
 
 def main(): 
-    '''entry point to bentoml
-    '''
+    """
+    Contains main functionality related to the server.
+    """
     # global config_path
     # args = sys.argv
     # if len(args) > 1:

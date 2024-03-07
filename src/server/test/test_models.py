@@ -5,6 +5,9 @@ import dcp_server.models as models
 from dcp_server.utils import read_config
 
 def test_eval_rf_not_fitted():
+    """
+    Tests the evaluation of a random forest model that has not been fitted.
+    """
 
     model_config = read_config('model', config_path='test/configs/test_config_RF.cfg')
     train_config = read_config('train', config_path='test/configs/test_config_RF.cfg')
@@ -17,6 +20,9 @@ def test_eval_rf_not_fitted():
     assert np.all(model_rf.eval(X_test)== np.zeros(X_test.shape))
 
 def test_update_configs():
+    """
+    Tests the update of model training and evaluation configurations.
+    """
 
     model_config = read_config('model', config_path='test/configs/test_config_RF.cfg')
     train_config = read_config('train', config_path='test/configs/test_config_RF.cfg')

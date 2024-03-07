@@ -134,6 +134,16 @@ class Application:
         return message_text, message_title
 
     def load_image(self, image_name=None):
+        """
+        Loads an image from the file system storage.
+
+        :param str image_name: The name of the image file to load.
+            If not provided, loads the currently selected image.
+
+        :return: The loaded image.
+        :rtype: numpy.ndarray
+
+        """
         if image_name is None:
             return self.fs_image_storage.load_image(self.cur_selected_path, self.cur_selected_img)
         else: return self.fs_image_storage.load_image(self.cur_selected_path, image_name)
@@ -144,11 +154,28 @@ class Application:
         self.seg_filepaths = self.fs_image_storage.search_segs(self.cur_selected_path, self.cur_selected_img)
     
     def save_image(self, dst_directory, image_name, img):
-        """ Saves img array image in the dst_directory with filename cur_selected_img """
+        """ Saves img array image in the dst_directory with filename cur_selected_img 
+        
+        :param dst_directory: The destination directory where the image will be saved.
+        :type dst_directory: str
+        :param image_name: The name of the image file.
+        :type image_name: str
+        :param img: The image that will be saved.  
+        :type img: numpy.ndarray
+        """
         self.fs_image_storage.save_image(dst_directory, image_name, img)
 
     def move_images(self, dst_directory, move_segs=False):
-        """ Moves cur_selected_img image from the current directory to the dst_directory """
+        """
+        Moves cur_selected_img image from the current directory to the dst_directory. 
+    
+        :param dst_directory: The destination directory where the images will be moved.
+        :type dst_directory: str
+
+        :param move_segs: If True, moves the corresponding segmentation along with the image. Default is False.
+        :type move_segs: bool
+        
+        """
         #if image_name is None:
         self.fs_image_storage.move_image(self.cur_selected_path, dst_directory, self.cur_selected_img)
         if move_segs:
@@ -156,7 +183,11 @@ class Application:
                 self.fs_image_storage.move_image(self.cur_selected_path, dst_directory, seg_name)
 
     def delete_images(self, image_names):
-        """ If image_name in the image_names list exists in the current directory it is deleted """
+        """ If image_name in the image_names list exists in the current directory it is deleted.
+        
+        :param image_names: A list of image names to be deleted.
+        :type image_names: list[str]
+        """
         for image_name in image_names:
             if os.path.exists(os.path.join(self.cur_selected_path, image_name)):    
                 self.fs_image_storage.delete_image(self.cur_selected_path, image_name)

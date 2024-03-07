@@ -2,12 +2,14 @@
 data/
 in_progress/
 curated/
+uncurated/
 
 # model dir
 *mytrainedmodel/
 
 #configs
 src/client/dcp_client/config.cfg
+src/server/dcp_server/config.cfg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -19,7 +21,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
+# build/
 develop-eggs/
 dist/
 downloads/
@@ -80,7 +82,7 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
+# docs/build/
 
 # PyBuilder
 target/
@@ -151,8 +153,6 @@ dmypy.json
 .idea/
 
 .DS_Store
-docs/
-test-napari.pub
 data/
 BentoML/
 

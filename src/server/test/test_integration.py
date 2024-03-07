@@ -133,6 +133,9 @@ def data_eval():
 #         assert(jaccard_index_classes>0.1)
 
 def test_train_eval_run(data_train, data_eval, model):
+    """
+    Performs testing, training, and evaluation with the provided data and model.
+    """
 
     images, masks = data_train
     model.train(images, masks)

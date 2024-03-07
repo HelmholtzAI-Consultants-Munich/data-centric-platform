@@ -9,11 +9,10 @@ packages = ['dcp_client']
 dependencies = {file = ["requirements.txt"]}
 
 [project]
-name = "data-centric-tool-client"
+name = "data-centric-platform-client"
 version = "0.1"
-requires-python = ">=3.8"
-description = ""
-# license = {file = "LICENSE.txt"}
+requires-python = ">=3.9"
+description = "The client of the data centric platform for microscopy image segmentation"
 keywords = []
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -22,12 +21,14 @@ classifiers = [
 readme = "README.md"
 dynamic = ["dependencies"]
 authors = [
-  {name="Christina Bukas", email="christina.bukas@helmholtz-muenchen.de"},
-  {name="Helena Pelin", email="helena.pelin@helmholtz-muenchen.de"}
+  {name="Christina Bukas", email="christina.bukas@helmholtz-munich.de"},
+  {name="Helena Pelin", email="helena.pelin@helmholtz-munich.de"},
+  {name="Mariia Koren", email="mariia.koren@helmholtz-munich.de"},
+  {name="Marie Piraud", email="marie.piraud@helmholtz-munich.de"},
 ]
 maintainers = [
-  {name="Christina Bukas", email="christina.bukas@helmholtz-muenchen.de"},
-  {name="Helena Pelin", email="helena.pelin@helmholtz-muenchen.de"}
+  {name="Christina Bukas", email="christina.bukas@helmholtz-munich.de"},
+  {name="Helena Pelin", email="helena.pelin@helmholtz-munich.de"}
 ]
 
 [project.optional-dependencies]
@@ -37,8 +38,7 @@ dev = [
 
 [project.urls]
 repository = "https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform"
-# homepage = "https://example.com"
-# documentation = "https://readthedocs.org"
+documentation = "https://readthedocs.org/projects/data-centric-platform"
 
 [project.scripts]
 dcp-client = "dcp_client.main:main"
