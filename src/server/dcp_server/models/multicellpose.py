@@ -29,7 +29,8 @@ class MultiCellpose(Model):
         :param eval_config: Evaluation configuration.
         :type eval_config: dict
         """
-
+        Model.__init__(self, model_name, model_config, data_config, train_config, eval_config)
+        
         self.model_config = model_config
         self.data_config = data_config
         self.train_config = train_config
@@ -71,7 +72,6 @@ class MultiCellpose(Model):
                     mask_class[1]!=(i+1)
                 ] = 0
                 masks_class.append(mask_class)
-            print(masks_class[0].shape)
             self.cellpose_models[i].train(imgs, masks_class)
 
         self.metric = np.mean([self.cellpose_models[i].metric for i in range(self.num_of_channels)])

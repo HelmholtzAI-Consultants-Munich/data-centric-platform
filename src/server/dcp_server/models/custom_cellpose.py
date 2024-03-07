@@ -40,7 +40,7 @@ class CustomCellpose(models.CellposeModel, Model):
         
         # Initialize the cellpose model
         # super().__init__(**model_config["segmentor"])
-        #nn.Module.__init__(self)
+        Model.__init__(self, model_name, model_config, data_config, train_config, eval_config)
         models.CellposeModel.__init__(self, **model_config["segmentor"])
         self.model_config = model_config
         self.data_config = data_config

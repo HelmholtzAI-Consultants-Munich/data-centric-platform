@@ -86,8 +86,9 @@ class UNet(nn.Module, Model):
         :param eval_config: Evaluation configuration.
         :type eval_config: dict
         """
-
-        super().__init__()
+        Model.__init__(self, model_name, model_config, data_config, train_config, eval_config)
+        nn.Module.__init__(self)
+        #super().__init__()
 
         self.model_name = model_name
         self.model_config = model_config
