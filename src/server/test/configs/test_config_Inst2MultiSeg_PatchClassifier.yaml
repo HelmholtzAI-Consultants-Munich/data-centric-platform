@@ -8,7 +8,7 @@
 
     "service": {
         "runner_name": "bento_runner",
-        "bento_model_path": "test",
+        "bento_model_path": "cells",   
         "service_name": "data-centric-platform",
         "port": 7010
     },
@@ -18,8 +18,8 @@
         "segmentor": {
             "model_type": "cyto"
         },
-        "classifier_name": "RandomForest",
-        "classifier":{
+        "classifier_name": "PatchClassifier", 
+        "classifier":{ 
             "in_channels": 1,
             "num_classes": 3,
             "features":[64,128,256,512],
@@ -30,13 +30,15 @@
 
     "data": {
         "data_root": "data",
+        "patch_size": 64,
+        "noise_intensity": 5,
         "gray": True,
         "rescale": True
     },
 
     "train":{
         "segmentor":{
-            "n_epochs": 20,
+            "n_epochs": 10,
             "channels": [0,0],
             "min_train_masks": 1,
             "learning_rate":0.01
@@ -57,7 +59,6 @@
             "batch_size": 1
         },
         "classifier": {
-        
         },
         "mask_channel_axis": 0
     }

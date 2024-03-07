@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from dcp_server.utils import find_max_patch_size
+from dcp_server.utils.processing import find_max_patch_size
 
 @pytest.fixture
 def sample_mask():
