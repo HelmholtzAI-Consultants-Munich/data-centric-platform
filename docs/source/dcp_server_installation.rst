@@ -83,17 +83,18 @@ The models are currently integrated into DCP:
 
 - **Instance** Segmentation: 
 
-  - ``CustomCellposeModel``: Inherits from cellpose.models.CellposeModel, see `here <https://cellpose.readthedocs.io/en/latest/api.html#cellposemodel>`__ for more information.
+  - ``CustomCellpose``: Inherits from cellpose.models.CellposeModel, see `here <https://cellpose.readthedocs.io/en/latest/api.html#cellposemodel>`__ for more information.
 - **Semantic** Segmentation: 
   
   - ``UNet``: A vanilla U-Net model, trained on the full images
-- **Panoptic** Segmentation: 
+- **Multi Class Instance** Segmentation: 
 
-  - ``CellposePatchCNN``: Includes a segmentor for instance segmentation, sequentially followed by a classifier for semantic segmentation. The segmentor can only be ``CustomCellposeModel`` model, while the classifier can be one of:
+  - ``Inst2MultiSeg``: Includes a segmentor for instance segmentation, sequentially followed by a classifier for semantic segmentation. The segmentor can only be ``CustomCellposeModel`` model, while the classifier can be one of:
 
-    - ``CellClassifierFCNN`` or "FCNN" (in config): A CNN model for obtaining class labels, trained on images patches of individual objects, extarcted using the instance mask from the previous step
-    - ``CellClassifierShallowModel`` or "RandomForest" (in config): A Random Forest model for obtaining class labels, trained on shape and intensity features of the objects, extracted using the instance mask from the previous step.
-  - UNet: If the post-processing argument is set, then the instance mask is deduced from the labels mask. Will not be able to handle touching objects 
+    - ``PatchClassifier`` or "FCNN" (in config): A CNN model for obtaining class labels, trained on images patches of individual objects, extarcted using the instance mask from the previous step
+    - ``FeatureClassifier`` or "RandomForest" (in config): A Random Forest model for obtaining class labels, trained on shape and intensity features of the objects, extracted using the instance mask from the previous step.
+  - ``MultiCellpose``: Includes **n** CustomCellpose models, where n equals the number of classes, stacked such that each model predicts only the object corresponding to each class.
+  - ``UNet``: If the post-processing argument is set, then the instance mask is deduced from the labels mask. Will not be able to handle touching objects 
 
 
 Running with Docker 

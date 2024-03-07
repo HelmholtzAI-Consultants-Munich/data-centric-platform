@@ -114,19 +114,12 @@ jobs:
           files: src/server/coverage.xml
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-    
-  update_docs:
-    name: Update docs
-    runs-on: ubuntu-latest
-    steps:
-      - name: Update
-        run: make clean && make html
 
   deploy:
       # this will run when you have tagged a commit, starting with "v*"
       # and requires that you have put your twine API key in your 
       # github secrets (see readme for details)
-      needs: [test_client, test_server, update_docs]
+      needs: [test_client, test_server]
       runs-on: ubuntu-latest
       if: contains(github.ref, 'tags')
       steps:
