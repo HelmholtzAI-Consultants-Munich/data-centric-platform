@@ -316,9 +316,9 @@ def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, 
     for img, mask_class, mask_instance in zip(imgs,  masks_classes, masks_instances):
         # mask_instance has dimension WxH
         # mask_class has dimension WxH
-        patch, patch_mask, _, label = get_centered_patches(img,
-                                                           mask_instance,
-                                                           max_patch_size, 
+        patch, patch_mask, _, label = get_centered_patches(img=img,
+                                                           mask=mask_instance,
+                                                           p_size=max_patch_size, 
                                                            noise_intensity=noise_intensity,
                                                            mask_class=mask_class,
                                                            include_mask = include_mask)

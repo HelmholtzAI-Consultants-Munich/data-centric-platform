@@ -103,7 +103,8 @@ class CustomCellpose(models.CellposeModel, Model):
 
         return super().eval(x=img, **self.eval_config["segmentor"])
     
-    def compute_masks_flows(self, imgs, masks):
+    # I introduced typing here as suggest by the docstring
+    def compute_masks_flows(self, imgs: List[np.ndarray], masks:List[np.ndarray],) -> tuple:
         """ Computes instance, binary mask and flows in x and y - needed for loss and metric computations
 
         :param imgs: images to train on (training data)

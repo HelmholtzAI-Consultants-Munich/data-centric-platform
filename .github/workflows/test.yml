@@ -48,7 +48,7 @@ jobs:
           pip install pytest-qt
           pip install pytest-xvfb
           pip install coverage
-          pip install -e ".[testing]"
+          pip install -e ".[dev]"
           pip install matplotlib
         working-directory: src/client
 

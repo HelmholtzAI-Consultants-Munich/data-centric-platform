@@ -34,6 +34,10 @@ maintainers = [
 [project.optional-dependencies]
 dev = [
   "pytest",
+  pytest>=7.4.3
+  pytest-qt>=4.2.0
+  sphinx
+  sphinx-rtd-theme
 ]
 
 [project.urls]
