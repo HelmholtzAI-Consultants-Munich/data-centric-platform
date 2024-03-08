@@ -22,6 +22,7 @@ class NapariWindow(MyWidget):
         super().__init__()
         self.app = app
         self.setWindowTitle("napari viewer")
+        self.setStyleSheet("background-color: #262930;")
 
         # Load image and get corresponding segmentation filenames
         img = self.app.load_image()
@@ -66,6 +67,18 @@ class NapariWindow(MyWidget):
             if self.layer.data.shape[0] >= 2:
                 # User hint
                 message_label = QLabel('Choose an active mask')
+                message_label.setStyleSheet(
+                """
+                    font-size: 12px;
+                    font-weight: bold; 
+                    background-color: #262930;
+                    color: #D1D2D4;
+                    border-radius: 5px; 
+                    padding: 8px 16px;"""
+                )
+
+
+
                 message_label.setAlignment(Qt.AlignRight)
                 layout.addWidget(message_label, 1, 0)
                 
@@ -78,7 +91,20 @@ class NapariWindow(MyWidget):
 
                 # when user has chosen the mask, we don't want to change it anymore to avoid errors
                 lock_button = QPushButton("Confirm Final Choice")
-                lock_button.setEnabled(False)
+                lock_button.setStyleSheet(
+                """QPushButton 
+                        { 
+                            background-color: #5A626C;
+                            font-size: 12px; 
+                            font-weight: bold;
+                            color: #D1D2D4; 
+                            border-radius: 5px;
+                            padding: 8px 16px; }"""
+                "QPushButton:hover { background-color: #6A7380; }"
+                "QPushButton:pressed { background-color: #6A7380; }" 
+                    )
+
+                lock_button.setEnabled(True)
                 lock_button.clicked.connect(self.set_editable_mask)
 
                 layout.addWidget(lock_button, 1, 2)
@@ -87,10 +113,37 @@ class NapariWindow(MyWidget):
 
         # add buttons for moving images to other dirs
         add_to_inprogress_button = QPushButton('Move to \'Curatation in progress\' folder')
+        add_to_inprogress_button.setStyleSheet(
+        """QPushButton 
+            { 
+                  background-color: #0064A8;
+                  font-size: 12px; 
+                  font-weight: bold;
+                  color: #D1D2D4; 
+                  border-radius: 5px;
+                  padding: 8px 16px; }"""
+        "QPushButton:hover { background-color: #006FBA; }"
+        "QPushButton:pressed { background-color: #006FBA; }" 
+               
+         
+        )
         layout.addWidget(add_to_inprogress_button, 2, 0, 1, 2)
         add_to_inprogress_button.clicked.connect(self.on_add_to_inprogress_button_clicked)
 
         add_to_curated_button = QPushButton('Move to \'Curated dataset\' folder')
+        add_to_curated_button.setStyleSheet(
+        """QPushButton 
+            { 
+                  background-color: #0064A8;
+                  font-size: 12px; 
+                  font-weight: bold;
+                  color: #D1D2D4; 
+                  border-radius: 5px;
+                  padding: 8px 16px; }"""
+        "QPushButton:hover { background-color: #006FBA; }"
+        "QPushButton:pressed { background-color: #006FBA; }" 
+         
+        )
         layout.addWidget(add_to_curated_button, 2, 2, 1, 2)
         add_to_curated_button.clicked.connect(self.on_add_to_curated_button_clicked)
 

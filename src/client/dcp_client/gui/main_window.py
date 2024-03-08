@@ -170,8 +170,6 @@ class ImageDelegate(QStyledItemDelegate):
             pixmap = index.data(Qt.DecorationRole)
             painter.drawPixmap(option.rect, pixmap)
 
-
-
 class MainWindow(MyWidget):
     '''
     Main Window Widget object.
@@ -290,6 +288,7 @@ class MainWindow(MyWidget):
       
         #self.list_view = QListView(self)
         self.list_view_inprogr = QTreeView(self)
+        self.list_view_inprogr.setToolTip("Select an image, click it, then press Enter")
         # self.list_view_inprogr.setIconSize(QSize(50,50))
         self.list_view_inprogr.setStyleSheet("background-color: #ffffff")
         model_inprogr.setIconProvider(IconProvider())
@@ -339,6 +338,7 @@ class MainWindow(MyWidget):
         # model_train.setNameFilters(["*_seg.tiff"])
         #self.list_view = QListView(self)
         self.list_view_train = QTreeView(self)
+        self.list_view_train.setToolTip("Select an image, click it, then press Enter")
         # self.list_view_train.setIconSize(QSize(50,50))
         self.list_view_train.setStyleSheet("background-color: #ffffff")
         model_train.setIconProvider(IconProvider())
