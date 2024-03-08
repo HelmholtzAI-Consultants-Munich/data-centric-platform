@@ -4,10 +4,10 @@ import os
 from typing import TYPE_CHECKING
 
 from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView, QProgressBar, QShortcut
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSize, QRect
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSize, QRect, QModelIndex
 from PyQt5.QtGui import QKeySequence
 
-from PyQt5.QtCore import  QVariant
+from PyQt5.QtCore import  QVariant, QDir
 from PyQt5.QtGui import QPixmap, QPainter, QImage, QBrush
 from PyQt5.QtWidgets import QApplication, QStyledItemDelegate
 
@@ -46,44 +46,84 @@ class WorkerThread(QThread):
         self.task_finished.emit((message_text, message_title))
 
 
+
 class MyQFileSystemModel(QFileSystemModel):
     def __init__(self):
+        """
+        Initializes a custom QFileSystemModel
+        """
         super().__init__()
+    
+    # def sort(self, column, order):
+    #     super().sort(column, order)
+    #     if order == Qt.AscendingOrder:
+    #         fileList = [self.data(self.index(row, column)) for row in range(self.rowCount())]
+    #         fileList.sort(key=lambda path: '_seg' in path)
+    #     elif order == Qt.DescendingOrder:
+    #         fileList = [self.data(self.index(row, column)) for row in range(self.rowCount())]
+    #         fileList.sort(key=lambda path: '_seg' not in path)
+    #     self.setRootPath(self.rootPath())  
+
+    def setFilter(self, filters):
+        """
+        Sets filters for the model.
+
+        :param filters: The filters to be applied. (QDir.Filters)
+        """
+        filters |= QDir.NoDotAndDotDot | QDir.AllDirs | QDir.Files
+        super().setFilter(filters)
+
+        # Exclude files containing '_seg' in their names
+        self.addFilter(lambda fileInfo: "_seg" not in fileInfo.fileName())
+
+    def addFilter(self, filterFunc):
+        """
+        Adds a custom filter function to the model.
+
+        :param filterFunc: The filter function to be added. (function)
+        """
+        self.filterFunc = filterFunc
 
     def headerData(self, section, orientation, role):
         """
         Reimplemented method to provide custom header data for the model's headers.
 
-        Args:
-            section (int): The section (column) index.
-            orientation (Qt.Orientation): The orientation of the header.
-            role (int): The role of the header data.
-
-        Returns:
-            QVariant: The header data for the specified section, orientation, and role.
+        :param section: The section (column) index. (int)
+        :param orientation: The orientation of the header. (Qt.Orientation)
+        :param role: The role of the header data. (int)
+        :rtype: QVariant
         """
         if section == 0 and role == Qt.DisplayRole:
             return ""  
         else:
-           
             return super().headerData(section, orientation, role)
 
     def data(self, index, role=Qt.DisplayRole):
+        """
+        Reimplemented method to provide custom data for the model's items.
+
+        :param index: The index of the item. (QModelIndex)
+        :param role: The role of the data. (int)
+        :rtype: QVariant
+        """
         if not index.isValid():
             return QVariant()
+
+        if role == Qt.DisplayRole:
+            filepath_img = self.filePath(index)
+            if '_seg' in filepath_img:
+                return None
 
         if role == Qt.DecorationRole:
             filepath_img = self.filePath(index)
             if filepath_img.endswith('.tiff') or filepath_img.endswith('.png'):
-                if not '_seg' in filepath_img:
-
+                if '_seg' not in filepath_img:
                     painter = QPainter()
 
                     filepath_mask = f"{filepath_img.split('.')[0]}_seg.tiff"
                     img = QImage(filepath_img).scaled(96, 96)
 
                     if os.path.exists(filepath_mask):
-
                         painter.begin(img)
 
                         rect_corner_left = QRect(0, 0, 32, 32)
@@ -105,17 +145,27 @@ class MyQFileSystemModel(QFileSystemModel):
                         return pixmap
 
                     else:
-
                         return img
 
                 else:
-                    
                     return None
 
         return super().data(index, role)
 
+
 class ImageDelegate(QStyledItemDelegate):
+    """
+    Custom delegate for displaying images in Qt views.
+    """
+
     def paint(self, painter, option, index):
+        """
+        Reimplemented method to paint the item.
+
+        :param painter: The QPainter used for painting. (QPainter)
+        :param option: The style options for the item. (QStyleOptionViewItem)
+        :param index: The model index of the item. (QModelIndex)
+        """
         if index.isValid() and index.data(Qt.DecorationRole):
             pixmap = index.data(Qt.DecorationRole)
             painter.drawPixmap(option.rect, pixmap)
@@ -177,6 +227,8 @@ class MainWindow(MyWidget):
        
         model_eval = MyQFileSystemModel()
         model_eval.setIconProvider(IconProvider())
+        model_eval.sort(0, Qt.AscendingOrder)
+ 
       
         self.list_view_eval = QTreeView(self)
 
