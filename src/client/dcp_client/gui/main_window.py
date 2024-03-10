@@ -3,19 +3,21 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
 
-from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView, QProgressBar, QShortcut
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSize, QRect, QModelIndex
-from PyQt5.QtGui import QKeySequence
-
-from PyQt5.QtCore import  QVariant, QDir
-from PyQt5.QtGui import QPixmap, QPainter, QImage, QBrush
-from PyQt5.QtWidgets import QApplication, QStyledItemDelegate
+from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView, QProgressBar, QShortcut, QApplication, QStyledItemDelegate
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QRect, QSize, QVariant, QDir
+from PyQt5.QtGui import QKeySequence, QPixmap, QPainter, QImage, QBrush, QPen, QFont
 
 from dcp_client.utils import settings
 from dcp_client.utils.utils import IconProvider, CustomItemDelegate
 
 from dcp_client.gui.napari_window import NapariWindow
 from dcp_client.gui._my_widget import MyWidget
+
+import tifffile as tiff
+import numpy as np
+import cv2
+
+from skimage.color import label2rgb
 
 if TYPE_CHECKING:
     from dcp_client.app import Application
@@ -48,22 +50,13 @@ class WorkerThread(QThread):
 
 
 class MyQFileSystemModel(QFileSystemModel):
-    def __init__(self):
+    def __init__(self, app):
         """
         Initializes a custom QFileSystemModel
         """
         super().__init__()
+        self.app = app
     
-    # def sort(self, column, order):
-    #     super().sort(column, order)
-    #     if order == Qt.AscendingOrder:
-    #         fileList = [self.data(self.index(row, column)) for row in range(self.rowCount())]
-    #         fileList.sort(key=lambda path: '_seg' in path)
-    #     elif order == Qt.DescendingOrder:
-    #         fileList = [self.data(self.index(row, column)) for row in range(self.rowCount())]
-    #         fileList.sort(key=lambda path: '_seg' not in path)
-    #     self.setRootPath(self.rootPath())  
-
     def setFilter(self, filters):
         """
         Sets filters for the model.
@@ -120,27 +113,55 @@ class MyQFileSystemModel(QFileSystemModel):
                 if '_seg' not in filepath_img:
                     painter = QPainter()
 
+                    img_x, img_y = 64, 64
+
                     filepath_mask = f"{filepath_img.split('.')[0]}_seg.tiff"
-                    img = QImage(filepath_img).scaled(96, 96)
+                    img = QImage(filepath_img).scaled(img_x, img_y)
 
                     if os.path.exists(filepath_mask):
-                        painter.begin(img)
 
-                        rect_corner_left = QRect(0, 0, 32, 32)
-                        rect_corner_bot = QRect(64, 64, 32, 32)
+                        mask = tiff.imread(filepath_mask)[0]
+                        num_objects = len(self.app.fs_image_storage.search_segs(
+                            os.path.dirname(filepath_img), 
+                            filepath_img
+                        ))
+                       
+                        mask = cv2.resize(mask, (int(round(1.5*img_x)), int(round(1.5*img_y))), interpolation=cv2.INTER_NEAREST)
+                        
+                        mask = label2rgb(mask)
+                        mask = (255 * np.transpose(mask,(1,0,2)).copy()).astype(np.uint8)
+                        
+                        mask = QImage(mask, mask.shape[1], mask.shape[0], QImage.Format_RGB888)\
+                                .scaled(123, 123, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+                        
+                        img = img.scaled(82, 82, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+                        img_x, img_y = 82, 82
+                        painter.begin(mask)
+    
+                        rect_image = QRect(0, img_x//2, img_x, img_y)
 
-                        rect_left = QRect(32, 0, 64, 32)
-                        rect_bot = QRect(64, 0, 32, 64)
+                        rect_corner_left = QRect(0, 0, img_x//2, img_y//2)
+                        rect_corner_bottom = QRect(img_x, img_y, img_x//2, img_y//2)
 
                         painter.fillRect(rect_corner_left, QBrush(Qt.white, Qt.SolidPattern))
-                        painter.fillRect(rect_corner_bot, QBrush(Qt.white, Qt.SolidPattern))
+                        painter.fillRect(rect_corner_bottom, QBrush(Qt.white, Qt.SolidPattern))
 
-                        painter.fillRect(rect_left, QBrush(Qt.black, Qt.SolidPattern))
-                        painter.fillRect(rect_bot, QBrush(Qt.black, Qt.SolidPattern))
+                        painter.drawImage(rect_image, img)
+
+                        pen = QPen(Qt.black)
+                        painter.setPen(pen)
+
+                        font = QFont()
+                        font.setFamily('Arial')
+
+                        font.setPointSize(6)
+                        painter.setFont(font)
+
+                        painter.drawText(int(round((5/4)*img_x))-19, int(round((5/4)*img_x)), f"{str(num_objects)} masks")
 
                         painter.end()
 
-                        pixmap = QPixmap.fromImage(img)
+                        pixmap = QPixmap.fromImage(mask) 
 
                         return pixmap
 
@@ -223,7 +244,7 @@ class MainWindow(MyWidget):
 
         self.eval_dir_layout.addWidget(self.label_eval)
        
-        model_eval = MyQFileSystemModel()
+        model_eval = MyQFileSystemModel(app=self.app)
         model_eval.setIconProvider(IconProvider())
         model_eval.sort(0, Qt.AscendingOrder)
  
@@ -233,7 +254,7 @@ class MainWindow(MyWidget):
         self.list_view_eval.setItemDelegate(ImageDelegate())
 
         self.list_view_eval.setToolTip("Select an image, click it, then press Enter")
-        # self.list_view_eval.setIconSize(QSize(50,50))
+        self.list_view_eval.setIconSize(QSize(300,300))
         self.list_view_eval.setStyleSheet("background-color: #ffffff")
         self.list_view_eval.setModel(model_eval)
         model_eval.setRootPath('/')
@@ -284,7 +305,7 @@ class MainWindow(MyWidget):
         self.label_inprogr.setText("Curation in progress")
         self.inprogr_dir_layout.addWidget(self.label_inprogr)
         # add in progress dir list
-        model_inprogr = MyQFileSystemModel()
+        model_inprogr = MyQFileSystemModel(app=self.app)
       
         #self.list_view = QListView(self)
         self.list_view_inprogr = QTreeView(self)
@@ -334,7 +355,7 @@ class MainWindow(MyWidget):
         )
         self.train_dir_layout.addWidget(self.label_train)
         # add train dir list
-        model_train = MyQFileSystemModel()
+        model_train = MyQFileSystemModel(app=self.app)
         # model_train.setNameFilters(["*_seg.tiff"])
         #self.list_view = QListView(self)
         self.list_view_train = QTreeView(self)
