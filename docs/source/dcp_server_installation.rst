@@ -19,7 +19,7 @@ Before starting make sure you have navigated to ``data-centric-platform/src/serv
 
 .. code-block:: bash
 
-   pip install -e .
+   pip install -e ".[dev]"
 
 Launch DCP Server
 ------------------
