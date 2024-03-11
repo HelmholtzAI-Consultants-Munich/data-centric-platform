@@ -2,7 +2,7 @@
 The client of our data centric platform for microscopy imaging.
 
 ![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
-[![Documentation Status](https://data-centric-platform.readthedocs.io/en/latest/dcp_client_installation.html)](https://data-centric-platform.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/data-centric-platform/badge/?version=latest)](https://data-centric-platform.readthedocs.io/en/latest/?badge=latest)
 
 ## How to use?
 
