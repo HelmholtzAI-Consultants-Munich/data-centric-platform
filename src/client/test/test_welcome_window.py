@@ -40,7 +40,7 @@ def app_remote(qtbot):
     widget.close()
 
 def test_welcome_window_initialization(app):
-    assert app.title == "Select Dataset"
+    assert app.title == "Welcome to Helmholtz AI Data-Centric Tool"
     assert app.val_textbox.text() == ""
     assert app.inprogr_textbox.text() == ""
     assert app.train_textbox.text() == ""
