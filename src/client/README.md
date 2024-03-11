@@ -2,6 +2,7 @@
 The client of our data centric platform for microscopy imaging.
 
 ![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
+[![Documentation Status](https://data-centric-platform.readthedocs.io/en/latest/dcp_client_installation.html)](https://data-centric-platform.readthedocs.io/en/latest/?badge=latest)
 
 ## How to use?
 
@@ -16,5 +17,12 @@ Before starting, make sure you have navigated to ```data-centric-platform/src/cl
 ```
 pip install -e .
 ```
+
+#### Launch DCP client
+Make sure the server is already running, either locally or remotely. Then, depending on the configuration, simply run:
+```
+dcp-client --mode local/remote
+```
+
 ## Want to know more?
-Visit our [documentation](https://readthedocs.org/projects/data-centric-platform) for more information.
+Visit our [documentation](https://data-centric-platform.readthedocs.io/en/latest/dcp_client_installation.html) for more information and a step by step guide on how to run the client.
