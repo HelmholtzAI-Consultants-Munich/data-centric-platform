@@ -4,8 +4,9 @@ import os
 from typing import TYPE_CHECKING
 
 from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView, QProgressBar, QShortcut, QApplication, QStyledItemDelegate
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QRect, QSize, QVariant, QDir
-from PyQt5.QtGui import QKeySequence, QPixmap, QPainter, QImage, QBrush, QPen, QFont
+from PyQt5.QtCore import Qt, QModelIndex, QThread, pyqtSignal, QRect, QSize, QVariant, QDir
+from PyQt5.QtGui import QKeySequence, QIcon, QPixmap, QPainter, QImage, QBrush, QPen, QFont
+from PySide2.QtCore import QModelIndex
 
 from dcp_client.utils import settings
 from dcp_client.utils.utils import IconProvider, CustomItemDelegate
@@ -46,8 +47,6 @@ class WorkerThread(QThread):
             message_text, message_title = f"Exception in WorkerThread: {e}", "Error"
 
         self.task_finished.emit((message_text, message_title))
-
-
 
 class MyQFileSystemModel(QFileSystemModel):
     def __init__(self, app):
@@ -101,14 +100,17 @@ class MyQFileSystemModel(QFileSystemModel):
         """
         if not index.isValid():
             return QVariant()
+    
+        if '_seg' in self.filePath(index):
+            return QVariant()
 
         if role == Qt.DisplayRole:
             filepath_img = self.filePath(index)
-            if '_seg' in filepath_img:
-                return None
+            
 
         if role == Qt.DecorationRole:
             filepath_img = self.filePath(index)
+            
             if filepath_img.endswith('.tiff') or filepath_img.endswith('.png'):
                 if '_seg' not in filepath_img:
                     painter = QPainter()
@@ -174,6 +176,7 @@ class MyQFileSystemModel(QFileSystemModel):
         return super().data(index, role)
 
 
+        
 class ImageDelegate(QStyledItemDelegate):
     """
     Custom delegate for displaying images in Qt views.
@@ -187,6 +190,8 @@ class ImageDelegate(QStyledItemDelegate):
         :param option: The style options for the item. (QStyleOptionViewItem)
         :param index: The model index of the item. (QModelIndex)
         """
+        if '_seg' in index.data():
+            return
         if index.isValid() and index.data(Qt.DecorationRole):
             pixmap = index.data(Qt.DecorationRole)
             painter.drawPixmap(option.rect, pixmap)
