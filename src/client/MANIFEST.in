@@ -1,1 +1,1 @@
-include dcp_client/*.cfg
+include dcp_client/*.yaml

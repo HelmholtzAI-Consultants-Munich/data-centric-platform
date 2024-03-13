@@ -43,16 +43,16 @@ class BentomlModel(Model):
         """
         return bool(self.client)
 
-    async def _run_train(self, data_path: str):
+    async def _run_train(self, data_path: str) -> Optional[str]:
         """Runs the training task asynchronously.
 
         :param data_path: Path to the training data.
         :type data_path: str
         :return: Response from the server if successful, None otherwise.
+        :rtype: str, or None
         """
         try:
             response = await self.client.async_train(data_path)
-            print('kkkkkkkkkkkkkkkkkkkkk', type(response))
             return response
         except BentoMLException:
             return None
@@ -66,16 +66,16 @@ class BentomlModel(Model):
         """
         return asyncio.run(self._run_train(data_path))
 
-    async def _run_inference(self, data_path: str):
+    async def _run_inference(self, data_path: str) -> Optional[np.ndarray]:
         """Runs the inference task asynchronously.
 
         :param data_path: Path to the data for inference.
         :type data_path: str
         :return: List of files not supported by the server if unsuccessful, otherwise returns None.
+        :rtype: np.ndarray, or None
         """
         try:
             response = await self.client.async_segment_image(data_path)
-            print('jjjjjjjjjj', type(response))
             return response
         except BentoMLException:
             return None

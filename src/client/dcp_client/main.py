@@ -33,11 +33,11 @@ def main():
 
     if args.mode == "local":
         server_config = read_config(
-            "server", config_path=path.join(dir_name, "config.cfg")
+            "server", config_path=path.join(dir_name, "config.yaml")
         )
     elif args.mode == "remote":
         server_config = read_config(
-            "server", config_path=path.join(dir_name, "config_remote.cfg")
+            "server", config_path=path.join(dir_name, "config_remote.yaml")
         )
 
     image_storage = FilesystemImageStorage()
