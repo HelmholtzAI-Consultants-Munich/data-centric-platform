@@ -1,26 +1,44 @@
+import argparse
 import sys
+import warnings
 from os import path
-from PyQt5.QtWidgets import QApplication
 
-from dcp_client.utils import settings
-from dcp_client.utils.fsimagestorage import FilesystemImageStorage
-from dcp_client.utils.bentoml_model import BentomlModel
-from dcp_client.utils.sync_src_dst import DataRSync
-from dcp_client.utils.utils import read_config
 from dcp_client.app import Application
 from dcp_client.gui.welcome_window import WelcomeWindow
-
-import warnings
+from dcp_client.utils import settings
+from dcp_client.utils.bentoml_model import BentomlModel
+from dcp_client.utils.fsimagestorage import FilesystemImageStorage
+from dcp_client.utils.sync_src_dst import DataRSync
+from dcp_client.utils.utils import read_config
+from PyQt5.QtWidgets import QApplication
 
 warnings.simplefilter("ignore")
 
 
 def main():
+
     settings.init()
-    dir_name = path.dirname(path.abspath(sys.argv[0]))
-    server_config = read_config(
-        "server", config_path=path.join(dir_name, "config.yaml")
+
+    dir_name = path.dirname(path.abspath(__file__))
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-m",
+        "--mode",
+        choices=["local", "remote"],
+        required=True,
+        help="Choose mode: local or remote",
     )
+    args = parser.parse_args()
+
+    if args.mode == "local":
+        server_config = read_config(
+            "server", config_path=path.join(dir_name, "config.cfg")
+        )
+    elif args.mode == "remote":
+        server_config = read_config(
+            "server", config_path=path.join(dir_name, "config_remote.cfg")
+        )
 
     image_storage = FilesystemImageStorage()
     ml_model = BentomlModel()

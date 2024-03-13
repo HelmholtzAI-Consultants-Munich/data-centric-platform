@@ -20,47 +20,22 @@ Before starting make sure you have navigated to ``data-centric-platform/src/clie
 Running the client: A step-by-step guide!
 ------------------------------------------
 
-1. **Configurations**
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-   Before launching the GUI you will need to set up your client configuration file, ``dcp_client/config.cfg``. Please, obey the `formal JSON format <https://www.json.org/json-en.html>`_. Here, we will define how the client will interact with the server. There are currently two options available: running the server locally, or connecting to the running instance on the FZJ jusuf-cloud. To connect to a locally running server, set:
-
-   .. code-block:: json
-
-      "server":{
-                 "user": "local",
-                 "host": "local",
-                 "data-path": "None",
-                 "ip": "localhost",
-                 "port": 7010
-      }
-
-   To connect to the running service on jusuf-cloud, set:
-
-   .. code-block:: json
-
-        "server":{
-               "user": "rocky",
-               "host": "jsc-vm",
-               "data-path": "/home/rocky/dcp-data/my-project",
-               "ip": "134.94.198.230",
-               "port": 7010
-        }
-
-   Before continuing, you need to make sure that DCP server is running, either locally or on the cloud. See :doc: `dcp_server_installation` for instructions on how to launch the server. **Note:** In order for this connection to succeed, you will need to have contacted the team developing DCP, so they can add your IP to the list of accepted requests.
-
-   To make it easier for you we provide you with two config files, one works when running a local server and one for remote - just make sure you rename the config file you wish to use to ``config.cfg``. The default is local configuration.
-
-2. **Launching the client**
+1. **Launching the client**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   After setting your config simply run:
+DCP includes a client and server side for using our data centric platform. The client and server communicate via the `bentoml <https://www.bentoml.com/?gclid=Cj0KCQiApKagBhC1ARIsAFc7Mc6iqOLi2OcLtqMbGx1KrFjtLUEZ-bhnqlT2zWREE0x7JImhtNmKlFEaAvSSEALw_wcB>`_ library. 
+   There are currently two options available: running the server locally, or connecting to the running instance on the FZJ jusuf-cloud.
+   Before continuing, you need to make sure that DCP server is running, either locally or on the cloud. See :doc: `dcp_server_installation` for instructions on how to launch the server. **Note:** In order for this connection to succeed, you will need to have contacted the team developing DCP, so they can add your IP to the list of accepted requests.
+
+After you are certain the server is running, simply run:
 
    .. code-block:: bash
 
-      python dcp_client/main.py
+      dcp-client --mode local/remote
+   
+Set the ``--mode`` argument to ``local`` or ``remote`` depending on which setup you have chosen for the server.
 
-3. **Welcome window**
+2. **Welcome window**
 ~~~~~~~~~~~~~~~~~~~~~~
 
    The welcome window should have now popped up.
@@ -85,12 +60,12 @@ Running the client: A step-by-step guide!
 
    This folder is intended to contain images along with their final segmentations. **Only** move images here when the segmentation is complete and finalised, you won't be able to change them after they have been moved here. These are then used for training your model.
 
-4. **Setting paths**
+3. **Setting paths**
 ~~~~~~~~~~~~~~~~~~~~~
 
    After setting the paths for these three folders, you can click the **Start** button. If you have set the server configuration to the cloud, you will receive a message notifying you that your data will be uploaded to the cloud. Click **Ok** to continue.
 
-5. **Data Overview**
+4. **Data Overview**
 ~~~~~~~~~~~~~~~~~~~~
 
    The main working window will appear next. This gives you an overview of the directories selected in the previous step along with three options:
@@ -104,7 +79,7 @@ Running the client: A step-by-step guide!
       :height: 200
       :align: center
 
-6. **The viewer**
+5. **The viewer**
 ~~~~~~~~~~~~~~~~~~~~
 
    In DCP, we use [napari](https://napari.org/stable) for viewing our images and masks, adding, editing or removing labels. An example of the viewer can be seen below. After adding or removing any objects and editing existing objects wherever necessary, there are two options available:
