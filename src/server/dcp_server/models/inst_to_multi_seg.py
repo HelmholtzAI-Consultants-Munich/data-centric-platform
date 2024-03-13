@@ -1,4 +1,3 @@
-from copy import deepcopy
 from typing import List
 
 import numpy as np
@@ -93,7 +92,7 @@ class Inst2MultiSeg(Model):
         # train cellpose
         masks_instances = [mask[0] for mask in masks]
         #masks_instances = list(np.array(masks)[:,0,...]) #[mask.sum(-1) for mask in masks] if masks[0].ndim == 3 else masks
-        self.segmentor.train(deepcopy(imgs), masks_instances)
+        self.segmentor.train(imgs, masks_instances)
         masks_classes = [mask[1] for mask in masks]
         # create patch dataset to train classifier
         #masks_classes = list(

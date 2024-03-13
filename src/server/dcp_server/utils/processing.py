@@ -1,15 +1,16 @@
 from copy import deepcopy
+from typing import List, Optional, Union
 import numpy as np
+
 from scipy.ndimage import find_objects
 from skimage import measure
-from copy import deepcopy
 import SimpleITK as sitk
 from radiomics import  shape2D
 import torch
 
-def normalise(img, norm='min-max') -> np.ndarray:
+def normalise(img: np.ndarray, norm: str='min-max') -> np.ndarray:
     """ Normalises the image based on the chosen method. Currently available methods are:
-    - min max normalisation
+    - min max normalisation.
     
     :param img: image to be normalised
     :type img: np.ndarray
@@ -22,8 +23,8 @@ def normalise(img, norm='min-max') -> np.ndarray:
         return (img - np.min(img)) / (np.max(img) - np.min(img)) 
     
 
-def pad_image(img, height, width, channel_ax=None, dividable = 16) -> np.ndarray:
-    """ Pads the image such that it is dividable by a given number,
+def pad_image(img: np.ndarray, height: int, width: int, channel_ax: Optional[int]=None, dividable:int = 16) -> np.ndarray:
+    """ Pads the image such that it is dividable by a given number.
     
     :param img: image to be padded
     :type img: np.ndarray
@@ -48,7 +49,18 @@ def pad_image(img, height, width, channel_ax=None, dividable = 16) -> np.ndarray
         img = np.pad(img, ((0, height_pad), (0, width_pad))) 
     return img
 
-def convert_to_tensor(imgs, dtype, unsqueeze=True):
+def convert_to_tensor(imgs: List[np.ndarray], dtype: type, unsqueeze: bool=True) -> torch.Tensor:
+    """ Convert the imgs to tensors of type dtype and add extra dimension if input bool is true.
+
+    :param imgs: the list of images to convert
+    :type img: List[np.ndarray]
+    :param dtype: the data type to convert the image tensor 
+    :type dtype: type
+    :param unsqueeze: If True an extra dim will be added at location zero
+    :type unsqueeze: bool
+    :return: the converted image
+    :rtype: torch.Tensor
+    """
     # Convert images tensors
     imgs = torch.stack([
         torch.from_numpy(img.astype(dtype)) for img in imgs
@@ -57,11 +69,11 @@ def convert_to_tensor(imgs, dtype, unsqueeze=True):
     return imgs
 
 def crop_centered_padded_patch(img: np.ndarray, 
-                               patch_center_xy, 
-                               patch_size, 
-                               obj_label,
+                               patch_center_xy: tuple, 
+                               patch_size: tuple, 
+                               obj_label: int,
                                mask: np.ndarray=None,
-                               noise_intensity=None) -> np.ndarray:
+                               noise_intensity: int=None) -> np.ndarray:
     """ Crop a patch from an array centered at coordinates patch_center_xy with size patch_size, 
     and apply padding if necessary.
 
@@ -74,12 +86,11 @@ def crop_centered_padded_patch(img: np.ndarray,
     :param obj_label: the instance label of the mask at the patch
     :type obj_label: int
     :param mask: The mask array associated with the array x. 
-        Mask is used during training to mask out non-central elements. 
-        For RandomForest, it is used to calculate pyradiomics features.
+                Mask is used during training to mask out non-central elements. 
+                For RandomForest, it is used to calculate pyradiomics features.
     :type mask: np.ndarray, optional
     :param noise_intensity: intensity of noise to be added to the background
     :type noise_intensity: float, optional
-
     :return: the cropped patch with applied padding
     :rtype: np.ndarray
     """  
@@ -146,16 +157,14 @@ def crop_centered_padded_patch(img: np.ndarray,
     return patch, mask 
 
 
-def get_center_of_mass_and_label(mask: np.ndarray) -> np.ndarray:
+def get_center_of_mass_and_label(mask: np.ndarray) -> tuple:
     """ Computes the centers of mass for each object in a mask.
 
     :param mask: the input mask containing labeled objects
     :type mask: np.ndarray
-
     :return: 
         - A list of tuples representing the coordinates (row, column) of the centers of mass for each object.
-        - A list of ints representing the labels for each object in the mask.
-    
+        - A list of ints representing the labels for each object in the mask. 
     :rtype: 
         - List [tuple]
         - List [int]
@@ -176,12 +185,12 @@ def get_center_of_mass_and_label(mask: np.ndarray) -> np.ndarray:
          
 
     
-def get_centered_patches(img,
-                         mask,
+def get_centered_patches(img: np.ndarray,
+                         mask: np.ndarray,
                          p_size: int,
-                         noise_intensity=5,
-                         mask_class=None,
-                         include_mask=False):
+                         noise_intensity: int=5,
+                         mask_class: Optional[int]=None,
+                         include_mask: bool=False) -> tuple:
 
     """ Extracts centered patches from the input image based on the centers of objects identified in the mask.
 
@@ -237,7 +246,7 @@ def get_centered_patches(img,
         
     return patches, patch_masks, instance_labels, class_labels
 
-def get_objects(mask):
+def get_objects(mask: np.ndarray) -> List:
     """ Finds labeled connected components in a binary mask.
 
     :param mask: The binary mask representing objects.
@@ -247,7 +256,7 @@ def get_objects(mask):
     """
     return find_objects(mask)
 
-def find_max_patch_size(mask):
+def find_max_patch_size(mask: np.ndarray) -> float:
     """ Finds the maximum patch size in a mask.
 
     :param mask: The binary mask representing objects.
@@ -285,7 +294,12 @@ def find_max_patch_size(mask):
 
         return max_patch_size_edge
     
-def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, max_patch_size, include_mask):
+def create_patch_dataset(imgs: List[np.ndarray],
+                         masks_classes: Optional[Union[List[np.ndarray], torch.Tensor]],
+                         masks_instances: Optional[Union[List[np.ndarray], torch.Tensor]],
+                         noise_intensity: int,
+                         max_patch_size: int,
+                         include_mask: bool) -> tuple:
     """ Splits images and masks into patches of equal size centered around the cells.
 
     :param imgs: A list of input images.
@@ -295,9 +309,9 @@ def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, 
     :param masks_instances: A list of binary masks representing instances.
     :type masks_instances: list of numpy.ndarray or torch.Tensor
     :param noise_intensity: The intensity of noise to add to the patches.
-    :type noise_intensity: float
+    :type noise_intensity: int
     :param max_patch_size: The maximum size of the bounding box edge for objects in the mask.
-    :type max_patch_size: float
+    :type max_patch_size: int
     :param include_mask: A flag indicating whether to include the mask along with patches.
     :type include_mask: bool
     :return: A tuple containing the patches, patch masks, and labels.
@@ -328,7 +342,7 @@ def create_patch_dataset(imgs, masks_classes, masks_instances, noise_intensity, 
     return patches, patch_masks, labels
 
 
-def get_shape_features(img, mask):
+def get_shape_features(img: np.ndarray, mask: np.ndarray) -> np.ndarray:
     """ Calculate shape-based radiomic features from an image within the region defined by the mask.
 
     :param img: The input image.
@@ -349,7 +363,7 @@ def get_shape_features(img, mask):
 
     return np.array(list(shape_features.values()))
 
-def extract_intensity_features(image, mask):
+def extract_intensity_features(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
     """ Extracts intensity-based features from an image within the region defined by the mask.
 
     :param image: The input image.
@@ -377,7 +391,7 @@ def extract_intensity_features(image, mask):
     
     return np.array(list(features.values()))
 
-def create_dataset_for_rf(imgs, masks):
+def create_dataset_for_rf(imgs: List[np.ndarray], masks: List[np.ndarray]) -> List[np.ndarray]:
     """ Extracts shape and intensity-based features from images within regions defined by masks.
 
     :param imgs: A list of input images.

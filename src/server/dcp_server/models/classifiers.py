@@ -119,7 +119,7 @@ class PatchClassifier(nn.Module):
         y_hat = torch.argmax(preds, 1)
         return y_hat
 
-    def build_model(self):
+    def build_model(self) -> None:
         """ Builds the PatchClassifer.
         """
         in_channels = self.model_config["in_channels"]
@@ -207,8 +207,8 @@ class FeatureClassifier:
 
    
     def train(self, 
-              X_train: np.ndarray,
-              y_train: np.ndarray
+              X_train: List[np.ndarray],
+              y_train: List[np.ndarray]
               ) -> None:
         """ Trains the model using the provided training data.
 
@@ -217,7 +217,6 @@ class FeatureClassifier:
         :param y_train: Labels of the training data.
         :type y_train: numpy.ndarray
         """
-
         self.model.fit(X_train,y_train)
 
         y_hat = self.model.predict(X_train)

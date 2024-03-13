@@ -5,7 +5,7 @@ from bentoml.io import Text, NumpyNdarray
 from typing import List
 
 from dcp_server import models as DCPModels
-
+import dcp_server.segmentationclasses as DCPSegClasses
 
 class CustomRunnable(bentoml.Runnable):
     '''
@@ -15,7 +15,7 @@ class CustomRunnable(bentoml.Runnable):
     SUPPORTED_RESOURCES = ("cpu",) #TODO add here?
     SUPPORTS_CPU_MULTI_THREADING = False
 
-    def __init__(self, model, save_model_path):
+    def __init__(self, model: DCPModels, save_model_path: str) -> None:
         """Constructs all the necessary attributes for the CustomRunnable.
 
         :param model: model to be trained or evaluated - will be one of classes in models.py
@@ -45,7 +45,7 @@ class CustomRunnable(bentoml.Runnable):
 
         return mask
     
-    def check_and_load_model(self):
+    def check_and_load_model(self) -> None:
         """Checks if the specified model exists in BentoML's model repository.
            If the model exists, it loads the latest version of the model into
            memory.
@@ -84,7 +84,7 @@ class CustomRunnable(bentoml.Runnable):
 class CustomBentoService():
     """BentoML Service class. Contains all the functions necessary to serve the service with BentoML
     """    
-    def __init__(self, runner, segmentation, service_name):
+    def __init__(self, runner: CustomRunnable, segmentation: DCPSegClasses, service_name: str) -> None:
         """Constructs all the necessary attributes for the class CustomBentoService():
 
         :param runner: runner used in the service
@@ -98,7 +98,7 @@ class CustomBentoService():
         self.segmentation = segmentation
         self.service_name = service_name
 
-    def start_service(self):
+    def start_service(self) -> None:
         """Starts the service
 
         :return: service object needed in service.py and for the bentoml serve call.
@@ -106,7 +106,7 @@ class CustomBentoService():
         svc = bentoml.Service(self.service_name, runners=[self.runner])
 
         @svc.api(input=Text(), output=NumpyNdarray())  #input path to the image output message with success and the save path
-        async def segment_image(input_path: str):
+        async def segment_image(input_path: str) -> np.ndarray:
             """function served within the service, used to segment images
 
             :param input_path: directory where the images for segmentation are saved
@@ -125,7 +125,7 @@ class CustomBentoService():
             return np.array(list_of_files_not_suported)
 
         @svc.api(input=Text(), output=Text())
-        async def train(input_path):
+        async def train(input_path: str) -> str:
             """function served within the service, used to retrain the model
 
             :param input_path: directory where the images for training are saved

@@ -179,7 +179,7 @@ class UNet(nn.Module, Model):
 
         return final_mask
     
-    def build_model(self):
+    def build_model(self) -> None:
         """ Builds the UNet.
         """
         in_channels = self.model_config["classifier"]["in_channels"]

@@ -20,20 +20,6 @@ class Model(ABC):
         self.loss = 1e6
         self.metric = 0
 
-    def update_configs(self,
-                       train_config: dict,
-                       eval_config: dict
-                       ) -> None:
-        """ Update the training and evaluation configurations.
-
-        :param train_config: Dictionary containing the training configuration.
-        :type train_config: dict
-        :param eval_config: Dictionary containing the evaluation configuration.
-        :type eval_config: dict
-        """
-        self.train_config = train_config
-        self.eval_config = eval_config
-
     @abstractmethod
     def train(self, 
               imgs: List[np.array],
@@ -46,6 +32,22 @@ class Model(ABC):
              img: np.array
              ) -> np.array:
         pass
+    
+    '''
+    def update_configs(self,
+                       config: dict,
+                       ctype: str
+                       ) -> None:
+        """ Update the training or evaluation configurations.
+
+        :param config: Dictionary containing the updated configuration.
+        :type config: dict
+        :param ctype:type of config to update, will be train or eval
+        :type ctype: str
+        """
+        if ctype=='train': self.train_config = config
+        else: self.eval_config = config
+    '''
 
 
 #from segment_anything import SamPredictor, sam_model_registry

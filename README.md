@@ -29,5 +29,4 @@ Our platform encourages the use of data centric practices. With the user friendl
 - Focus on data curation: no interaction with model parameters during training and inference
 
 #### *Get more with less!*
-<!-- TODO img seems broken even though it is online oO -->
 <img src="https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/client/readme_figs/dcp_pipeline.png"  width="200" height="200">

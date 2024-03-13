@@ -1,5 +1,8 @@
 import os
+
 from dcp_server.utils import helpers
+from dcp_server.utils.fsimagestorage import FilesystemImageStorage
+from dcp_server import models as DCPModels
 
 # Import configuration
 setup_config = helpers.read_config('setup', config_path = 'config.yaml')
@@ -7,7 +10,7 @@ setup_config = helpers.read_config('setup', config_path = 'config.yaml')
 class GeneralSegmentation():
     """ Segmentation class. Defining the main functions needed for this project and served by service - segment image and train on images.
     """    
-    def __init__(self, imagestorage, runner, model):
+    def __init__(self, imagestorage: FilesystemImageStorage, runner, model: DCPModels) -> None:
         """ Constructs all the necessary attributes for the GeneralSegmentation. 
 
         :param imagestorage: imagestorage system used (see fsimagestorage.py)
@@ -22,7 +25,7 @@ class GeneralSegmentation():
         self.model = model
         self.no_files_msg = "No image-label pairs found in curated directory"
         
-    async def segment_image(self, input_path, list_of_images):
+    async def segment_image(self, input_path: str, list_of_images: str) -> None:
         """ Segments images from the given  directory
 
         :param input_path: directory where the images are saved and where segmentation results will be saved
@@ -44,7 +47,7 @@ class GeneralSegmentation():
             seg_name = helpers.get_path_stem(img_filepath) + setup_config['seg_name_string'] + '.tiff'
             self.imagestorage.save_image(os.path.join(input_path, seg_name), mask)
 
-    async def train(self, input_path):
+    async def train(self, input_path: str) -> str:
         """ Train model on images and masks in the given input directory.
         Calls the runner's train function.
 
@@ -62,7 +65,7 @@ class GeneralSegmentation():
         model_save_path =  await self.runner.train.async_run(imgs, masks)
 
         return model_save_path
-
+'''
 
 class GFPProjectSegmentation(GeneralSegmentation):
     def __init__(self, imagestorage, runner):
@@ -126,3 +129,4 @@ class MitoProjectSegmentation(GeneralSegmentation):
             # Save segmentation
             seg_name = helpers.get_path_stem(img_filepath) + setup_config['seg_name_string'] + '.tiff'
             self.imagestorage.save_image(os.path.join(input_path, seg_name), new_mask)
+'''

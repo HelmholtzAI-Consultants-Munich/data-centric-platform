@@ -1,9 +1,10 @@
-import subprocess
 from os import path
 import sys
+import subprocess
+
 from dcp_server.utils.helpers import read_config
 
-def main(): 
+def main() -> None: 
     """
     Contains main functionality related to the server.
     """

@@ -1,7 +1,7 @@
 from pathlib import Path
 import yaml
 
-def read_config(name, config_path = 'config.yaml') -> dict:   
+def read_config(name:str, config_path:str = 'config.yaml') -> dict:   
     """Reads the configuration file
 
     :param name: name of the section you want to read (e.g. 'setup','train')
@@ -17,17 +17,17 @@ def read_config(name, config_path = 'config.yaml') -> dict:
         assert all([i in config_dict.keys() for i in ['setup', 'service', 'model', 'train', 'eval']])
         return config_dict[name]
 
-def get_path_stem(filepath): return str(Path(filepath).stem)
+def get_path_stem(filepath: str) -> str: return str(Path(filepath).stem)
 
 
-def get_path_name(filepath): return str(Path(filepath).name)
+def get_path_name(filepath: str) -> str: return str(Path(filepath).name)
 
 
-def get_path_parent(filepath): return str(Path(filepath).parent)
+def get_path_parent(filepath: str) -> str: return str(Path(filepath).parent)
 
 
-def join_path(root_dir, filepath): return str(Path(root_dir, filepath))
+def join_path(root_dir:str, filepath: str) -> str: return str(Path(root_dir, filepath))
 
 
-def get_file_extension(file): return str(Path(file).suffix)
+def get_file_extension(file: str) -> str: return str(Path(file).suffix)
 

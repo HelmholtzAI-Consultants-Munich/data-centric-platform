@@ -1,4 +1,5 @@
 import os
+from typing import Optional, List
 import numpy as np
 from skimage.io import imread, imsave
 from skimage.transform import resize, rescale
@@ -13,7 +14,7 @@ class FilesystemImageStorage():
     """ 
     Class used to deal with everything related to image storing and processing - loading, saving, transforming.
     """    
-    def __init__(self, data_config, model_used):
+    def __init__(self, data_config: dict, model_used: str) -> None:
         self.root_dir = data_config["data_root"]
         self.gray  = bool(data_config["gray"])
         self.rescale = bool(data_config["rescale"])
@@ -22,13 +23,13 @@ class FilesystemImageStorage():
         self.img_height = None
         self.img_width = None
     
-    def load_image(self, cur_selected_img, gray=None):
+    def load_image(self, cur_selected_img: str, gray: Optional[bool]=None) -> Optional[np.ndarray]:
         """Load the image (using skiimage)
 
         :param cur_selected_img: full path of the image that needs to be loaded
         :type cur_selected_img: str
         :param gray: whether to load the image as a grayscale or not
-        :type gray: bool, default=False
+        :type gray: bool or None, default=Nonee
         :return: loaded image
         :rtype: ndarray
         """     
@@ -37,7 +38,7 @@ class FilesystemImageStorage():
             return imread(os.path.join(self.root_dir , cur_selected_img), as_gray=gray)
         except ValueError: return None
     
-    def save_image(self, to_save_path, img):
+    def save_image(self, to_save_path: str, img: np.ndarray) -> None:
         """ Save given image using skimage.
 
         :param to_save_path: full path to the directory that the image needs to be save into (use also image name in the path, eg. '/users/new_image.png')
@@ -47,7 +48,7 @@ class FilesystemImageStorage():
         """       
         imsave(os.path.join(self.root_dir, to_save_path), img)
     
-    def search_images(self, directory):
+    def search_images(self, directory: str) -> List[str]:
         """ Get a list of full paths of the images in the directory.
 
         :param directory: Path to the directory to search for images.
@@ -62,7 +63,7 @@ class FilesystemImageStorage():
         image_files = [os.path.join(directory, file_name) for file_name in os.listdir(directory) if (file_name not in seg_files) and (helpers.get_file_extension(file_name) in setup_config['accepted_types'])]
         return image_files
     
-    def search_segs(self, cur_selected_img):
+    def search_segs(self, cur_selected_img: str) -> List[str]:
         """ Returns a list of full paths of segmentations for an image.
 
         :param cur_selected_img: Full path of the image for which segmentations are needed.
@@ -82,7 +83,7 @@ class FilesystemImageStorage():
 
         return seg_files
     
-    def get_image_seg_pairs(self, directory):
+    def get_image_seg_pairs(self, directory:str) -> List[tuple]:
         """ Get pairs of (image, image_seg).
 
         Used, e.g., in training to create training data-training labels pairs.
@@ -101,7 +102,7 @@ class FilesystemImageStorage():
             seg_files.append(seg[0])
         return list(zip(image_files, seg_files))
             
-    def get_unsupported_files(self, directory):
+    def get_unsupported_files(self, directory:str) -> List[str]:
         """ Get unsupported files found in the given directory.
 
         :param directory: Directory path to search for files in.
@@ -112,7 +113,7 @@ class FilesystemImageStorage():
         return [file_name for file_name in os.listdir(os.path.join(self.root_dir, directory)) 
                 if not file_name.startswith('.') and helpers.get_file_extension(file_name) not in setup_config['accepted_types']]
         
-    def get_image_size_properties(self, img, file_extension):
+    def get_image_size_properties(self, img:np.ndarray, file_extension:str) -> None:
         """Set properties of the image size
 
         :param img: Image (numpy array).
@@ -145,7 +146,7 @@ class FilesystemImageStorage():
             print('File not currently supported. See documentation for accepted types')
 
     
-    def rescale_image(self, img, order=2):
+    def rescale_image(self, img: np.ndarray, order: int=2) -> np.ndarray:
         """rescale image
 
         :param img: Image.
@@ -164,7 +165,7 @@ class FilesystemImageStorage():
             rescale_factor = max_dim/512
             return rescale(img, 1/rescale_factor, order=order, channel_axis=self.channel_ax)
     
-    def resize_mask(self, mask, channel_ax=None, order=0):
+    def resize_mask(self, mask: np.ndarray, channel_ax: Optional[int]=None, order: int=0) -> np.ndarray:
         """resize the mask so it matches the original image size
 
         :param mask: Image.
@@ -206,7 +207,7 @@ class FilesystemImageStorage():
             else: output_size = [self.img_height, self.img_width]
             return resize(mask, output_size, order=order)
     
-    def prepare_images_and_masks_for_training(self, train_img_mask_pairs):
+    def prepare_images_and_masks_for_training(self, train_img_mask_pairs: List[tuple]) -> tuple:
         """ Image and mask processing for training.
 
         :param train_img_mask_pairs: List pairs of (image, image_seg) (as returned by get_image_seg_pairs() function).
@@ -233,7 +234,7 @@ class FilesystemImageStorage():
             masks.append(mask)
         return imgs, masks
     
-    def prepare_img_for_eval(self, img_file):
+    def prepare_img_for_eval(self, img_file:str) -> np.ndarray:
         """Image processing for model inference.
 
         :param img_file: the path to the image 
@@ -250,7 +251,7 @@ class FilesystemImageStorage():
             img = self.rescale_image(img)
         return img
     
-    def prepare_mask_for_save(self, mask, channel_ax):
+    def prepare_mask_for_save(self, mask: np.ndarray, channel_ax: int) -> np.ndarray:
         """Prepares the mask output of the model to be saved.
 
         :param mask: the mask
