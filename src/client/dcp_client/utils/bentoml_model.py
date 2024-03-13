@@ -5,14 +5,11 @@ from bentoml.exceptions import BentoMLException
 
 from dcp_client.app import Model
 
-class BentomlModel(Model):
-    """BentomlModel class for connecting to a BentoML server and running training and inference tasks.
-    """
 
-    def __init__(
-        self,
-        client: Optional[BentoClient] = None
-    ):
+class BentomlModel(Model):
+    """BentomlModel class for connecting to a BentoML server and running training and inference tasks."""
+
+    def __init__(self, client: Optional[BentoClient] = None):
         """Initializes the BentomlModel.
 
         :param client: Optional BentoClient instance. If None, it will be initialized during connection.
@@ -20,7 +17,7 @@ class BentomlModel(Model):
         """
         self.client = client
 
-    def connect(self, ip: str = '0.0.0.0', port: int = 7010):
+    def connect(self, ip: str = "0.0.0.0", port: int = 7010):
         """Connects to the BentoML server.
 
         :param ip: IP address of the BentoML server. Default is '0.0.0.0'.
@@ -30,12 +27,13 @@ class BentomlModel(Model):
         :return: True if connection is successful, False otherwise.
         :rtype: bool
         """
-        url = f"http://{ip}:{port}" #"http://0.0.0.0:7010"
+        url = f"http://{ip}:{port}"  # "http://0.0.0.0:7010"
         try:
-            self.client = BentoClient.from_url(url) 
+            self.client = BentoClient.from_url(url)
             return True
-        except : return False # except ConnectionRefusedError
-    
+        except:
+            return False  # except ConnectionRefusedError
+
     @property
     def is_connected(self):
         """Checks if the BentomlModel is connected to the BentoML server.
@@ -55,7 +53,8 @@ class BentomlModel(Model):
         try:
             response = await self.client.async_train(data_path)
             return response
-        except BentoMLException: return None
+        except BentoMLException:
+            return None
 
     def run_train(self, data_path):
         """Runs the training.
@@ -76,8 +75,9 @@ class BentomlModel(Model):
         try:
             response = await self.client.async_segment_image(data_path)
             return response
-        except BentoMLException: return None
-    
+        except BentoMLException:
+            return None
+
     def run_inference(self, data_path):
         """Runs the inference.
 

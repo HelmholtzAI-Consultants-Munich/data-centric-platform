@@ -3,9 +3,9 @@ import os
 
 from dcp_client.app import ImageStorage
 
+
 class FilesystemImageStorage(ImageStorage):
-    """FilesystemImageStorage class for handling image storage operations on the local filesystem.
-    """
+    """FilesystemImageStorage class for handling image storage operations on the local filesystem."""
 
     def load_image(self, from_directory, cur_selected_img):
         """Loads an image from the specified directory.
@@ -18,7 +18,7 @@ class FilesystemImageStorage(ImageStorage):
         """
         # Read the selected image and read the segmentation if any:
         return imread(os.path.join(from_directory, cur_selected_img))
-    
+
     def move_image(self, from_directory, to_directory, cur_selected_img):
         """Moves an image from one directory to another.
 
@@ -29,8 +29,13 @@ class FilesystemImageStorage(ImageStorage):
         :param cur_selected_img: Name of the image file.
         :type cur_selected_img: str
         """
-        print(f"from:{os.path.join(from_directory, cur_selected_img)}, to:{os.path.join(to_directory, cur_selected_img)}")
-        os.replace(os.path.join(from_directory, cur_selected_img), os.path.join(to_directory, cur_selected_img))
+        print(
+            f"from:{os.path.join(from_directory, cur_selected_img)}, to:{os.path.join(to_directory, cur_selected_img)}"
+        )
+        os.replace(
+            os.path.join(from_directory, cur_selected_img),
+            os.path.join(to_directory, cur_selected_img),
+        )
 
     def save_image(self, to_directory, cur_selected_img, img):
         """Saves an image to the specified directory.
@@ -41,9 +46,9 @@ class FilesystemImageStorage(ImageStorage):
         :type cur_selected_img: str
         :param img: Image data to be saved.
         """
-      
+
         imsave(os.path.join(to_directory, cur_selected_img), img)
-    
+
     def delete_image(self, from_directory, cur_selected_img):
         """Deletes an image from the specified directory.
 
