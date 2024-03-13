@@ -31,7 +31,7 @@
 
     "train":{
         "segmentor":{
-            "n_epochs": 20,
+            "n_epochs": 30,
             "channels": [0,0],
             "min_train_masks": 1,
             "learning_rate":0.01

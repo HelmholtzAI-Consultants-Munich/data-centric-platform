@@ -29,7 +29,7 @@
 
     "train":{
         "classifier":{
-            "n_epochs": 20,
+            "n_epochs": 30,
             "lr": 0.005,
             "batch_size": 5,
             "optimizer": "Adam"

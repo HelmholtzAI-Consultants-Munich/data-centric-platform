@@ -82,12 +82,21 @@ def test_train_eval_run(data_train, data_eval, model):
     """
     Performs testing, training, and evaluation with the provided data and model.
     """
-
+    # train
     images, masks = data_train
     if model.model_name == "CustomCellpose":
         masks = [mask[0] for mask in masks]
     model.train(images, masks)
 
+    # retrieve the attribute names of the class of the current model
+    attrs = model.__dict__.keys()
+
+    if "metric" in attrs:
+        assert model.metric > 0.1
+    if "loss" in attrs:
+        assert model.loss < 0.83
+
+    # validate
     imgs_test, masks_test = data_eval
     if model.model_name == "CustomCellpose":
         masks = [mask[0] for mask in masks_test]
@@ -128,15 +137,6 @@ def test_train_eval_run(data_train, data_eval, model):
     jaccard_index_instances /= len(imgs_test)
     assert jaccard_index_instances > 0.2
 
-    # retrieve the attribute names of the class of the current model
-    attrs = model.__dict__.keys()
-
-    if "metric" in attrs:
-        assert model.metric > 0.1
-    if "loss" in attrs:
-        assert model.loss < 0.83
-
-    # for PatchCNN model
     if pred_mask.ndim > 2:
 
         jaccard_index_classes /= len(imgs_test)
