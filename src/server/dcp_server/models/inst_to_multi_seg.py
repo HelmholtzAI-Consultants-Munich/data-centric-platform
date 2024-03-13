@@ -96,7 +96,7 @@ class Inst2MultiSeg(Model):
         :type imgs: List[np.ndarray]
         :param masks: masks of the given images (training labels)
         :type masks: List[np.ndarray] of same shape as output of eval, i.e. one channel instances,
-        second channel classes, so [2, H, W] or [2, 3, H, W] for 3D
+                    second channel classes, so [2, H, W] or [2, 3, H, W] for 3D.
         """
         # train cellpose
         masks_instances = [mask[0] for mask in masks]

@@ -25,7 +25,7 @@ language = 'English'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'alabaster'
-html_static_path = ['_static']
+#html_static_path = ['_static']
 
 import os
 import sys
@@ -35,7 +35,7 @@ import sphinx_rtd_theme
 # Add parent dir to known paths
 p = Path(__file__).parents[2]
 sys.path.insert(0, os.path.abspath(p))
-
+sys.path.insert(0, os.path.join(p, 'src/server/dcp_server'))
 # Add the following extensions
 extensions = [
     'sphinx.ext.autodoc',

@@ -35,10 +35,10 @@ def pad_image(
 
     :param img: image to be padded
     :type img: np.ndarray
-    : param height: image height
-    : type height: int
-    : param width: image width
-    : type width: int
+    :param height: image height
+    :type height: int
+    :param width: image width
+    :type width: int
     :param channel_ax:
     :type channel_ax: int or None
     :param dividable: the number with which the new image size should be perfectly dividable by
@@ -97,7 +97,7 @@ def crop_centered_padded_patch(
     :param obj_label: the instance label of the mask at the patch
     :type obj_label: int
     :param mask: The mask array associated with the array x.
-                Mask is used during training to mask out non-central elements.
+                Mask is used during training to mask out non-central elements. 
                 For RandomForest, it is used to calculate pyradiomics features.
     :type mask: np.ndarray, optional
     :param noise_intensity: intensity of noise to be added to the background

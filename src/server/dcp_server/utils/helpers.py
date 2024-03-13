@@ -2,13 +2,13 @@ from pathlib import Path
 import yaml
 
 
-def read_config(name: str, config_path: str = "config.yaml") -> dict:
+def read_config(name: str, config_path: str) -> dict:
     """Reads the configuration file
 
     :param name: name of the section you want to read (e.g. 'setup','train')
     :type name: string
-    :param config_path: path to the configuration file, defaults to 'config.yaml'
-    :type config_path: str, optional
+    :param config_path: path to the configuration file
+    :type config_path: str
     :return: dictionary from the config section given by name
     :rtype: dict
     """

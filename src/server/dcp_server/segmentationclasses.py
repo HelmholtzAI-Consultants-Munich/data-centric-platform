@@ -4,9 +4,6 @@ from dcp_server.utils import helpers
 from dcp_server.utils.fsimagestorage import FilesystemImageStorage
 from dcp_server import models as DCPModels
 
-# Import configuration
-setup_config = helpers.read_config("setup", config_path="config.yaml")
-
 
 class GeneralSegmentation:
     """Segmentation class. Defining the main functions needed for this project and served by service - segment image and train on images."""
@@ -53,7 +50,7 @@ class GeneralSegmentation:
             # Save segmentation
             seg_name = (
                 helpers.get_path_stem(img_filepath)
-                + setup_config["seg_name_string"]
+                + self.imagestorage.seg_name_string
                 + ".tiff"
             )
             self.imagestorage.save_image(os.path.join(input_path, seg_name), mask)

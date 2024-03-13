@@ -1,9 +1,7 @@
 {
     "setup": {
         "segmentation": "GeneralSegmentation",
-        "model_to_use": "Inst2MultiSeg", 
-        "accepted_types": [".jpg", ".jpeg", ".png", ".tiff", ".tif"],
-        "seg_name_string": "_seg"
+        "model_to_use": "Inst2MultiSeg"
     },
 
     "service": {
@@ -31,6 +29,8 @@
 
     "data": {
         "data_root": "data",
+        "accepted_types": [".jpg", ".jpeg", ".png", ".tiff", ".tif"],
+        "seg_name_string": "_seg",
         "patch_size": 64,
         "noise_intensity": 5,
         "gray": True,
