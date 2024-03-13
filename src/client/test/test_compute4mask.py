@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from dcp_client.utils.utils import Compute4Mask
+from dcp_client.utils.compute4mask import Compute4Mask
 
 
 @pytest.fixture
