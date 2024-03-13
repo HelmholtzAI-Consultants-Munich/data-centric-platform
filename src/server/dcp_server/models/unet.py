@@ -152,7 +152,7 @@ class UNet(nn.Module, Model):
         # compute metric on test set after train is complete
         for imgs, masks in train_dataloader:
             pred_masks = self.forward(imgs.float())
-            self.metric += self.metric_f(masks, pred_masks)
+            self.metric += self.metric_f(pred_masks, masks)
         self.metric /= len(train_dataloader)
 
     def eval(self, img: np.ndarray) -> np.ndarray:

@@ -2,6 +2,7 @@ import asyncio
 from typing import Optional, List
 from bentoml.client import Client as BentoClient
 from bentoml.exceptions import BentoMLException
+import numpy as np
 
 from dcp_client.app import Model
 
