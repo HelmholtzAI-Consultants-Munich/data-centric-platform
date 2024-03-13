@@ -25,7 +25,7 @@ class WelcomeWindow(MyWidget):
     By clicking 'start' the MainWindow is called.
     """
 
-    def __init__(self, app: Application):
+    def __init__(self, app: Application) -> None:
         """Initializes the WelcomeWindow.
 
         :param app: The Application instance.
@@ -108,7 +108,7 @@ class WelcomeWindow(MyWidget):
 
         self.show()
 
-    def browse_eval_clicked(self):
+    def browse_eval_clicked(self) -> None:
         """Activates  when the user clicks the button to choose the evaluation directory (QFileDialog) and
         displays the name of the evaluation directory chosen in the validation textbox line (QLineEdit).
         """
@@ -121,7 +121,7 @@ class WelcomeWindow(MyWidget):
         finally:
             self.fd = None
 
-    def browse_train_clicked(self):
+    def browse_train_clicked(self) -> None:
         """Activates  when the user clicks the button to choose the train directory (QFileDialog) and
         displays the name of the train directory chosen in the train textbox line (QLineEdit).
         """
@@ -132,7 +132,7 @@ class WelcomeWindow(MyWidget):
             self.app.train_data_path = fd.selectedFiles()[0]
         self.train_textbox.setText(self.app.train_data_path)
 
-    def on_text_changed(self, field_obj, field_name, text):
+    def on_text_changed(self, field_obj: QLineEdit, field_name: str, text: str) -> None:
         """
         Update data paths based on text changes in input fields.
         Used for copying paths in the welcome window.
@@ -153,7 +153,7 @@ class WelcomeWindow(MyWidget):
             self.app.inprogr_data_path = text
         field_obj.setText(text)
 
-    def browse_inprogr_clicked(self):
+    def browse_inprogr_clicked(self) -> None:
         """
         Activates  when the user clicks the button to choose the curation in progress directory (QFileDialog) and
         displays the name of the evaluation directory chosen in the validation textbox line (QLineEdit).
@@ -167,7 +167,7 @@ class WelcomeWindow(MyWidget):
             ]  # TODO: case when browse is clicked but nothing is specified - currently it is filled with os.getcwd()
         self.inprogr_textbox.setText(self.app.inprogr_data_path)
 
-    def start_main(self):
+    def start_main(self) -> None:
         """Starts the main window after the user clicks 'Start' and only if both evaluation and train directories are chosen and all unique."""
 
         if (
@@ -190,7 +190,7 @@ class WelcomeWindow(MyWidget):
             self.message_text = "You need to specify a folder both for your uncurated and curated dataset (even if the curated folder is currently empty). Please go back and select folders for both."
             _ = self.create_warning_box(self.message_text, message_title="Warning")
 
-    def start_upload_and_main(self):
+    def start_upload_and_main(self) -> None:
         """
         If the configs are set to use remote not local server then the user is asked to confirm the upload of their data
         to the server and the upload starts before launching the main window.

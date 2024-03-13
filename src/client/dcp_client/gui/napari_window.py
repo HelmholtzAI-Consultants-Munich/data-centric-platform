@@ -1,14 +1,16 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from copy import deepcopy
 
 from qtpy.QtWidgets import QPushButton, QComboBox, QLabel, QGridLayout
 from qtpy.QtCore import Qt
 import napari
+import numpy as np
 
 if TYPE_CHECKING:
     from dcp_client.app import Application
-from dcp_client.utils.utils import get_path_stem, check_equal_arrays, Compute4Mask
+from dcp_client.utils.utils import get_path_stem, check_equal_arrays
+from dcp_client.utils.compute4mask import Compute4Mask
 from dcp_client.gui._my_widget import MyWidget
 
 
@@ -19,7 +21,7 @@ class NapariWindow(MyWidget):
     :type app: Application
     """
 
-    def __init__(self, app: Application):
+    def __init__(self, app: Application) -> None:
         """Initializes the NapariWindow.
 
         :param app: The Application instance.
@@ -125,7 +127,7 @@ class NapariWindow(MyWidget):
 
         self.setLayout(layout)
 
-    def set_editable_mask(self):
+    def set_editable_mask(self) -> None:
         """
         This function is not implemented. In theory the use can choose between which mask to edit.
         Currently painting and erasing is only possible on instance mask and in the class mask only
@@ -133,7 +135,7 @@ class NapariWindow(MyWidget):
         """
         pass
 
-    def on_seg_channel_changed(self, event):
+    def on_seg_channel_changed(self, event) -> None:
         """
         Is triggered each time the user selects a different layer in the viewer.
         """
@@ -148,7 +150,7 @@ class NapariWindow(MyWidget):
         else:
             pass
 
-    def axis_changed(self, event):
+    def axis_changed(self, event) -> None:
         """
         Is triggered each time the user switches the viewer between the mask channels. At this point the class mask
         needs to be updated according to the changes made tot the instance segmentation mask.
@@ -172,7 +174,7 @@ class NapariWindow(MyWidget):
                 self.update_labels_mask(masks[0])
             self.switch_to_labels_mask()
 
-    def switch_to_instance_mask(self):
+    def switch_to_instance_mask(self) -> None:
         """
         Switch the application to the active mask mode by enabling 'paint_button', 'erase_button'
         and 'fill_button'.
@@ -181,7 +183,7 @@ class NapariWindow(MyWidget):
         self.switch_controls("erase_button", True)
         self.switch_controls("fill_button", True)
 
-    def switch_to_labels_mask(self):
+    def switch_to_labels_mask(self) -> None:
         """
         Switch the application to non-active mask mode by enabling 'fill_button' and disabling 'paint_button' and 'erase_button'.
         """
@@ -197,7 +199,7 @@ class NapariWindow(MyWidget):
         self.switch_controls("erase_button", False, info_message_erase)
         self.switch_controls("fill_button", True)
 
-    def update_labels_mask(self, instance_mask):
+    def update_labels_mask(self, instance_mask: np.ndarray) -> None:
         """Updates the class mask based on changes in the instance mask.
 
         If the instance mask has changed since the last switch between channels, the class mask needs to be updated accordingly.
@@ -229,7 +231,9 @@ class NapariWindow(MyWidget):
         self.layer.data[1] = vis_labels_mask
         self.layer.refresh()
 
-    def update_instance_mask(self, instance_mask, labels_mask):
+    def update_instance_mask(
+        self, instance_mask: np.ndarray, labels_mask: np.ndarray
+    ) -> None:
         """Updates the instance mask based on changes in the labels mask.
 
         If the labels mask has changed, but only if an object has been removed, the instance mask is updated accordingly.
@@ -253,7 +257,9 @@ class NapariWindow(MyWidget):
         self.layer.data[0] = self.original_instance_mask[self.cur_selected_seg]
         self.layer.refresh()
 
-    def switch_controls(self, target_widget, status: bool, info_message=None):
+    def switch_controls(
+        self, target_widget: str, status: bool, info_message: Optional[str] = None
+    ) -> None:
         """Enables or disables a specific widget.
 
         :param target_widget: The name of the widget to be controlled within the QCtrl object.
@@ -270,7 +276,7 @@ class NapariWindow(MyWidget):
         except:
             pass
 
-    def on_add_to_curated_button_clicked(self):
+    def on_add_to_curated_button_clicked(self) -> None:
         """Defines what happens when the "Move to curated dataset folder" button is clicked."""
         if self.app.cur_selected_path == str(self.app.train_data_path):
             message_text = "Image is already in the 'Curated data' folder and should not be changed again"
@@ -325,7 +331,7 @@ class NapariWindow(MyWidget):
             self.viewer.close()
             self.close()
 
-    def on_add_to_inprogress_button_clicked(self):
+    def on_add_to_inprogress_button_clicked(self) -> None:
         """Defines what happens when the "Move to curation in progress folder" button is clicked."""
         # TODO: Do we allow this? What if they moved it by mistake? User can always manually move from their folders?)
         if self.app.cur_selected_path == str(self.app.train_data_path):

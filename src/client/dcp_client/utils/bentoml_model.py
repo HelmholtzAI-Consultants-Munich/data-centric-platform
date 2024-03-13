@@ -1,5 +1,5 @@
 import asyncio
-from typing import Optional
+from typing import Optional, List
 from bentoml.client import Client as BentoClient
 from bentoml.exceptions import BentoMLException
 
@@ -17,7 +17,7 @@ class BentomlModel(Model):
         """
         self.client = client
 
-    def connect(self, ip: str = "0.0.0.0", port: int = 7010):
+    def connect(self, ip: str = "0.0.0.0", port: int = 7010) -> bool:
         """Connects to the BentoML server.
 
         :param ip: IP address of the BentoML server. Default is '0.0.0.0'.
@@ -35,7 +35,7 @@ class BentomlModel(Model):
             return False  # except ConnectionRefusedError
 
     @property
-    def is_connected(self):
+    def is_connected(self) -> bool:
         """Checks if the BentomlModel is connected to the BentoML server.
 
         :return: True if connected, False otherwise.
@@ -43,7 +43,7 @@ class BentomlModel(Model):
         """
         return bool(self.client)
 
-    async def _run_train(self, data_path):
+    async def _run_train(self, data_path: str):
         """Runs the training task asynchronously.
 
         :param data_path: Path to the training data.
@@ -52,11 +52,12 @@ class BentomlModel(Model):
         """
         try:
             response = await self.client.async_train(data_path)
+            print('kkkkkkkkkkkkkkkkkkkkk', type(response))
             return response
         except BentoMLException:
             return None
 
-    def run_train(self, data_path):
+    def run_train(self, data_path: str):
         """Runs the training.
 
         :param data_path: Path to the training data.
@@ -65,7 +66,7 @@ class BentomlModel(Model):
         """
         return asyncio.run(self._run_train(data_path))
 
-    async def _run_inference(self, data_path):
+    async def _run_inference(self, data_path: str):
         """Runs the inference task asynchronously.
 
         :param data_path: Path to the data for inference.
@@ -74,11 +75,12 @@ class BentomlModel(Model):
         """
         try:
             response = await self.client.async_segment_image(data_path)
+            print('jjjjjjjjjj', type(response))
             return response
         except BentoMLException:
             return None
 
-    def run_inference(self, data_path):
+    def run_inference(self, data_path: str) -> List:
         """Runs the inference.
 
         :param data_path: Path to the data for inference.

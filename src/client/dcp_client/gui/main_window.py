@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
     QProgressBar,
     QShortcut,
 )
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, QThread, QModelIndex, pyqtSignal
 from PyQt5.QtGui import QKeySequence
 
 from dcp_client.utils import settings
@@ -51,7 +51,7 @@ class WorkerThread(QThread):
         self.app = app
         self.task = task
 
-    def run(self):
+    def run(self) -> None:
         """
         Once run_inference or run_train is executed, the tuple of
         (message_text, message_title) will be returned to on_finished.
@@ -83,7 +83,7 @@ class MainWindow(MyWidget):
     :type train_data_path: string
     """
 
-    def __init__(self, app: Application):
+    def __init__(self, app: Application) -> None:
         """
         Initializes the MainWindow.
 
@@ -100,7 +100,7 @@ class MainWindow(MyWidget):
         self.worker_thread = None
         self.main_window()
 
-    def main_window(self):
+    def main_window(self) -> None:
         """Sets up the GUI"""
         self.setWindowTitle(self.title)
         # self.resize(1000, 1500)
@@ -218,7 +218,7 @@ class MainWindow(MyWidget):
         self.setLayout(main_layout)
         self.show()
 
-    def on_item_train_selected(self, item):
+    def on_item_train_selected(self, item: QModelIndex) -> None:
         """
         Is called once an image is selected in the 'curated dataset' folder.
 
@@ -228,7 +228,7 @@ class MainWindow(MyWidget):
         self.app.cur_selected_img = item.data()
         self.app.cur_selected_path = self.app.train_data_path
 
-    def on_item_eval_selected(self, item):
+    def on_item_eval_selected(self, item: QModelIndex) -> None:
         """
         Is called once an image is selected in the 'uncurated dataset' folder.
 
@@ -238,7 +238,7 @@ class MainWindow(MyWidget):
         self.app.cur_selected_img = item.data()
         self.app.cur_selected_path = self.app.eval_data_path
 
-    def on_item_inprogr_selected(self, item):
+    def on_item_inprogr_selected(self, item: QModelIndex) -> None:
         """
         Is called once an image is selected in the 'in progress' folder.
 
@@ -248,7 +248,7 @@ class MainWindow(MyWidget):
         self.app.cur_selected_img = item.data()
         self.app.cur_selected_path = self.app.inprogr_data_path
 
-    def on_train_button_clicked(self):
+    def on_train_button_clicked(self) -> None:
         """
         Is called once user clicks the "Train Model" button.
         """
@@ -260,7 +260,7 @@ class MainWindow(MyWidget):
         # start the worker thread to train
         self.worker_thread.start()
 
-    def on_run_inference_button_clicked(self):
+    def on_run_inference_button_clicked(self) -> None:
         """
         Is called once user clicks the "Generate Labels" button.
         """
@@ -272,7 +272,7 @@ class MainWindow(MyWidget):
         # start the worker thread to run inference
         self.worker_thread.start()
 
-    def on_launch_napari_button_clicked(self):
+    def on_launch_napari_button_clicked(self) -> None:
         """
         Launches the napari window after the image is selected.
         """
@@ -283,7 +283,7 @@ class MainWindow(MyWidget):
             self.nap_win = NapariWindow(self.app)
             self.nap_win.show()
 
-    def on_finished(self, result):
+    def on_finished(self, result: tuple) -> None:
         """
         Is called once the worker thread emits the on finished signal.
 

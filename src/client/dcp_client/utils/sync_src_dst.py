@@ -15,7 +15,7 @@ class DataRSync(DataSync):
         user_name: str,
         host_name: str,
         server_repo_path: str,
-    ):
+    ) -> None:
         """Constructs all the necessary attributes for the CustomRunnable.
 
         :param user_name: the user name of the server - if "local", then it is assumed that local machine is used for the server
@@ -29,12 +29,14 @@ class DataRSync(DataSync):
         self.host_name = host_name
         self.server_repo_path = server_repo_path
 
-    def first_sync(self, path):
+    def first_sync(self, path: str) -> tuple:
         """
         During the first sync the folder structure should be created on the server
 
         :param path: Path to the local directory to synchronize.
         :type path: str
+        :return: result message of subprocess
+        :rtype: tuple
         """
         server = self.user_name + "@" + self.host_name + ":" + self.server_repo_path
         try:
@@ -44,7 +46,7 @@ class DataRSync(DataSync):
         except subprocess.CalledProcessError as e:
             return ("Error", e)
 
-    def sync(self, src, dst, path):
+    def sync(self, src: str, dst: str, path: str) -> tuple:
         """Syncs the data between the src and the dst. Both src and dst can be one of either
         'client' or 'server', whereas path is the local path we wish to sync
 
@@ -54,6 +56,8 @@ class DataRSync(DataSync):
         :type dst: str
         :param path: Path to the directory we want to synchronize.
         :type path: str
+        :return: result message of subprocess
+        :rtype: tuple
 
         """
         path += "/"  # otherwise it doesn't go in the directory

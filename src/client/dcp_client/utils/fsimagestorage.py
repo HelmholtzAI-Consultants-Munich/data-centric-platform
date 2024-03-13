@@ -1,5 +1,6 @@
-from skimage.io import imread, imsave
 import os
+import numpy as np
+from skimage.io import imread, imsave
 
 from dcp_client.app import ImageStorage
 
@@ -7,7 +8,7 @@ from dcp_client.app import ImageStorage
 class FilesystemImageStorage(ImageStorage):
     """FilesystemImageStorage class for handling image storage operations on the local filesystem."""
 
-    def load_image(self, from_directory, cur_selected_img):
+    def load_image(self, from_directory: str, cur_selected_img: str) -> np.ndarray:
         """Loads an image from the specified directory.
 
         :param from_directory: Path to the directory containing the image.
@@ -19,7 +20,7 @@ class FilesystemImageStorage(ImageStorage):
         # Read the selected image and read the segmentation if any:
         return imread(os.path.join(from_directory, cur_selected_img))
 
-    def move_image(self, from_directory, to_directory, cur_selected_img):
+    def move_image(self, from_directory: str, to_directory: str, cur_selected_img: str) -> None:
         """Moves an image from one directory to another.
 
         :param from_directory: Path to the source directory.
@@ -37,7 +38,7 @@ class FilesystemImageStorage(ImageStorage):
             os.path.join(to_directory, cur_selected_img),
         )
 
-    def save_image(self, to_directory, cur_selected_img, img):
+    def save_image(self, to_directory: str, cur_selected_img: str, img: np.ndarray) -> None:
         """Saves an image to the specified directory.
 
         :param to_directory: Path to the directory where the image will be saved.
@@ -49,7 +50,7 @@ class FilesystemImageStorage(ImageStorage):
 
         imsave(os.path.join(to_directory, cur_selected_img), img)
 
-    def delete_image(self, from_directory, cur_selected_img):
+    def delete_image(self, from_directory: str, cur_selected_img: str) -> None:
         """Deletes an image from the specified directory.
 
         :param from_directory: Path to the directory containing the image.
