@@ -7,6 +7,7 @@ import torch
 from torch import nn
 from torch.optim import Adam
 from torch.utils.data import TensorDataset, DataLoader
+from torchmetrics import JaccardIndex
 
 from .model import Model
 from dcp_server.utils.processing import convert_to_tensor
@@ -94,6 +95,10 @@ class UNet(nn.Module, Model):
 
         self.loss = 1e6
         self.metric = 0
+        self.num_classes = self.model_config["classifier"]["num_classes"] + 1
+        self.metric_f = JaccardIndex(
+            task="multiclass", num_classes=self.num_classes, average="macro", ignore_index=0
+        )
 
         self.build_model()
 
@@ -144,6 +149,12 @@ class UNet(nn.Module, Model):
 
             self.loss /= len(train_dataloader)
 
+        # compute metric on test set after train is complete
+        for imgs, masks in train_dataloader:
+            pred_masks = self.forward(imgs.float())
+            self.metric += self.metric_f(masks, pred_masks)
+        self.metric /= len(train_dataloader)
+
     def eval(self, img: np.ndarray) -> np.ndarray:
         """Evaluate the model on the provided image and return the predicted label.
 
@@ -174,7 +185,7 @@ class UNet(nn.Module, Model):
     def build_model(self) -> None:
         """Builds the UNet."""
         in_channels = self.model_config["classifier"]["in_channels"]
-        out_channels = self.model_config["classifier"]["num_classes"] + 1
+        out_channels = self.num_classes
         features = self.model_config["classifier"]["features"]
 
         self.encoder = nn.ModuleList()
