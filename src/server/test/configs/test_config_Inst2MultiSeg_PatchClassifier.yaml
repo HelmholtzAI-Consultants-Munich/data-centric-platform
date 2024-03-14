@@ -1,52 +1,52 @@
 {
     "setup": {
         "segmentation": "GeneralSegmentation",
-        "model_to_use": "CellposeMultichannel", 
+        "model_to_use": "Inst2MultiSeg", 
         "accepted_types": [".jpg", ".jpeg", ".png", ".tiff", ".tif"],
         "seg_name_string": "_seg"
     },
 
     "service": {
         "runner_name": "bento_runner",
-        "bento_model_path": "cp-multi",
+        "bento_model_path": "cells",   
         "service_name": "data-centric-platform",
         "port": 7010
     },
 
     "model": { 
+        "segmentor_name": Cellpose,
         "segmentor": {
             "model_type": "cyto"
-            
         },
-        "classifier":{
-            "model_class": "RandomForest",
+        "classifier_name": "PatchClassifier", 
+        "classifier":{ 
             "in_channels": 1,
-            "num_classes": 2,
+            "num_classes": 3,
             "features":[64,128,256,512],
-            "black_bg": "False",
-            "include_mask": "False"
+            "black_bg": False,
+            "include_mask": False
         }
     },
 
     "data": {
-        "data_root": "data"
+        "data_root": "data",
+        "patch_size": 64,
+        "noise_intensity": 5,
+        "gray": True,
+        "rescale": True
     },
 
     "train":{
         "segmentor":{
-            "n_epochs": 5,
+            "n_epochs": 10,
             "channels": [0,0],
-            "min_train_masks": 1
+            "min_train_masks": 1,
+            "learning_rate":0.01
         },
         "classifier":{
-            "train_data":{
-                "patch_size": 64,
-                "noise_intensity": 5,
-                "num_classes": 3
-            },
-            "n_epochs": 2,
-            "lr": 0.001,
-            "batch_size": 1,
+            "n_epochs": 20,
+            "lr": 0.005,
+            "batch_size": 5,
             "optimizer": "Adam"
         }
     },
@@ -59,10 +59,6 @@
             "batch_size": 1
         },
         "classifier": {
-            "data":{
-                "patch_size": 64,
-                "noise_intensity": 5
-            }
         },
         "mask_channel_axis": 0
     }

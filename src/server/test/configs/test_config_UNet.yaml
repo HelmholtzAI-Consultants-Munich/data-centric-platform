@@ -1,0 +1,46 @@
+{
+    "setup": {
+        "segmentation": "GeneralSegmentation",
+        "model_to_use": "UNet", 
+        "accepted_types": [".jpg", ".jpeg", ".png", ".tiff", ".tif"],
+        "seg_name_string": "_seg"
+    },
+
+    "service": {
+        "runner_name": "bento_runner",
+        "bento_model_path": "cells",   
+        "service_name": "data-centric-platform",
+        "port": 7010
+    },
+
+    "model": { 
+        "classifier":{
+            "in_channels": 1,
+            "num_classes": 3,
+            "features":[64,128,256,512]
+        }
+    },
+
+    "data": {
+        "data_root": "data",
+        "gray": True,
+        "rescale": True
+    },
+
+    "train":{
+        "classifier":{
+            "n_epochs": 30,
+            "lr": 0.005,
+            "batch_size": 5,
+            "optimizer": "Adam"
+        }
+    },
+
+    "eval":{
+        "classifier": {
+        
+        },
+        compute_instance: True,
+        "mask_channel_axis": 0
+    }
+}
