@@ -33,7 +33,9 @@ maintainers = [
 
 [project.optional-dependencies]
 dev = [
-  "pytest",
+  "pytest>=7.4.3",
+  "sphinx",
+  "sphinx-rtd-theme"
 ]
 
 [project.urls]

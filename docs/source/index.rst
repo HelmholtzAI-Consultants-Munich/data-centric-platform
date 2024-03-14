@@ -31,7 +31,7 @@ DCP handles all kinds of **segmentation tasks**! Try it out if you need to do:
 
 - **Instance** segmentation
 - **Semantic** segmentation
-- **Panoptic** segmentation
+- **Multi-class instance** segmentation
 
 Toy data
 --------

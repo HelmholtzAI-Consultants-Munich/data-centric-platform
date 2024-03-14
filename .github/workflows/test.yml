@@ -44,17 +44,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install setuptools  
-          pip install pytest
-          pip install pytest-qt
           pip install pytest-xvfb
           pip install coverage
-          pip install -e ".[testing]"
+          pip install -e ".[dev]"
           pip install matplotlib
         working-directory: src/client
 
       - name: Install server dependencies (for communication tests)
         run: |
-          pip install -e ".[testing]"
+          pip install -e ".[dev]"
         working-directory: src/server
           
       - name: Test with pytest
@@ -94,10 +92,9 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade setuptools  
           pip install numpy
-          pip install pytest
           pip install wheel
           pip install coverage
-          pip install -e ".[testing]"
+          pip install -e ".[dev]"
         working-directory: src/server
           
       - name: Test with pytest
@@ -114,7 +111,6 @@ jobs:
           files: src/server/coverage.xml
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
 
   deploy:
       # this will run when you have tagged a commit, starting with "v*"

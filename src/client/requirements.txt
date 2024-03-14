@@ -1,6 +1,2 @@
 napari[pyqt5]>=0.4.17
 bentoml[grpc]==1.0.16
-pytest>=7.4.3
-pytest-qt>=4.2.0
-sphinx
-sphinx-rtd-theme

@@ -21,7 +21,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-# build/
+build/
 develop-eggs/
 dist/
 downloads/
@@ -153,4 +153,6 @@ dmypy.json
 .idea/
 
 .DS_Store
+data/
+BentoML/
 
