@@ -215,8 +215,7 @@ class WelcomeWindow(MyWidget):
     
 
     def browse_inprogr_clicked(self):
-        '''
-        Activates  when the user clicks the button to choose the curation in progress directory (QFileDialog) and 
+        """Activates  when the user clicks the button to choose the curation in progress directory (QFileDialog) and 
         displays the name of the evaluation directory chosen in the validation textbox line (QLineEdit).
         """
 
