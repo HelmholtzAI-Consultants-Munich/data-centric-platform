@@ -1,7 +1,7 @@
 import os
 import pytest
 import sys
-sys.path.append('../')
+sys.path.append("../")
 
 from skimage import data
 from skimage.io import imsave
@@ -16,12 +16,14 @@ from dcp_client.utils.fsimagestorage import FilesystemImageStorage
 from dcp_client.utils.sync_src_dst import DataRSync
 from dcp_client.utils import settings
 
+from unittest.mock import MagicMock
+
 @pytest.fixture()
 def setup_global_variable():
     settings.accepted_types = (".jpg", ".jpeg", ".png", ".tiff", ".tif")
     yield settings.accepted_types
 
-@pytest.fixture
+@pytest.fixture()
 def app(qtbot, setup_global_variable):
 
     settings.accepted_types = setup_global_variable
@@ -130,6 +132,19 @@ def test_on_finished(qtbot, app):
     assert app.train_button.isEnabled()
     assert app.inference_button.isEnabled()
     assert app.worker_thread is None
+
+def test_launch_napari_button_clicked_with_selected_img(qtbot, app):
+    
+    with pytest.raises(Exception) as exc_info:
+        index = app.list_view_eval.indexAt(app.list_view_eval.viewport().rect().topLeft())
+        app.on_item_eval_selected(index)
+
+        window = MainWindow(app)
+        window.nap_win = MagicMock(side_effect=Exception("Test exception"))
+
+        window.on_launch_napari_button_clicked()
+
+    assert "An error occurred while opening the Napari window" in str(exc_info.value)
 
 def test_launch_napari_button_click_without_selection(qtbot, app):
     # Try clicking the view button without having selected an image
