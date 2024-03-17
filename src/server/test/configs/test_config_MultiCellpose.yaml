@@ -1,33 +1,40 @@
 {
     "setup": {
         "segmentation": "GeneralSegmentation",
+        "model_to_use": "MultiCellpose", 
         "accepted_types": [".jpg", ".jpeg", ".png", ".tiff", ".tif"],
         "seg_name_string": "_seg"
     },
 
     "service": {
-        "model_to_use": "CustomCellposeModel", 
-        "save_model_path": "cells",
-        "runner_name": "cellpose_runner",
+        "runner_name": "bento_runner",
+        "bento_model_path": "cells",   
         "service_name": "data-centric-platform",
         "port": 7010
     },
 
     "model": { 
+        "segmentor_name": Cellpose,
         "segmentor": {
             "model_type": "cyto"
+        },
+        "classifier":{
+            "num_classes": 3
         }
     },
 
     "data": {
-        "data_root": "data"
+        "data_root": "data",
+        "gray": True,
+        "rescale": True
     },
 
     "train":{
         "segmentor":{
-            "n_epochs": 10,
+            "n_epochs": 30,
             "channels": [0,0],
-            "min_train_masks": 1
+            "min_train_masks": 1,
+            "learning_rate":0.01
         }
     },
 
@@ -38,6 +45,6 @@
             "rescale": 1,
             "batch_size": 1
         },
-        "mask_channel_axis": null
+        "mask_channel_axis": 0
     }
 }
