@@ -114,14 +114,55 @@ class WelcomeWindow(MyWidget):
         self.path_layout.addWidget(self.train_textbox)
 
         self.file_open_button_val = QPushButton("Browse", self)
+        self.file_open_button_val.setFixedSize(80, 30)
+        self.file_open_button_val.setStyleSheet(
+            """QPushButton 
+            { 
+                  background-color: #3d81d1;
+                  font-size: 11px; 
+                  font-weight: bold;
+                  color: #ffffff; 
+                  border-radius: 5px;
+                  padding: 8px 16px; }"""
+            "QPushButton:hover { background-color: #006FBA; }"
+        )
         self.file_open_button_val.show()
         self.file_open_button_val.clicked.connect(self.browse_eval_clicked)
+
         self.file_open_button_prog = QPushButton("Browse", self)
+        self.file_open_button_prog.setFixedSize(80, 30)
+        self.file_open_button_prog.setStyleSheet(
+            """QPushButton 
+            { 
+                  background-color: #3d81d1;
+                  font-size: 11px; 
+                  font-weight: bold;
+                  color: #ffffff; 
+                  border-radius: 5px;
+                  padding: 8px 16px; }"""
+            "QPushButton:hover { background-color: #006FBA; }"
+        )
         self.file_open_button_prog.show()
         self.file_open_button_prog.clicked.connect(self.browse_inprogr_clicked)
+
+
         self.file_open_button_train = QPushButton("Browse", self)
+        self.file_open_button_train.setFixedSize(80, 30)
+        self.file_open_button_train.setStyleSheet(
+            """QPushButton 
+            { 
+                  background-color: #3d81d1;
+                  font-size: 11px; 
+                  font-weight: bold;
+                  color: #ffffff; 
+                  border-radius: 5px;
+                  padding: 8px 16px; }"""
+            "QPushButton:hover { background-color: #006FBA; }"
+           
+        )
         self.file_open_button_train.show()
         self.file_open_button_train.clicked.connect(self.browse_train_clicked)
+
         self.button_layout.addWidget(self.file_open_button_val)
         self.button_layout.addWidget(self.file_open_button_prog)
         self.button_layout.addWidget(self.file_open_button_train)
@@ -143,7 +184,7 @@ class WelcomeWindow(MyWidget):
                   border-radius: 5px;
                   padding: 8px 16px; }"""
             "QPushButton:hover { background-color: #7bc432; }"
-            "QPushButton:pressed { background-color: #7bc432; }"
+          
         )
         self.start_button.show()
         # check if we need to upload data to server
