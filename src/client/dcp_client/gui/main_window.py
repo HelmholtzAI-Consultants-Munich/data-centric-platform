@@ -3,41 +3,9 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
 
-from PyQt5.QtWidgets import (
-    QPushButton,
-    QVBoxLayout,
-    QFileSystemModel,
-    QHBoxLayout,
-    QLabel,
-    QTreeView,
-    QProgressBar,
-    QShortcut,
-    QApplication,
-    QStyledItemDelegate,
-)
-from PyQt5.QtCore import (
-    Qt,
-    QModelIndex,
-    QThread,
-    pyqtSignal,
-    QRect,
-    QSize,
-    QVariant,
-    QDir,
-)
-from PyQt5.QtGui import (
-    QKeySequence,
-    QIcon,
-    QPixmap,
-    QPainter,
-    QImage,
-    QBrush,
-    QPen,
-    QFont,
-)
-
-# from PySide2.QtCore import QModelIndex
-
+from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QFileSystemModel, QHBoxLayout, QLabel, QTreeView, QProgressBar, QShortcut, QApplication, QStyledItemDelegate
+from PyQt5.QtCore import Qt, QModelIndex, QThread, pyqtSignal, QRect, QSize, QVariant, QDir
+from PyQt5.QtGui import QKeySequence, QPixmap, QPainter, QImage, QBrush, QPen, QFont
 
 from dcp_client.utils import settings
 from dcp_client.utils.utils import IconProvider, CustomItemDelegate
@@ -564,16 +532,20 @@ class MainWindow(MyWidget):
         # start the worker thread to run inference
         self.worker_thread.start()
 
-    def on_launch_napari_button_clicked(self) -> None:
-        """
+    def on_launch_napari_button_clicked(self):
+        ''' 
         Launches the napari window after the image is selected.
-        """
-        if not self.app.cur_selected_img or "_seg.tiff" in self.app.cur_selected_img:
-            message_text = "Please first select an image you wish to visualise. The selected image must be an original image, not a mask."
+        '''
+        if not self.app.cur_selected_img or '_seg.tiff' in self.app.cur_selected_img:
+            message_text = "Please first select an image you wish to visualize. The selected image must be an original image, not a mask."
             _ = self.create_warning_box(message_text, message_title="Warning")
         else:
-            self.nap_win = NapariWindow(self.app)
-            self.nap_win.show()
+            try:
+                self.nap_win = NapariWindow(self.app)
+                self.nap_win.show() 
+            except Exception as e:
+                message_text = f"An error occurred while opening the Napari window: {str(e)}"
+                _ = self.create_warning_box(message_text, message_title="Error")
 
     def on_finished(self, result: tuple) -> None:
         """

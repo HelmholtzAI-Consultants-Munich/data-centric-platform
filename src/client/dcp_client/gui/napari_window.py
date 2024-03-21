@@ -177,6 +177,37 @@ class NapariWindow(MyWidget):
 
         self.setLayout(layout)
 
+        remove_from_dataset_button = QPushButton('Remove from dataset')
+        remove_from_dataset_button.setStyleSheet(
+        """QPushButton 
+            { 
+                  background-color: #0064A8;
+                  font-size: 12px; 
+                  font-weight: bold;
+                  color: #D1D2D4; 
+                  border-radius: 5px;
+                  padding: 8px 16px; }"""
+        "QPushButton:hover { background-color: #006FBA; }"
+        "QPushButton:pressed { background-color: #006FBA; }" 
+         
+        )
+        layout.addWidget(remove_from_dataset_button, 3, 0, 1, 4)
+        remove_from_dataset_button.clicked.connect(self.on_remove_from_dataset_button_clicked)
+
+    def on_remove_from_dataset_button_clicked(self) -> None:
+        """
+        Defines what happens when the "Remove from dataset" button is clicked.
+        """
+        seg_name_to_remove = self.viewer.layers.selection.active.name
+        if seg_name_to_remove:
+            # Delete the image and corresponding masks from the dataset
+            image_name = self.app.cur_selected_img
+            seg_files_to_remove = [seg_name_to_remove + '.tiff']
+            self.app.delete_images([image_name] + seg_files_to_remove)
+
+            self.viewer.close()
+            self.close()
+    
     def set_editable_mask(self) -> None:
         """
         This function is not implemented. In theory the use can choose between which mask to edit.
