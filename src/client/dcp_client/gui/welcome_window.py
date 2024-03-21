@@ -112,7 +112,7 @@ class WelcomeWindow(MyWidget):
         self.path_layout.addWidget(self.val_textbox)
         self.path_layout.addWidget(self.inprogr_textbox)
         self.path_layout.addWidget(self.train_textbox)
-
+        '''
         self.file_open_button_val = QPushButton("Browse", self)
         self.file_open_button_val.show()
         self.file_open_button_val.clicked.connect(self.browse_eval_clicked)
@@ -125,7 +125,7 @@ class WelcomeWindow(MyWidget):
         self.button_layout.addWidget(self.file_open_button_val)
         self.button_layout.addWidget(self.file_open_button_prog)
         self.button_layout.addWidget(self.file_open_button_train)
-
+        '''
         input_layout.addLayout(self.text_layout)
         input_layout.addLayout(self.path_layout)
         input_layout.addLayout(self.button_layout)
@@ -215,7 +215,7 @@ class WelcomeWindow(MyWidget):
     
 
     def browse_inprogr_clicked(self):
-        '''
+        """"
         Activates  when the user clicks the button to choose the curation in progress directory (QFileDialog) and 
         displays the name of the evaluation directory chosen in the validation textbox line (QLineEdit).
         """
