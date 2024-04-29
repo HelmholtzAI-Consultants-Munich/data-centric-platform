@@ -18,6 +18,7 @@ pip install dcp_server
 ### Installation for developers
 Before starting make sure you have navigated to ```data-centric-platform/src/server```. All future steps expect you are in the server directory. In your dedicated environment run:
 ```
+pip install numpy # if you don't do this, pyradiomics fails
 pip install -e .
 ```
 
