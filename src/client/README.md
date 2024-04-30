@@ -24,7 +24,7 @@ In your dedicated environment run:
 pip install -e .
 ```
 
-This installation has been thoroughly tested using a conda environment with python version 3.9, 3.10, 3.11 on a macOS local machine.
+This installation has been thoroughly tested using a conda environment with python version 3.9, 3.10, 3.11 and 3.12 on a macOS local machine.
 
 
 
