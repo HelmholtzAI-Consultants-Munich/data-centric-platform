@@ -1,2 +1,2 @@
 napari[pyqt5]>=0.4.17
-bentoml[grpc]==1.0.16
+bentoml[grpc]>=1.2.5
