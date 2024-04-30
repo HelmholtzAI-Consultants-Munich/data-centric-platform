@@ -21,8 +21,13 @@ pip install -e .
 #### Launch DCP client
 Make sure the server is already running, either locally or remotely. Then, depending on the configuration, simply run:
 ```
-dcp-client --mode local/remote
+dcp-client --mode local
 ```
+or 
+```
+dcp-client --mode remote
+```
+depending on whether your server is running locally or remotely.
 
 ## Want to know more?
 Visit our [documentation](https://data-centric-platform.readthedocs.io/en/latest/dcp_client_installation.html) for more information and a step by step guide on how to run the client.
