@@ -11,11 +11,27 @@ The client of our data centric platform for microscopy imaging.
 Installation
 -------------
 
-Before starting make sure you have navigated to ``data-centric-platform/src/client``. All future steps expect you are in the client directory. This installation has been tested using a conda environment with python version 3.9 on a mac local machine. In your dedicated environment run:
+For installing dcp-client you will first need to clone the repo:
+
+.. code-block:: bash
+
+   git clone https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform.git
+
+
+Then navigate to the client directory:
+
+.. code-block:: bash
+
+   cd data-centric-platform/src/client
+
+In your dedicated environment run:
 
 .. code-block:: bash
 
    pip install -e .
+
+
+This installation has been thoroughly tested using a conda environment with python version 3.9, 3.10, 3.11 and 3.12 on a macOS local machine.
 
 Running the client: A step-by-step guide!
 ------------------------------------------
