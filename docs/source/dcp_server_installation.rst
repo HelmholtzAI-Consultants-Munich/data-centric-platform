@@ -15,12 +15,28 @@ The client and server communicate via the `bentoml <https://www.bentoml.com/?gcl
 Installation
 --------------
 
-To install dcp-server you will need Python >3.8 and <3.12 (pyradiomics currently doesn't work with 3.12). Before starting make sure you have navigated to ``data-centric-platform/src/server``. All future steps expect you are in the server directory. In your dedicated environment run:
+For installing dcp-server you will need to have Python <3.12, the repo has been tested on Python versions 3.9, 3.10 and 3.11 on latest versions of Windows, Ubuntu and MacOS. 
+
+First clone the repo:
 
 .. code-block:: bash
 
-   pip install numpy # if you don't perform this step pyradiomics fails
-   pip install -e ".[dev]"
+   git clone https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform.git
+
+Then navigate to the server directory:
+
+.. code-block:: bash
+
+   cd data-centric-platform/src/server
+
+
+In your dedicated environment run:
+
+.. code-block:: bash
+
+   pip install numpy
+   pip install -e .
+
 
 Launch DCP Server
 ------------------
