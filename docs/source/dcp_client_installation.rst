@@ -31,7 +31,14 @@ After you are certain the server is running, simply run:
 
    .. code-block:: bash
 
-      dcp-client --mode local/remote
+      dcp-client --mode local
+
+   or
+
+   .. code-block:: bash
+
+      dcp-client --mode remote
+
    
 Set the ``--mode`` argument to ``local`` or ``remote`` depending on which setup you have chosen for the server.
 
