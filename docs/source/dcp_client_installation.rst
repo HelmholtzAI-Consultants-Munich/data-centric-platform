@@ -67,12 +67,9 @@ Set the ``--mode`` argument to ``local`` or ``remote`` depending on which setup 
 
    This folder is intended to contain images along with their final segmentations. **Only** move images here when the segmentation is complete and finalised, you won't be able to change them after they have been moved here. These are then used for training your model.
 
-3. **Setting paths**
-~~~~~~~~~~~~~~~~~~~~~
-
    After setting the paths for these three folders, you can click the **Start** button. If you have set the server configuration to the cloud, you will receive a message notifying you that your data will be uploaded to the cloud. Click **Ok** to continue.
 
-4. **Data Overview**
+3. **Data Overview**
 ~~~~~~~~~~~~~~~~~~~~
 
    The main working window will appear next. This gives you an overview of the directories selected in the previous step along with three options:
@@ -86,7 +83,7 @@ Set the ``--mode`` argument to ``local`` or ``remote`` depending on which setup 
       :height: 200
       :align: center
 
-5. **The viewer**
+4. **The viewer**
 ~~~~~~~~~~~~~~~~~~~~
 
    In DCP, we use [napari](https://napari.org/stable) for viewing our images and masks, adding, editing or removing labels. An example of the viewer can be seen below. After adding or removing any objects and editing existing objects wherever necessary, there are two options available:
