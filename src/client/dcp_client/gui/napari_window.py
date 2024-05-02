@@ -38,6 +38,8 @@ class NapariWindow(MyWidget):
 
         # Set the viewer
         self.viewer = napari.Viewer(show=False)
+        self.viewer.window.add_plugin_dock_widget("napari-sam")
+
         self.viewer.add_image(img, name=get_path_stem(self.app.cur_selected_img))
         for seg_file in self.seg_files:
             self.viewer.add_labels(
