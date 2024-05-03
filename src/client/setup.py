@@ -15,6 +15,7 @@ setup(
     url="https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform",
     packages=find_packages(),
     install_requires=[
+        "matplotlib >=3.3",
         "napari[pyqt5]>=0.4.17",
         "segment-anything @ git+https://github.com/facebookresearch/segment-anything.git@main",
         "torch",
