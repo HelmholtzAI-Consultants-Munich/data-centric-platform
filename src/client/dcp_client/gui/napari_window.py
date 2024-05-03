@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from qtpy.QtWidgets import QPushButton, QComboBox, QLabel, QGridLayout
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QGuiApplication
 import napari
 import numpy as np
 
@@ -30,6 +31,8 @@ class NapariWindow(MyWidget):
         super().__init__()
         self.app = app
         self.setWindowTitle("napari viewer")
+        screen_size = QGuiApplication.primaryScreen().geometry()
+        self.resize(int(screen_size.width()*0.9), int(screen_size.height()*0.8))
 
         # Load image and get corresponding segmentation filenames
         img = self.app.load_image()
