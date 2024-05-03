@@ -162,6 +162,7 @@ class NapariWindow(MyWidget):
         """
         self.active_mask_index = self.viewer.dims.current_step[0]
         masks = deepcopy(self.layer.data)
+
         # if user has switched to the instance mask
         if self.active_mask_index == 0:
             class_mask_with_contours = Compute4Mask.add_contour(masks[1], masks[0])
@@ -171,6 +172,7 @@ class NapariWindow(MyWidget):
             ):
                 self.update_instance_mask(masks[0], masks[1])
             self.switch_to_instance_mask()
+
         # else if user has switched to the class mask
         elif self.active_mask_index == 1:
             if not check_equal_arrays(
@@ -184,6 +186,8 @@ class NapariWindow(MyWidget):
         Switch the application to the active mask mode by enabling 'paint_button', 'erase_button'
         and 'fill_button'.
         """
+        
+        self.original_class_mask[self.cur_selected_seg] = deepcopy(self.layer.data[1])
         self.switch_controls("paint_button", True)
         self.switch_controls("erase_button", True)
         self.switch_controls("fill_button", True)
@@ -192,6 +196,8 @@ class NapariWindow(MyWidget):
         """
         Switch the application to non-active mask mode by enabling 'fill_button' and disabling 'paint_button' and 'erase_button'.
         """
+
+        self.original_instance_mask[self.cur_selected_seg] = deepcopy(self.layer.data[0])
         if self.cur_selected_seg in [layer.name for layer in self.viewer.layers]:
             self.viewer.layers[self.cur_selected_seg].mode = "pan_zoom"
         info_message_paint = (
