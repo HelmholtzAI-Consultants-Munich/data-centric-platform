@@ -11,11 +11,27 @@ The client of our data centric platform for microscopy imaging.
 Installation
 -------------
 
-Before starting make sure you have navigated to ``data-centric-platform/src/client``. All future steps expect you are in the client directory. This installation has been tested using a conda environment with python version 3.9 on a mac local machine. In your dedicated environment run:
+For installing dcp-client you will first need to clone the repo:
+
+.. code-block:: bash
+
+   git clone https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform.git
+
+
+Then navigate to the client directory:
+
+.. code-block:: bash
+
+   cd data-centric-platform/src/client
+
+In your dedicated environment run:
 
 .. code-block:: bash
 
    pip install -e .
+
+
+This installation has been thoroughly tested using a conda environment with python version 3.9, 3.10, 3.11 and 3.12 on a macOS local machine.
 
 Running the client: A step-by-step guide!
 ------------------------------------------
@@ -25,13 +41,20 @@ Running the client: A step-by-step guide!
 
 DCP includes a client and server side for using our data centric platform. The client and server communicate via the `bentoml <https://www.bentoml.com/?gclid=Cj0KCQiApKagBhC1ARIsAFc7Mc6iqOLi2OcLtqMbGx1KrFjtLUEZ-bhnqlT2zWREE0x7JImhtNmKlFEaAvSSEALw_wcB>`_ library. 
    There are currently two options available: running the server locally, or connecting to the running instance on the FZJ jusuf-cloud.
-   Before continuing, you need to make sure that DCP server is running, either locally or on the cloud. See :doc: `dcp_server_installation` for instructions on how to launch the server. **Note:** In order for this connection to succeed, you will need to have contacted the team developing DCP, so they can add your IP to the list of accepted requests.
+   Before continuing, you need to make sure that DCP server is running, either locally or on the cloud. See :ref:`DCP Client` for instructions on how to launch the server. **Note:** In order for this connection to succeed, you will need to have contacted the team developing DCP, so they can add your IP to the list of accepted requests.
 
 After you are certain the server is running, simply run:
 
    .. code-block:: bash
 
-      dcp-client --mode local/remote
+      dcp-client --mode local
+
+   or
+
+   .. code-block:: bash
+
+      dcp-client --mode remote
+
    
 Set the ``--mode`` argument to ``local`` or ``remote`` depending on which setup you have chosen for the server.
 
@@ -60,12 +83,9 @@ Set the ``--mode`` argument to ``local`` or ``remote`` depending on which setup 
 
    This folder is intended to contain images along with their final segmentations. **Only** move images here when the segmentation is complete and finalised, you won't be able to change them after they have been moved here. These are then used for training your model.
 
-3. **Setting paths**
-~~~~~~~~~~~~~~~~~~~~~
-
    After setting the paths for these three folders, you can click the **Start** button. If you have set the server configuration to the cloud, you will receive a message notifying you that your data will be uploaded to the cloud. Click **Ok** to continue.
 
-4. **Data Overview**
+3. **Data Overview**
 ~~~~~~~~~~~~~~~~~~~~
 
    The main working window will appear next. This gives you an overview of the directories selected in the previous step along with three options:
@@ -79,10 +99,10 @@ Set the ``--mode`` argument to ``local`` or ``remote`` depending on which setup 
       :height: 200
       :align: center
 
-5. **The viewer**
+4. **The viewer**
 ~~~~~~~~~~~~~~~~~~~~
 
-   In DCP, we use [napari](https://napari.org/stable) for viewing our images and masks, adding, editing or removing labels. The newest version of DCP comes with `napari-sam <https://www.napari-hub.org/plugins/napari-sam>`_ integration, to enable even faster labelling! Check out the turorial on the napari-hub to find out how to use this tool. An example of the viewer can be seen below. After adding or removing any objects and editing existing objects wherever necessary, there are two options available:
+   In DCP, we use  `napari <https://napari.org/stable>`_ for viewing our images and masks, adding, editing or removing labels. The newest version of DCP comes with `napari-sam <https://www.napari-hub.org/plugins/napari-sam>`_ integration, to enable even faster labelling! Check out the turorial on the napari-hub to find out how to use this tool. An example of the viewer can be seen below. After adding or removing any objects and editing existing objects wherever necessary, there are two options available:
   
    - Click the **Move to Curation in progress folder** if you are not 100% certain about the labels you have created. You can also click on the label in the labels layer and change the name. This will result in several label files being created in the *In progress folder*, which can be examined later on.  **Note:** When changing the layer name in Napari, the user should rename it such that they add their initials or any other new info after _seg. E.g., if the labels of 1_seg.tiff have been changed in the Napari viewer, then the appropriate naming would for example be: 1_seg_CB.tiff and not 1_CB_seg.tiff.
    - Click the **Move to Curated dataset folder** if you are certain that the labels you are now viewing are final and require no more curation. These images and labels will later be used for training the machine learning model, so make sure that you select this option only if you are certain about the labels. If several labels are displayed (opened from the 'Curation in progress' step), make sure to **click** on the single label in the labels layer list you wish to be moved to the *Curated data folder*. The other images will then be automatically deleted from this folder.
