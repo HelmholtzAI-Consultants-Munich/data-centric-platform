@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from qtpy.QtWidgets import QPushButton, QComboBox, QLabel, QGridLayout
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QGuiApplication
 import napari
 import numpy as np
 
@@ -30,6 +31,8 @@ class NapariWindow(MyWidget):
         super().__init__()
         self.app = app
         self.setWindowTitle("napari viewer")
+        screen_size = QGuiApplication.primaryScreen().geometry()
+        self.resize(int(screen_size.width()*0.9), int(screen_size.height()*0.8))
 
         # Load image and get corresponding segmentation filenames
         img = self.app.load_image()
@@ -38,6 +41,8 @@ class NapariWindow(MyWidget):
 
         # Set the viewer
         self.viewer = napari.Viewer(show=False)
+        self.viewer.window.add_plugin_dock_widget("napari-sam")
+
         self.viewer.add_image(img, name=get_path_stem(self.app.cur_selected_img))
         for seg_file in self.seg_files:
             self.viewer.add_labels(
@@ -157,6 +162,7 @@ class NapariWindow(MyWidget):
         """
         self.active_mask_index = self.viewer.dims.current_step[0]
         masks = deepcopy(self.layer.data)
+
         # if user has switched to the instance mask
         if self.active_mask_index == 0:
             class_mask_with_contours = Compute4Mask.add_contour(masks[1], masks[0])
@@ -166,6 +172,7 @@ class NapariWindow(MyWidget):
             ):
                 self.update_instance_mask(masks[0], masks[1])
             self.switch_to_instance_mask()
+
         # else if user has switched to the class mask
         elif self.active_mask_index == 1:
             if not check_equal_arrays(
@@ -179,6 +186,8 @@ class NapariWindow(MyWidget):
         Switch the application to the active mask mode by enabling 'paint_button', 'erase_button'
         and 'fill_button'.
         """
+        
+        self.original_class_mask[self.cur_selected_seg] = deepcopy(self.layer.data[1])
         self.switch_controls("paint_button", True)
         self.switch_controls("erase_button", True)
         self.switch_controls("fill_button", True)
@@ -187,6 +196,8 @@ class NapariWindow(MyWidget):
         """
         Switch the application to non-active mask mode by enabling 'fill_button' and disabling 'paint_button' and 'erase_button'.
         """
+
+        self.original_instance_mask[self.cur_selected_seg] = deepcopy(self.layer.data[0])
         if self.cur_selected_seg in [layer.name for layer in self.viewer.layers]:
             self.viewer.layers[self.cur_selected_seg].mode = "pan_zoom"
         info_message_paint = (

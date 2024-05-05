@@ -1,23 +1,24 @@
 from __future__ import annotations
-import bentoml
+import os
 import typing as t
-from dcp_server.serviceclasses import CustomBentoService, CustomRunnable
+import bentoml
 
+from dcp_server.serviceclasses import CustomBentoService, CustomRunnable
 from dcp_server.utils.fsimagestorage import FilesystemImageStorage
 from dcp_server.utils.helpers import read_config
 
-import sys, inspect
 
 models_module = __import__("models")
 segmentation_module = __import__("segmentationclasses")
 
 # Import configuration
-service_config = read_config("service", config_path="config.yaml")
-model_config = read_config("model", config_path="config.yaml")
-data_config = read_config("data", config_path="config.yaml")
-train_config = read_config("train", config_path="config.yaml")
-eval_config = read_config("eval", config_path="config.yaml")
-setup_config = read_config("setup", config_path="config.yaml")
+rel_path = os.path.dirname(os.path.realpath(__file__))
+service_config = read_config("service", config_path=os.path.join(rel_path, "config.yaml"))
+model_config = read_config("model", config_path=os.path.join(rel_path, "config.yaml"))
+data_config = read_config("data", config_path=os.path.join(rel_path, "config.yaml"))
+train_config = read_config("train", config_path=os.path.join(rel_path, "config.yaml"))
+eval_config = read_config("eval", config_path=os.path.join(rel_path, "config.yaml"))
+setup_config = read_config("setup", config_path=os.path.join(rel_path, "config.yaml"))
 
 # instantiate the model
 
