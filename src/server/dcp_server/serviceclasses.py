@@ -14,7 +14,7 @@ class CustomRunnable(bentoml.Runnable):
     CustomRunnable is a custom runner defined to meet all the requirements needed for this project.
     """
 
-    SUPPORTED_RESOURCES = ("cpu",)  # TODO add here?
+    SUPPORTED_RESOURCES = ("cpu", "gpu")  # TODO add here?
     SUPPORTS_CPU_MULTI_THREADING = False
 
     def __init__(self, model: DCPModels, save_model_path: str) -> None:

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 import numpy as np
+import torch
 
 
 class Model(ABC):
@@ -21,6 +22,8 @@ class Model(ABC):
 
         self.loss = 1e6
         self.metric = 0
+
+        self.device = ['cuda' if torch.cuda.is_available() else 'cpu']
 
     @abstractmethod
     def train(self, imgs: List[np.array], masks: List[np.array]) -> None:
