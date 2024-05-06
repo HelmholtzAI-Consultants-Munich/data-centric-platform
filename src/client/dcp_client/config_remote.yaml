@@ -1,9 +1,9 @@
 {
     "server":{
         "user": "rocky",
-        "host": "jsc-vm", 
+        "host": "134.94.198.195", 
         "data-path": "/home/rocky/dcp-data/my-project",
-        "ip": "134.94.198.230", 
+        "ip": "134.94.198.195", 
         "port": 7010
     }
 }
