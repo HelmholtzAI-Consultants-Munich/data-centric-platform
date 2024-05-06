@@ -23,6 +23,7 @@ def main() -> None:
         "service", config_path=path.join(dir_name, "config.yaml")
     )
     port = str(service_config["port"])
+    timeout = str(service_config["timeout"])
 
     subprocess.run(
         [
@@ -33,6 +34,7 @@ def main() -> None:
             "service:svc",
             "--reload",
             "--port=" + port,
+            "--timeout=" + timeout
         ]
     )
 
