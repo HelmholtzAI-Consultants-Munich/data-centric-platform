@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from PyQt5.QtWidgets import (
+from qtpy.QtWidgets import (
                             QPushButton,
                             QVBoxLayout,
                             QHBoxLayout,
@@ -15,10 +15,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, QModelIndex, QThread, pyqtSignal, QSize
 from PyQt5.QtGui import QKeySequence
 
-
-from dcp_client.utils import settings
-from dcp_client.utils.utils import IconProvider, CustomItemDelegate
-
+from dcp_client.gui._custom_qt_helpers import IconProvider, CustomItemDelegate
 from dcp_client.gui.napari_window import NapariWindow
 from dcp_client.gui._my_widget import MyWidget
 from dcp_client.gui._filesystem_wig import MyQFileSystemModel
@@ -144,15 +141,13 @@ class MainWindow(MyWidget):
         model_eval.sort(0, Qt.AscendingOrder)
 
         self.list_view_eval = QTreeView(self)
-        #self.list_view_eval.setItemDelegate(ImageDelegate())
         self.list_view_eval.setToolTip("Select an image, click it, then press Enter")
         self.list_view_eval.setIconSize(QSize(300, 300))
         self.list_view_eval.setStyleSheet("background-color: #ffffff")
         self.list_view_eval.setModel(model_eval)
         
         model_eval.setRootPath("/")
-        delegate = CustomItemDelegate()
-        self.list_view_eval.setItemDelegate(delegate)
+        self.list_view_eval.setItemDelegate(CustomItemDelegate())
 
         for i in range(1, 4):
             self.list_view_eval.hideColumn(i)
@@ -207,8 +202,7 @@ class MainWindow(MyWidget):
         self.list_view_inprogr.setModel(model_inprogr)
 
         model_inprogr.setRootPath("/")
-        delegate = CustomItemDelegate()
-        self.list_view_inprogr.setItemDelegate(delegate)
+        self.list_view_inprogr.setItemDelegate(CustomItemDelegate())
 
         for i in range(1, 4):
             self.list_view_inprogr.hideColumn(i)
@@ -254,8 +248,7 @@ class MainWindow(MyWidget):
         model_train.setIconProvider(IconProvider())
         self.list_view_train.setModel(model_train)
         model_train.setRootPath("/")
-        delegate = CustomItemDelegate()
-        self.list_view_train.setItemDelegate(delegate)
+        self.list_view_train.setItemDelegate(CustomItemDelegate())
 
         for i in range(1, 4):
             self.list_view_train.hideColumn(i)
