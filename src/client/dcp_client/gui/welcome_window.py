@@ -34,21 +34,21 @@ class WelcomeWindow(MyWidget):
         """
         super().__init__()
         self.app = app
-        self.setWindowTitle("Welcome to Helmholtz AI Data-Centric Tool")
+        self.setWindowTitle("DCP")
         self.setStyleSheet("background-color: #f3f3f3;")
         self.resize(590, 250)
 
         self.main_layout = QVBoxLayout()
     
-        title_label = QLabel("Welcome to Helmholtz AI Data-Centric Tool")
+        title_label = QLabel("Welcome to the Helmholtz AI Data-Centric Tool!")
         title_label.setAlignment(Qt.AlignCenter)
         title_label.setStyleSheet(
-            "font-size: 24px; font-weight: bold; color: #015998;"
+            "font-size: 20px; font-weight: bold; color: #015998;"
         )
         self.main_layout.addWidget(title_label)
 
-        instructions_label = QLabel("Please select your dataset folder:")
-        instructions_label.setAlignment(Qt.AlignCenter)
+        instructions_label = QLabel("Please select your dataset folders:")
+        instructions_label.setAlignment(Qt.AlignLeft)# AlignCenter)
         instructions_label.setStyleSheet(
             "font-size: 14px; color: #000000;"
         )
@@ -62,13 +62,13 @@ class WelcomeWindow(MyWidget):
         self.button_layout = QVBoxLayout()
 
         val_label = QLabel(self)
-        val_label.setText('Uncurated dataset path:')
+        val_label.setText('Uncurated dataset:')
 
 
         inprogr_label = QLabel(self)
-        inprogr_label.setText("Curation in progress path:")
+        inprogr_label.setText("In progress directory:")
         train_label = QLabel(self)
-        train_label.setText('Curated dataset path:')
+        train_label.setText('Curated dataset:')
 
 
         self.text_layout.addWidget(val_label)

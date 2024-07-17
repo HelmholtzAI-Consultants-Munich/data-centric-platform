@@ -1,13 +1,12 @@
-import os
-
 import numpy as np
-from skimage.color import label2rgb
 from skimage.io import imread
-from skimage.transform import resize
+from skimage.color import label2rgb
 
-from PyQt5.QtWidgets import QFileSystemModel, QStyledItemDelegate
-from PyQt5.QtCore import Qt, QRect, QVariant, QDir
-from PyQt5.QtGui import QPixmap, QPainter, QImage, QBrush, QPen, QFont
+from PyQt5.QtWidgets import QFileSystemModel
+from PyQt5.QtCore import Qt, QVariant, QDir
+from PyQt5.QtGui import QImage
+
+from dcp_client.utils import settings
 
 class MyQFileSystemModel(QFileSystemModel):
     def __init__(self, app):
@@ -16,6 +15,8 @@ class MyQFileSystemModel(QFileSystemModel):
         """
         super().__init__()
         self.app = app
+        self.img_x = 100
+        self.img_y = 100
 
     def setFilter(self, filters):
         """
@@ -51,6 +52,7 @@ class MyQFileSystemModel(QFileSystemModel):
         else:
             return super().headerData(section, orientation, role)
 
+
     def data(self, index, role=Qt.DisplayRole):
         """
         Reimplemented method to provide custom data for the model's items.
@@ -61,96 +63,48 @@ class MyQFileSystemModel(QFileSystemModel):
         """
         if not index.isValid():
             return QVariant()
-
-        if "_seg" in self.filePath(index):
-            return QVariant()
-
-        if role == Qt.DisplayRole:
-            filepath_img = self.filePath(index)
-
+        
         if role == Qt.DecorationRole:
+
             filepath_img = self.filePath(index)
-
-            if filepath_img.endswith(".tiff") or filepath_img.endswith(".png"):
-                if "_seg" not in filepath_img:
-                    painter = QPainter()
-
-                    img_x, img_y = 64, 64
-
-                    filepath_mask = f"{filepath_img.split('.')[0]}_seg.tiff"
-                    img = QImage(filepath_img).scaled(img_x, img_y)
-
-                    if os.path.exists(filepath_mask):
-
-                        mask = imread(filepath_mask)[0]
-                        num_objects = len(
-                            self.app.fs_image_storage.search_segs(
-                                os.path.dirname(filepath_img), filepath_img
-                            )
-                        )
-
-                        mask = resize(
-                            mask,
-                            (int(round(1.5 * img_x)), int(round(1.5 * img_y))),
-                            order=0,
-                        )
-
-                        mask = label2rgb(mask)
-                        mask = (255 * np.transpose(mask, (1, 0, 2)).copy()).astype(
-                            np.uint8
-                        )
-
-                        mask = QImage(
-                            mask, mask.shape[1], mask.shape[0], QImage.Format_RGB888
-                        ).scaled(
-                            123, 123, Qt.IgnoreAspectRatio, Qt.SmoothTransformation
-                        )
-
-                        img = img.scaled(
-                            82, 82, Qt.IgnoreAspectRatio, Qt.SmoothTransformation
-                        )
-                        img_x, img_y = 82, 82
-                        painter.begin(mask)
-
-                        rect_image = QRect(0, img_x // 2, img_x, img_y)
-
-                        rect_corner_left = QRect(0, 0, img_x // 2, img_y // 2)
-                        rect_corner_bottom = QRect(img_x, img_y, img_x // 2, img_y // 2)
-
-                        painter.fillRect(
-                            rect_corner_left, QBrush(Qt.white, Qt.SolidPattern)
-                        )
-                        painter.fillRect(
-                            rect_corner_bottom, QBrush(Qt.white, Qt.SolidPattern)
-                        )
-
-                        painter.drawImage(rect_image, img)
-
-                        pen = QPen(Qt.black)
-                        painter.setPen(pen)
-
-                        font = QFont()
-                        font.setFamily("Arial")
-
-                        font.setPointSize(6)
-                        painter.setFont(font)
-
-                        painter.drawText(
-                            int(round((5 / 4) * img_x)) - 19,
-                            int(round((5 / 4) * img_x)),
-                            f"{str(num_objects)} masks",
-                        )
-
-                        painter.end()
-
-                        pixmap = QPixmap.fromImage(mask)
-
-                        return pixmap
-
-                    else:
-                        return img
-
+            # if an image of our dataset
+            if filepath_img.endswith(settings.accepted_types):
+                
+                # if a mask make sure it is displayed properly
+                if "_seg" in filepath_img:
+                    img = imread(filepath_img)
+                    if img.ndim > 2: img = img[0]
+                    img = label2rgb(img)
+                    img = (255 * img.copy()).astype(
+                        np.uint8
+                    )#np.transpose(img, (1, 0, 2))
+                    height, width = img.shape[0], img.shape[1]
+                    img = QImage(img, 
+                                width, 
+                                height, 
+                                3 * width,
+                                QImage.Format_RGB888
+                    )
+                    #img  = img.scaled(self.img_x, (width*self.img_x)//height, Qt.KeepAspectRatio)
+                    img  = img.scaled(self.img_x, self.img_y, Qt.KeepAspectRatio) # yields the same
                 else:
-                    return None
-
+                    img = QImage(filepath_img).scaled(self.img_x, self.img_y, Qt.KeepAspectRatio)
+                '''
+                # It would be cool if instead of the mask and the image we could show them both merged 
+                # together with label2rgb if the mask exists - would need to remove _seg files from list
+                filepath_mask = '.'.join(filepath_img.split('.')[:-1])+'_seg.tiff'
+                if os.path.exists(filepath_mask):
+                    mask = imread(filepath_mask)
+                    if mask.ndim>2: mask = mask[0]
+                    img = imread(filepath_img, as_gray=True)
+                    img = label2rgb(mask, img)
+                    img = QImage(img,
+                                img.shape[1], 
+                                img.shape[0],
+                                QImage.Format_RGB888
+                                ).scaled(self.img_x, self.img_y, Qt.KeepAspectRatio)
+                '''
+                return img
+            
         return super().data(index, role)
+

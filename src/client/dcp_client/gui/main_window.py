@@ -20,6 +20,7 @@ from dcp_client.gui.napari_window import NapariWindow
 from dcp_client.gui._my_widget import MyWidget
 from dcp_client.gui._filesystem_wig import MyQFileSystemModel
 
+from dcp_client.utils import settings
 
 if TYPE_CHECKING:
     from dcp_client.app import Application
@@ -98,8 +99,9 @@ class MainWindow(MyWidget):
 
         super().__init__()
         self.app = app
-        self.title = "Data Overview"
+        self.title = "DCP: Data Overview"
         self.worker_thread = None
+        self.accepted_types = ['*'+end for end in settings.accepted_types]
         self.main_window()
 
     def main_window(self) -> None:
@@ -137,6 +139,8 @@ class MainWindow(MyWidget):
         self.eval_dir_layout.addWidget(self.label_eval)
         # add eval dir list
         model_eval = MyQFileSystemModel(app=self.app)
+        model_eval.setNameFilters(self.accepted_types)
+        model_eval.setNameFilterDisables(False)  # Enable the filters
         model_eval.setIconProvider(IconProvider())
         model_eval.sort(0, Qt.AscendingOrder)
 
@@ -194,6 +198,8 @@ class MainWindow(MyWidget):
         self.inprogr_dir_layout.addWidget(self.label_inprogr)
         # add in progress dir list
         model_inprogr = MyQFileSystemModel(app=self.app)
+        model_inprogr.setNameFilters(self.accepted_types)
+        model_inprogr.setNameFilterDisables(False)  # Enable the filters
         # self.list_view = QListView(self)
         self.list_view_inprogr = QTreeView(self)
         self.list_view_inprogr.setToolTip("Select an image, click it, then press Enter")
@@ -241,6 +247,8 @@ class MainWindow(MyWidget):
         self.train_dir_layout.addWidget(self.label_train)
         # add train dir list
         model_train = MyQFileSystemModel(app=self.app)
+        model_train.setNameFilters(self.accepted_types)
+        model_train.setNameFilterDisables(False)  # Enable the filters
         # self.list_view = QListView(self)
         self.list_view_train = QTreeView(self)
         self.list_view_train.setToolTip("Select an image, click it, then press Enter")
