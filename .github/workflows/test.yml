@@ -52,6 +52,7 @@ jobs:
 
       - name: Install server dependencies (for communication tests)
         run: |
+          pip install numpy
           pip install -e ".[dev]"
         working-directory: src/server
           
