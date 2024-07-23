@@ -143,6 +143,8 @@ def test_on_finished(qtbot, app):
     assert app.worker_thread is None
     
 '''
+# what is the intended use case here? How would an exception be triggered?
+
 def test_launch_napari_button_clicked_with_selected_img(qtbot, app):
     
     with pytest.raises(Exception) as exc_info:
@@ -155,13 +157,13 @@ def test_launch_napari_button_clicked_with_selected_img(qtbot, app):
     assert "An error occurred while opening the Napari window" in str(exc_info.value)
 '''
 
+'''
 def test_launch_napari_button_click_without_selection(qtbot, app):
     # Try clicking the view button without having selected an image
     app.sim = True
     qtbot.mouseClick(app.launch_nap_button, Qt.LeftButton)
     assert not hasattr(app, "nap_win")
 
-'''
 # removing this test as launch_nap_button does not exist anymore!
 def test_launch_napari_button_click(qtbot, app, setup_global_variable):
     settings.accepted_types = setup_global_variable
