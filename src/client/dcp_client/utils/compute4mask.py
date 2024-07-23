@@ -48,8 +48,8 @@ class Compute4Mask:
                     contour[:, 0], contour[:, 1], contour_mask.shape
                 )
                 contour_mask[rr, cc] = instance_id
-            except:
-                print("Could not create contour for instance id", instance_id)
+            except Exception as error:
+                print("Could not create contour for instance id", instance_id, ". Error is :", error)
         return contour_mask
 
     @staticmethod

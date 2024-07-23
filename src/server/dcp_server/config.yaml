@@ -8,7 +8,8 @@
         "runner_name": "bento_runner",
         "bento_model_path": "cells",
         "service_name": "data-centric-platform",
-        "port": 7010
+        "port": 7010,
+        "timeout": 1000,
     },
 
     "model": { 

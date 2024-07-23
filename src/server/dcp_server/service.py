@@ -1,13 +1,12 @@
 from __future__ import annotations
 import os
-import bentoml
 import typing as t
-from dcp_server.serviceclasses import CustomBentoService, CustomRunnable
+import bentoml
 
+from dcp_server.serviceclasses import CustomBentoService, CustomRunnable
 from dcp_server.utils.fsimagestorage import FilesystemImageStorage
 from dcp_server.utils.helpers import read_config
 
-import sys, inspect
 
 models_module = __import__("models")
 segmentation_module = __import__("segmentationclasses")
