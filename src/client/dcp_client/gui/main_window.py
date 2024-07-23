@@ -79,10 +79,6 @@ class MainWindow(MyWidget):
     Opens the main window of the app where selected images in both directories are listed.
     User can view the images, train the model to get the labels, and visualise the result.
 
-    :param eval_data_path: Chosen path to images without labeles, selected by the user in the WelcomeWindow
-    :type eval_data_path: string
-    :param train_data_path: Chosen path to images with labeles, selected by the user in the WelcomeWindow
-    :type train_data_path: string
     """
 
     def __init__(self, app: Application) -> None:
@@ -221,13 +217,13 @@ class MainWindow(MyWidget):
         self.inprogress_layout.addLayout(self.inprogr_dir_layout)
 
         # the launch napari viewer button is currently hidden!
-        self.launch_nap_button = QPushButton()
-        self.launch_nap_button.setStyleSheet(
+        launch_nap_button = QPushButton()
+        launch_nap_button.setStyleSheet(
             "QPushButton { background-color: transparent; border: none; border-radius: 5px; padding: 8px 16px; }"
         )
 
-        self.launch_nap_button.setEnabled(False)
-        self.inprogress_layout.addWidget(self.launch_nap_button, alignment=Qt.AlignCenter)
+        launch_nap_button.setEnabled(False)
+        self.inprogress_layout.addWidget(launch_nap_button, alignment=Qt.AlignCenter)
         dir_layout.addLayout(self.inprogress_layout)
         # Create a shortcut for the Enter key to click the button
         enter_shortcut = QShortcut(QKeySequence(Qt.Key_Return), self)
