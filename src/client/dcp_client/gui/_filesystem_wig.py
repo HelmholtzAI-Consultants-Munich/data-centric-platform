@@ -1,6 +1,8 @@
+import os
 import numpy as np
 from skimage.io import imread
 from skimage.color import label2rgb
+
 
 from PyQt5.QtWidgets import QFileSystemModel
 from PyQt5.QtCore import Qt, QVariant, QDir
@@ -71,7 +73,7 @@ class MyQFileSystemModel(QFileSystemModel):
             if filepath_img.endswith(settings.accepted_types):
                 
                 # if a mask make sure it is displayed properly
-                if "_seg" in filepath_img:
+                if "_seg" in filepath_img and os.path.exists(filepath_img):
                     img = imread(filepath_img)
                     if img.ndim > 2: img = img[0]
                     img = label2rgb(img)
