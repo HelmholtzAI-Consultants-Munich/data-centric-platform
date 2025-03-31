@@ -51,6 +51,7 @@ class NapariWindow(MyWidget):
             )
 
         main_window = self.viewer.window._qt_window
+        main_window.setFixedSize(1200,600)
         layout = QGridLayout()
         layout.addWidget(main_window, 0, 0, 1, 4)
 
