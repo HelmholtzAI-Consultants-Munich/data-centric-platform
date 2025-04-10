@@ -23,6 +23,12 @@ class DataSync(ABC):
         pass
 
 
+class Postprocessing(ABC):
+    @abstractmethod
+    def postprocess(self, from_directory, current_img) -> None:
+        pass
+
+
 class ImageStorage(ABC):
     @abstractmethod
     def load_image(self, from_directory, cur_selected_img) -> Tuple[NDArray, NDArray]:
