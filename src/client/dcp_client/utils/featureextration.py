@@ -5,22 +5,25 @@ from dcp_client.app import ImageStorage
 import os
 from skimage.io import imread
 from skimage.measure import regionprops
-import utils
+from dcp_client.utils import utils
 import numpy as np
 
 
-class FeatureExtracion(Postprocessing):
+class FeatureExtraction(Postprocessing):
 
-    # def __init__(self, app: Application):
+    def __init__(self):
+        super().__init__()
     
-    #     self.app = app
 
-    def postprocess(self, from_directory, current_img, border_buffer = 5):
+    # TODO after we test: init with app to access imagestorage
+    def postprocess(self, from_directory, current_img):
 
         image_file = utils.get_path_stem(current_img)
         image_path = os.path.join(from_directory, current_img)
     
         seg_file = self._search_segs(from_directory, current_img)[0] #it should be only one now because we are in the curated folder
+        #seg_file = self.image_storage.search_segs(from_directory, current_img)[0]
+
         seg_path = os.path.join(from_directory, seg_file)
         output_csv = os.path.join(from_directory, image_file + '.csv') 
 
@@ -38,16 +41,14 @@ class FeatureExtracion(Postprocessing):
         # Use regionprops to get features
         regions = regionprops(mask, intensity_image=image)
 
-        # Initialize summary info
-        num_objects = len(regions)
-        not_border_regions = []
 
+        not_border_regions = []
         max_diameters = []
         min_diameters = []
 
         for region in regions:
             # Exclude objects touching the image border using the updated function
-            if not self._is_touching_border(region, mask.shape, border_buffer):
+            if not self._is_touching_border(region, mask.shape, border_buffer = self.border_buffer):
                 not_border_regions.append(region)
 
             # For diameter stats - TODO: has to be checked!
@@ -63,7 +64,7 @@ class FeatureExtracion(Postprocessing):
 
             f.write(f"################ Summary ################\n")
             f.write(f"image file name: {image_file}\n")
-            f.write(f"number of detected objects: {num_objects}\n")
+            f.write(f"number of detected objects: {len(regions)}\n")
             f.write(f"number of objects not touching the border: {len(not_border_regions)}\n")
             f.write(f"mean area of objects not touching the border: {mean_area:.2f}\n")
             f.write(f"maximum diameter: {max_diameter:.2f}\n")
@@ -117,3 +118,12 @@ class FeatureExtracion(Postprocessing):
             )
         ]
         return seg_files
+
+
+
+# # Main to test the functions
+# from_directory = "/Users/helena.pelin/Desktop/Workmap/Projects/Active-Learning-Tool/postprocessing_featuresextraction/data/"
+# current_img = "159-22_1.tif"
+# postpr_class = FeatureExtraction()
+# postpr_class.postprocess(from_directory, current_img, border_buffer = 5)
+# print("Done")

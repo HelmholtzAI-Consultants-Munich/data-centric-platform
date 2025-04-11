@@ -24,6 +24,10 @@ class DataSync(ABC):
 
 
 class Postprocessing(ABC):
+
+    def __init__(self, border_buffer = 5):
+        self.border_buffer = border_buffer
+
     @abstractmethod
     def postprocess(self, from_directory, current_img) -> None:
         pass
@@ -59,6 +63,7 @@ class Application:
         ml_model: Model,
         syncer: DataSync,
         image_storage: ImageStorage,
+        postprocessing: Postprocessing,
         server_ip: str,
         server_port: int,
         eval_data_path: str = "",
@@ -68,6 +73,7 @@ class Application:
         self.ml_model = ml_model
         self.syncer = syncer
         self.fs_image_storage = image_storage
+        self.postprocessing = postprocessing
         self.server_ip = server_ip
         self.server_port = server_port
         self.eval_data_path = eval_data_path

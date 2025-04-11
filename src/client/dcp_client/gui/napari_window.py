@@ -433,6 +433,17 @@ class NapariWindow(MyWidget):
             self.app.delete_images(self.seg_files)
             # TODO Create the Archive folder for the rest? Or move them as well?
 
+            # Create CSV file with statistics (extracted features and summary)
+
+            self.app.postprocessing.postprocess(from_directory = self.app.train_data_path, current_img = self.app.cur_selected_img)
+            message_text = (
+                "Success!" 
+                + "\n"
+                + str(self.app.cur_selected_img)
+                + " image moved and features were extracted for its segmentation!"
+            )
+            self.create_warning_box(message_text, "Success")
+
             self.viewer.close()
             self.close()
 
