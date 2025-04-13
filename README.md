@@ -15,7 +15,9 @@ This repository includes both a **server** and **client** side implementation of
 
 The client and server communicate via the [BentoML](https://www.bentoml.com/) library. For full functionality, the server must be running (locally or remotely) before launching the client.
 
-<img src="https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/client/readme_figs/dcp_pipeline.png"  width="200" height="200">
+<p align="center">
+  <img src="https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/client/readme_figs/dcp_pipeline.png" width="200" height="200">
+</p>
 
 ---
 
@@ -23,10 +25,10 @@ The client and server communicate via the [BentoML](https://www.bentoml.com/) li
 
 To get up and running with the Data Centric Platform:
 
-### 1. [Install & Launch the Server](#dcp-server)
+### 1. Install & Launch the Server
 Make sure you start the server before running the client. You can find full instructions below or in the [DCP Server README](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/server/README.md#using-pypi).
 
-### 2. [Install & Launch the Client](#dcp-client)
+### 2. Install & Launch the Client
 Once the server is running, install and start the client using the GUI. More details are below or in the [DCP Client README](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/client/README.md).
 
 📝 **Need a step-by-step visual guide?**  
