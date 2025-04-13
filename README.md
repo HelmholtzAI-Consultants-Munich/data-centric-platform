@@ -1,36 +1,115 @@
 # Data Centric Platform
-*A data centric platform for all-kinds segmentation in microscopy imaging*
+*A data-centric platform for all-kinds segmentation in microscopy imaging.*
 
 ![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
 ![tests](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/actions/workflows/test.yml/badge.svg?event=push)
 [![codecov](https://codecov.io/gh/HelmholtzAI-Consultants-Munich/data-centric-platform/branch/main/graph/badge.svg)](https://codecov.io/gh/HelmholtzAI-Consultants-Munich/data-centric-platform)
 [![Documentation Status](https://readthedocs.org/projects/data-centric-platform/badge/?version=latest)](https://data-centric-platform.readthedocs.io/en/latest/?badge=latest)
 
+## Overview
 
-## How to use this?
+This repository includes both a **server** and **client** side implementation of our Data Centric Platform (DCP) for microscopy imaging. The platform supports:
+- **Instance segmentation**
+- **Semantic segmentation**
+- **Multi-class instance segmentation**
 
-This repo includes a client and server side for using our data centric platform. The client and server communicate via the [bentoml](https://www.bentoml.com/?gclid=Cj0KCQiApKagBhC1ARIsAFc7Mc6iqOLi2OcLtqMbGx1KrFjtLUEZ-bhnqlT2zWREE0x7JImhtNmKlFEaAvSSEALw_wcB) library. The client interacts with the server every time we run model inference or training. For full functionality of the software the server should be running, either locally or remotely. 
+The client and server communicate via the [BentoML](https://www.bentoml.com/) library. For full functionality, the server must be running (locally or remotely) before launching the client.
 
-To install and start the server side, follow the instructions described in [DCP Server Installation & Launch](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/server/README.md#using-pypi).
-
-To run the client GUI follow the instructions described in [DCP Client Installation & Launch](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/client/README.md).
-
-For an overview of both components and their interaction with the step-by-step guide and screen shots, visit our [documentation page](https://data-centric-platform.readthedocs.io/en/latest/index.html).
-
-DCP handles all kinds of **segmentation tasks**! Try it out if you need to do:
-* **Instance** segmentation
-* **Semantic** segmentation
-* **Multi-class instance** segmentation
-
-### Toy data
-This repo includes the ```data/``` directory with some toy data which you can use as the *Uncurated dataset* folder. You can create (empty) folders for the other two directories required in the welcome window and start playing around.
-
-### Enabling data centric development
-Our platform encourages the use of data centric practices. With the user friendly client interface you can:
-- Detect and remove outliers from your training data: only confirmed samples are used to train our models
-- Detect and correct labeling errors: editing labels with the integrated napari visualisation tool
-- Establish consensus: allows for multiple annotators before curated label is passed to train model
-- Focus on data curation: no interaction with model parameters during training and inference
-
-#### *Get more with less!*
 <img src="https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/client/readme_figs/dcp_pipeline.png"  width="200" height="200">
+
+---
+
+## 🚀 Getting Started
+
+To get up and running with the Data Centric Platform:
+
+### 1. [Install & Launch the Server](#dcp-server)
+Make sure you start the server before running the client. You can find full instructions below or in the [DCP Server README](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/server/README.md#using-pypi).
+
+### 2. [Install & Launch the Client](#dcp-client)
+Once the server is running, install and start the client using the GUI. More details are below or in the [DCP Client README](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/client/README.md).
+
+📝 **Need a step-by-step visual guide?**  
+Check out our [official documentation website](https://data-centric-platform.readthedocs.io/en/latest/dcp_client_installation.html) for a detailed walkthrough of how to install, configure, and run the client.
+
+---
+
+## 📁 Toy Data
+
+We include a `data/` folder in this repo with toy data for testing. You can use this as the *Uncurated dataset* in the welcome window and create empty folders for the other two required directories to start experimenting.
+
+---
+
+## 🧠 Data-Centric Development
+
+Our platform supports best practices in data-centric AI:
+- **Detect and remove outliers** from your training data: only confirmed samples are used to train our models
+- **Detect and correct labeling errors**: editing labels with the integrated napari visualisation tool
+- **Establish consensus**: allows for multiple annotators before curated label is passed to train model
+- **Focus on data curation**: no interaction with model parameters during training and inference
+
+---
+
+## 🖥 DCP Server
+
+The server handles model training and inference tasks.
+
+### Installation (Tested on Python 3.9–3.11)
+```bash
+git clone https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform.git
+cd data-centric-platform/src/server
+pip install numpy
+pip install -e .
+```
+
+### Launch the Server
+```bash
+python dcp_server/main.py
+```
+Visit [http://localhost:7010/](http://localhost:7010/) to verify the server is running.
+
+📄 Full instructions available in the [Server README](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/server/README.md).
+
+📚 [Server Documentation](https://data-centric-platform.readthedocs.io/en/latest/dcp_server_installation.html)
+
+---
+
+## 🧑‍💻 DCP Client
+
+The client provides a user-friendly GUI to interact with the server for data curation, labeling, training, and inference.
+
+### Installation (Tested on Python 3.9–3.12)
+```bash
+git clone https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform.git
+cd data-centric-platform/src/client
+pip install -e .
+```
+
+### Launch the Client
+Make sure the server is already running, then start the client with:
+
+```bash
+dcp-client --mode local
+```
+or
+
+```bash
+dcp-client --mode remote
+```
+
+📄 Full instructions in the [Client README](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/client/README.md)
+
+📚 [Client Documentation](https://data-centric-platform.readthedocs.io/en/latest/dcp_client_installation.html)
+
+---
+
+## 📚 Documentation
+
+Explore the full platform features and usage examples:  
+📖 [Documentation Homepage](https://data-centric-platform.readthedocs.io/en/latest/index.html)
+
+---
+
+## ✨ Get More With Less!
+
+Let your data do the talking. Let DCP help you curate, clean, and improve your datasets—so your models can shine.
