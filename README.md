@@ -112,6 +112,5 @@ Explore the full platform features and usage examples:
 
 ---
 
-## ✨ Get More With Less!
+<p align="center" style="font-size:18px;"><strong>✨ Get More With Less!</strong></p>
 
-Let your data do the talking. Let DCP help you curate, clean, and improve your datasets—so your models can shine.
