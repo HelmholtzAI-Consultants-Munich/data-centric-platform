@@ -1,7 +1,8 @@
 # Feature extraction per image triggered each time the user moves mask and image to curated in progress
 
 from dcp_client.app import Postprocessing
-from dcp_client.app import ImageStorage
+import SimpleITK as sitk
+from radiomics.shape2D import RadiomicsShape2D
 import os
 from skimage.io import imread
 from skimage.measure import regionprops
@@ -41,23 +42,38 @@ class FeatureExtraction(Postprocessing):
         # Use regionprops to get features
         regions = regionprops(mask, intensity_image=image)
 
-
         not_border_regions = []
         max_diameters = []
-        min_diameters = []
+        region_stats = []
 
         for region in regions:
+            
             # Exclude objects touching the image border using the updated function
             if not self._is_touching_border(region, mask.shape, border_buffer = self.border_buffer):
                 not_border_regions.append(region)
 
-            # For diameter stats - TODO: has to be checked!
-            max_diameters.append(region.major_axis_length)
-            min_diameters.append(region.minor_axis_length)
+            area = region.area
+            perimeter = region.perimeter
+            mean_intensity = region.mean_intensity
+            eccentricity = region.eccentricity
+            solidity = region.solidity
+            circularity = (4 * np.pi * area) / (perimeter ** 2) if perimeter > 0 else 0
+            max_diameter = self._calculate_max_diameter(region.label, mask)
+            max_diameters.append(max_diameter)
 
+            region_stats.append({
+                'label': region.label,
+                'area': area,
+                'perimeter': perimeter,
+                'mean_intensity': mean_intensity,
+                'eccentricity': eccentricity,
+                'solidity': solidity,
+                'circularity': circularity,
+                'max_diameter': max_diameter
+            })
+
+        max_diameter_overall = np.max(max_diameters) if max_diameters else 0
         mean_area = np.mean([r.area for r in not_border_regions]) if not_border_regions else 0
-        max_diameter = np.max(max_diameters) if max_diameters else 0
-        min_diameter = np.min(min_diameters) if min_diameters else 0
 
          # Write the summary line
         with open(output_csv, 'w') as f:
@@ -67,24 +83,15 @@ class FeatureExtraction(Postprocessing):
             f.write(f"number of detected objects: {len(regions)}\n")
             f.write(f"number of objects not touching the border: {len(not_border_regions)}\n")
             f.write(f"mean area of objects not touching the border: {mean_area:.2f}\n")
-            f.write(f"maximum diameter: {max_diameter:.2f}\n")
-            f.write(f"minimum diameter: {min_diameter:.2f}\n")
+            f.write(f"maximum diameter overall: {max_diameter_overall:.2f}\n")
             f.write(f"##########################\n\n")
 
             # Write headers for the regionprops table (only once for readability)
-            f.write("image_file,region_label,area,perimeter,mean_intensity,circularity,eccentricity,solidity\n")
-
-            # Write region properties for each region
-            for region in regions:
-
-                area = region.area
-                perimeter = region.perimeter
-                mean_intensity = region.mean_intensity
-                eccentricity = region.eccentricity
-                solidity = region.solidity
-                circularity = (4 * np.pi * area) / (perimeter ** 2) if perimeter > 0 else 0
-
-                f.write(f"{image_file},{region.label},{area},{perimeter:.2f},{mean_intensity:.2f},{circularity:.3f},{eccentricity:.3f},{solidity:.3f}\n")
+            f.write("image_file,region_label,area,perimeter,mean_intensity,circularity,eccentricity,solidity,max_diameter\n")
+            for stats in region_stats:
+                f.write(f"{image_file},{stats['label']},{stats['area']},{stats['perimeter']:.2f},"
+                f"{stats['mean_intensity']:.2f},{stats['circularity']:.3f},"
+                f"{stats['eccentricity']:.3f},{stats['solidity']:.3f},{stats['max_diameter']:.3f}\n")
 
             # Optional empty line between images
             f.write("\n")
@@ -92,7 +99,6 @@ class FeatureExtraction(Postprocessing):
         print(f"Saved into {output_csv}")
 
     def _is_touching_border(self, region, mask_shape, border_buffer):
-        print(f"Border buffer is {border_buffer}")
 
         coords = region.coords  # all (row, col) of the region
         n_rows, n_cols = mask_shape
@@ -103,6 +109,18 @@ class FeatureExtraction(Postprocessing):
             (coords[:, 1] < border_buffer) |  # Left buffer
             (coords[:, 1] >= n_cols - border_buffer)  # Right buffer
         )
+    
+
+    def _calculate_max_diameter(self, region_label, mask):
+
+        binary_mask = (mask == region_label).astype(np.uint8)
+        sitk_mask = sitk.GetImageFromArray(binary_mask)
+        sitk_image = sitk.GetImageFromArray(np.zeros_like(binary_mask))
+        shape_calc = RadiomicsShape2D(sitk_image, sitk_mask)
+        shape_calc._calculateFeatures()
+
+        return shape_calc.getMaximumDiameterFeatureValue()
+
 
     def _search_segs(self, img_directory, cur_selected_img):
         # TODO - has to be removed and the one from app.py should be used - only due to redundancy
