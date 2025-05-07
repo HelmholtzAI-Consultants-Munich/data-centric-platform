@@ -21,7 +21,7 @@ The client and server communicate via the [BentoML](https://www.bentoml.com/) li
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 To get up and running with the Data Centric Platform:
 
@@ -36,13 +36,13 @@ Check out our [official documentation website](https://data-centric-platform.rea
 
 ---
 
-## 📁 Toy Data
+## Toy Data
 
 We include a `data/` folder in this repo with toy data for testing. You can use this as the *Uncurated dataset* in the welcome window and create empty folders for the other two required directories to start experimenting.
 
 ---
 
-## 🧠 Data-Centric Development
+## Data-Centric Development
 
 Our platform supports best practices in data-centric AI:
 - **Detect and remove outliers** from your training data: only confirmed samples are used to train our models
@@ -105,7 +105,7 @@ dcp-client --mode remote
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 Explore the full platform features and usage examples:  
 📖 [Documentation Homepage](https://data-centric-platform.readthedocs.io/en/latest/index.html)
