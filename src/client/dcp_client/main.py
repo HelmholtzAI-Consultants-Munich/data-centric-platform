@@ -29,6 +29,13 @@ def main():
         required=True,
         help="Choose mode: local or remote",
     )
+    parser.add_argument(
+        "-cr",
+        "--config_remote",
+        required=False,
+        default = 'config_remote.yaml',
+        help="Pass the remote config file for the project",
+    )
     args = parser.parse_args()
 
     if args.mode == "local":
@@ -37,7 +44,7 @@ def main():
         )
     elif args.mode == "remote":
         server_config = read_config(
-            "server", config_path=path.join(dir_name, "config_remote.yaml")
+            "server", config_path=path.join(dir_name, args.config_remote)
         )
 
     image_storage = FilesystemImageStorage()
