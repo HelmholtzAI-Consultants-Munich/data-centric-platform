@@ -249,7 +249,7 @@ class NapariWindow(MyWidget):
     def axis_changed(self, event) -> None:
         """
         Is triggered each time the user switches the viewer between the mask channels. At this point the class mask
-        needs to be updated according to the changes made tot the instance segmentation mask.
+        needs to be updated according to the changes made to the instance segmentation mask.
         """
 
         if self.app.cur_selected_img=="": return # because this also gets triggered when removing outlier
@@ -348,6 +348,7 @@ class NapariWindow(MyWidget):
         :param labels_mask: The updated labels mask, changed by the user.
         :type labels_mask: numpy.ndarray
         """
+
         # add contours back to labels mask
         labels_mask = Compute4Mask.add_contour(labels_mask, instance_mask)
         # and compute the updated instance mask
@@ -381,6 +382,28 @@ class NapariWindow(MyWidget):
         except:
             pass
 
+    def check_and_update_if_layers_changed(self, seg, seg_name_to_save):
+        """
+        Checks to see if changes have been made to the layers right before saving. 
+        Updates the masks if so. This function handles the case when e.g. user deletes
+        an object from the instance mask and then directly tries to move the data to in 
+        progress. The class label needs to be updated with the change.
+        :param seg: Current seg layers
+        :type status: List
+        :param seg_name_to_save: Name of the segmentation layer user wants to save
+        :type seg_name_to_save: str
+        """
+        if not check_equal_arrays(
+                seg[0].astype(bool),
+                seg[1].astype(bool)
+                ):
+            if self.active_mask_index==1: self.update_instance_mask(seg[0], seg[1])
+            else: self.update_labels_mask(seg[0])
+            # reload the seg layers after update
+            seg = self.viewer.layers[seg_name_to_save].data
+            seg[1] = Compute4Mask.add_contour(seg[1], seg[0])
+        return seg
+
     def on_add_to_curated_button_clicked(self) -> None:
         """Defines what happens when the "Move to curated dataset folder" button is clicked."""
         if self.app.cur_selected_path == str(self.app.train_data_path):
@@ -402,6 +425,9 @@ class NapariWindow(MyWidget):
         # Save the (changed) seg
         seg = self.viewer.layers[seg_name_to_save].data
         seg[1] = Compute4Mask.add_contour(seg[1], seg[0])
+
+        seg = self.check_and_update_if_layers_changed(seg, seg_name_to_save)
+
         annot_error, mask_mismatch_error, faulty_ids_annot, faulty_ids_missmatch = (
             Compute4Mask.assert_consistent_labels(seg)
         )
@@ -457,9 +483,14 @@ class NapariWindow(MyWidget):
 
         # Move original image
         self.app.move_images(self.app.inprogr_data_path, move_segs=True)
+        
         # Save the (changed) seg - this will overwrite existing seg if seg name hasn't been changed in viewer
         seg = self.viewer.layers[seg_name_to_save].data
         seg[1] = Compute4Mask.add_contour(seg[1], seg[0])
+        
+        # first check if some item has just been changed without moving slider
+        seg = self.check_and_update_if_layers_changed(seg, seg_name_to_save)
+
         self.app.save_image(self.app.inprogr_data_path, seg_name_to_save + ".tiff", seg)
 
         self.viewer.close()
