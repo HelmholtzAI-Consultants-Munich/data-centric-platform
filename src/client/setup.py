@@ -28,6 +28,8 @@ setup(
         "dev": [
             "pytest>=7.4.3",
             "pytest-qt>=4.2.0",
+            "pytest-timeout",
+            "pytest-mock",
             "sphinx",
             "sphinx-rtd-theme",
         ]
