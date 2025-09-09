@@ -7,7 +7,7 @@
     "service": {
         "runner_name": "bento_runner",
         "bento_model_path": "cells",
-        "service_name": "data-centric-platform",
+        "service_name": "SegmentationService",
         "port": 7010,
         "timeout": 1000,
     },

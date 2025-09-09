@@ -42,7 +42,8 @@ class GeneralSegmentation:
                     "channel_axis"
                 ] = self.imagestorage.channel_ax
             # Evaluate the model
-            mask = await self.runner.evaluate.async_run(img=img)
+            mask = await self.runner.evaluate(img=img)
+
             # And prepare the mask for saving
             mask = self.imagestorage.prepare_mask_for_save(
                 mask, self.model.eval_config["mask_channel_axis"]
@@ -73,7 +74,7 @@ class GeneralSegmentation:
         imgs, masks = self.imagestorage.prepare_images_and_masks_for_training(
             train_img_mask_pairs
         )
-        model_save_path = await self.runner.train.async_run(imgs, masks)
+        model_save_path = await self.runner.train(imgs, masks)
 
         return model_save_path
 

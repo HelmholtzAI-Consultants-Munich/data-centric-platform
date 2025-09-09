@@ -1,0 +1,25 @@
+service: "service:SegmentationService" 
+labels:
+  owner: "christina"
+  project: "dcp_server"
+  service_name: "segmentation_service"
+  runner_name: "bento_runner"
+  bento_model_path: "cells"
+  service_port: "7010"
+  service_timeout: "1000"
+
+envs:
+  - name: SERVICE_NAME
+    value: segmentation_service
+
+include:
+  - "*.py"
+  - "*.yaml"
+  - "*.yml"
+  - "requirements.txt"
+python:
+  packages:
+      - numpy>=1.23
+      - scikit-image
+      - napari
+      - bentoml

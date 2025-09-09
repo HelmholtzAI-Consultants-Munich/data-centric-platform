@@ -1,14 +1,12 @@
 from __future__ import annotations
 import numpy as np
 import bentoml
-from bentoml.io import Text, NumpyNdarray
+from bentoml.legacy import Runnable
 from typing import List
 
 from dcp_server import models as DCPModels
-import dcp_server.segmentationclasses as DCPSegClasses
 
-
-class CustomRunnable(bentoml.Runnable):
+class CustomRunnable(Runnable):
     """
     BentoML, Runner represents a unit of computation that can be executed on a remote Python worker and scales independently.
     CustomRunnable is a custom runner defined to meet all the requirements needed for this project.
@@ -86,71 +84,3 @@ class CustomRunnable(bentoml.Runnable):
         #                            )
 
         return self.save_model_path
-
-
-class CustomBentoService:
-    """BentoML Service class. Contains all the functions necessary to serve the service with BentoML"""
-
-    def __init__(
-        self, runner: CustomRunnable, segmentation: DCPSegClasses, service_name: str
-    ) -> None:
-        """Constructs all the necessary attributes for the class CustomBentoService():
-
-        :param runner: runner used in the service
-        :type runner: CustomRunnable class object
-        :param segmentation: segmentation type used in the service
-        :type segmentation: segmentation class object from the segmentationclasses.py
-        :param service_name: name of the service
-        :type service_name: str
-        """
-        self.runner = runner
-        self.segmentation = segmentation
-        self.service_name = service_name
-
-    def start_service(self) -> None:
-        """Starts the service
-
-        :return: service object needed in service.py and for the bentoml serve call.
-        """
-        svc = bentoml.Service(self.service_name, runners=[self.runner])
-
-        @svc.api(
-            input=Text(), output=NumpyNdarray()
-        )  # input path to the image output message with success and the save path
-        async def segment_image(input_path: str) -> np.ndarray:
-            """function served within the service, used to segment images
-
-            :param input_path: directory where the images for segmentation are saved
-            :type input_path: str
-            :return: list of files not supported
-            :rtype: ndarray
-            """
-            list_of_images = self.segmentation.imagestorage.search_images(input_path)
-            list_of_files_not_suported = (
-                self.segmentation.imagestorage.get_unsupported_files(input_path)
-            )
-
-            if not list_of_images:
-                return np.array(list_of_images)
-            else:
-                await self.segmentation.segment_image(input_path, list_of_images)
-
-            return np.array(list_of_files_not_suported)
-
-        @svc.api(input=Text(), output=Text())
-        async def train(input_path: str) -> str:
-            """function served within the service, used to retrain the model
-
-            :param input_path: directory where the images for training are saved
-            :type input_path: str
-            :return: message of success if training went well
-            :rtype: str
-            """
-            print("Calling retrain from server.")
-            # Train the model
-            msg = await self.segmentation.train(input_path)
-            if msg != self.segmentation.no_files_msg:
-                msg = "Success! Trained model saved in: " + msg
-            return msg
-
-        return svc
