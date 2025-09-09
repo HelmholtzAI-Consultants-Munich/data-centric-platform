@@ -74,7 +74,7 @@ def test_run_inference_run(app):
         "serve",
         "--working-dir",
         "../server/dcp_server",
-        "service:svc",
+        "service:SegmentationService",
         "--reload",
         "--port=7010",
     ]

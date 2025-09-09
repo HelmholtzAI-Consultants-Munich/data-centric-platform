@@ -16,13 +16,14 @@ setup(
     packages=find_packages(),
     install_requires=[
         "matplotlib >=3.3",
+        "scikit-image >=0.20",
+        "scipy >=1.10", 
         "napari[pyqt5]>=0.4.17",
         "segment-anything @ git+https://github.com/facebookresearch/segment-anything.git@main",
         "torch",
         "torchvision",
         "napari-sam @ git+https://github.com/christinab12/napari-sam.git@main",
-        "bentoml[grpc]>=1.2.5",
-        "opencv-python",
+        "bentoml[grpc]>=1.2.5"
     ],
     extras_require={
         "dev": [
