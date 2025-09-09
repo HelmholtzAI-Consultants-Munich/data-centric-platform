@@ -1,5 +1,5 @@
 from typing import Optional, List
-from bentoml.client import Client as BentoClient # Client is type SyncHTTPClient
+from bentoml import SyncHTTPClient
 from bentoml.exceptions import BentoMLException
 import numpy as np
 
@@ -9,11 +9,11 @@ from dcp_client.app import Model
 class BentomlModel(Model):
     """BentomlModel class for connecting to a BentoML server and running training and inference tasks."""
 
-    def __init__(self, client: Optional[BentoClient] = None):
+    def __init__(self, client: Optional[SyncHTTPClient] = None):
         """Initializes the BentomlModel.
 
-        :param client: Optional BentoClient instance. If None, it will be initialized during connection.
-        :type client: Optional[BentoClient]
+        :param client: Optional SyncHTTPClient instance. If None, it will be initialized during connection.
+        :type client: Optional[SyncHTTPClient]
         """
         self.client = client
 
@@ -29,7 +29,7 @@ class BentomlModel(Model):
         """
         url = f"http://{ip}:{port}"  # "http://0.0.0.0:7010"
         try:
-            self.client = BentoClient.from_url(url)
+            self.client = SyncHTTPClient(url)
             return True
         except:
             return False  # except ConnectionRefusedError

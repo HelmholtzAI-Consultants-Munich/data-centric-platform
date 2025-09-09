@@ -36,12 +36,9 @@ model = model_class(
 # -------------------------------
 # 3. Create Runner globally
 # -------------------------------
-runner = bentoml.Runner(CustomRunnable,
-                        name=service_config["runner_name"],
-                        runnable_init_params={
-                            "model": model,
-                            "save_model_path": service_config["bento_model_path"],
-                        },
+runner = CustomRunnable(name=service_config["runner_name"],
+                        model= model,
+                        save_model_path= service_config["bento_model_path"]
 )
 
 # -------------------------------
