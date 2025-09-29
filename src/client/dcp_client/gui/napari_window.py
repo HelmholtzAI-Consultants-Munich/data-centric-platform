@@ -429,9 +429,6 @@ class NapariWindow(MyWidget):
             )
             _ = self.create_warning_box(message_text, message_title="Warning")
             return
-        
-        # Move original image
-        self.app.move_images(save_folder, move_segs)
 
         # get the labels layer
         seg = self.viewer.layers[seg_name_to_save].data
@@ -443,21 +440,26 @@ class NapariWindow(MyWidget):
 
         if annot_error:
             message_text = (
-                "There seems to be a problem with your mask. We expect each object to be a connected component. For object(s) with ID(s) \n"
-                + str(faulty_ids_annot)
-                + "\n"
-                "more than one connected component was found. Would you like us to clean this up and keep only the largest connect component?"
+                "There seems to be a problem with your mask. We expect each object to be a connected component. For object(s) with ID(s): \n"
+                + ", ".join(str(id) for id in faulty_ids_annot[:-1])
+                + (", " if len(faulty_ids_annot) > 1 else "")
+                + str(faulty_ids_annot[-1])
+                + " more than one connected component was found. Would you like us to clean this up and keep only the largest connect component?"
             )
             usr_response = self.create_selection_box(message_text, "Clean up")
             if usr_response=='action': 
                 seg = Compute4Mask.keep_largest_components_pair(seg, faulty_ids_annot)
+            else: return
+
+        # Move original image
+        self.app.move_images(save_folder, move_segs)
 
         # Save the (changed) seg
         self.app.save_image(
-            self.app.train_data_path, seg_name_to_save + ".tiff", seg
+            save_folder, seg_name_to_save + ".tiff", seg
         )
 
-        # We remove seg from the current directory if it exists (both eval and inprogr allowed)
+        # We remove segs from the current directory if it exists (both eval and inprogr allowed)
         self.app.delete_images(self.seg_files)
         # TODO Create the Archive folder for the rest? Or move them as well?
 
