@@ -194,6 +194,58 @@ class Compute4Mask:
         )
     
     @staticmethod
+    def add_seg_layer(mask):
+        """
+        The input mask has only one channel representing the instance ids - add an additional channel which represents 
+        the classes of the instances. These are originally all set to -1, meaning that the user should annotate them.
+        :param mask: The mask with the instance ids
+        :type mask: numpy.ndarray
+        :return: The mask with an additional channel added representing the class mask
+        """
+        if mask.ndim != 2:
+            raise ValueError(f"Expected 2D mask, got shape {mask.shape}")
+
+        # Create class mask filled with -1
+        class_mask = np.where(mask == 0, 0, -1)#.astype(np.int32)
+
+        # Stack into shape (2, H, W)
+        mask_with_classes = np.stack([mask, class_mask], axis=0)
+
+        return mask_with_classes
+    
+    @staticmethod
+    def assert_missing_classes(mask) -> bool:
+        """
+        Check if the class mask (second channel) contains any -1 values,
+        which indicate unannotated regions.
+
+        :param mask: The 2xHxW mask (first channel = instance ids, 
+                                  second channel = class ids)
+        :type mask: numpy.ndarray
+        :return: True if any -1 values are found in the class mask, otherwise False
+        """
+        if mask.ndim != 3 or mask.shape[0] != 2:
+            raise ValueError(f"Expected shape (2, H, W), got {mask.shape}")
+
+        class_mask = mask[1]
+        return np.any(class_mask == -1)
+    
+    @staticmethod
+    def assert_num_classes(mask, num_classes) -> bool:
+        """
+        Check if the class mask (second channel) contains a number of classes larger than that specified by the user at rutime.
+
+        :param mask: The 2xHxW mask (first channel = instance ids, 
+                                  second channel = class ids)
+        :type mask: numpy.ndarray
+        :return: True if more classes found, otherwise False
+        """
+        class_ids = Compute4Mask.get_unique_objects(mask[1])
+        if len(class_ids)>num_classes: return True
+        else: return False
+
+    
+    @staticmethod
     def keep_largest_components_pair(mask, faulty_ids: list):
         """
         Keeps only the largest connected component for each label in faulty_ids

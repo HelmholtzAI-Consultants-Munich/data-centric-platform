@@ -1,7 +1,7 @@
 {
     "setup": {
         "segmentation": "GeneralSegmentation",
-        "model_to_use": "Inst2MultiSeg"
+        "model_to_use": "CustomCellpose"
     },
 
     "service": {
@@ -21,7 +21,7 @@
         "classifier_name": "PatchClassifier",
         "classifier":{
             "in_channels": 1,
-            "num_classes": 2,
+            " ": 2,
             "features":[64,128,256,512],
             "black_bg": False,
             "include_mask": True
