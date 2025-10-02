@@ -133,7 +133,7 @@ class Compute4Mask:
             # if the label is a newly added object, add with the same id to the labels mask
             # this is an indication to the user that this object needs to be assigned a class
             elif instance_id not in old_instances:
-                new_labels_mask[where_instance] = instance_id
+                new_labels_mask[where_instance] = -1 #instance_id
             else:
                 where_instance_orig = np.where(original_instance_mask == instance_id)
                 # if the locations of the instance haven't changed, means object wasn't changed, do nothing
