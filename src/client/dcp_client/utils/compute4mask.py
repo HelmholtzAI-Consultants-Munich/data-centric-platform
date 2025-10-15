@@ -181,7 +181,8 @@ class Compute4Mask:
         """
         user_annot_error = False
         faulty_ids_annot = []
-        instance_mask = mask[0]
+        if mask.ndim>2: instance_mask = mask[0]
+        else: instance_mask = mask
         instance_ids = Compute4Mask.get_unique_objects(instance_mask)
         for instance_id in instance_ids:
             # check if there are more than one objects (connected components) with same instance_id
@@ -257,9 +258,12 @@ class Compute4Mask:
         :type faulty_ids: List
         :return: Tuple of cleaned masks: (cleaned_mask, cleaned_class_mask)
         """
-
-        cleaned_mask = mask[0].copy()
-        cleaned_class_mask = mask[1].copy()
+        if mask.ndim>2:
+            cleaned_mask = mask[0].copy()
+            cleaned_class_mask = mask[1].copy()
+        else:
+            cleaned_mask = mask.copy()
+            cleaned_class_mask = np.zeros_like(mask)
 
         for label_id in faulty_ids:
             # binary mask for current label
@@ -289,4 +293,5 @@ class Compute4Mask:
                 # Stack along new first axis
                 stacked = np.stack([cleaned_mask, cleaned_class_mask], axis=0)
 
-        return stacked
+        if mask.ndim>2: return stacked
+        else: return cleaned_mask

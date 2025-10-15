@@ -451,27 +451,28 @@ class NapariWindow(MyWidget):
             if usr_response=='action': 
                 seg = Compute4Mask.keep_largest_components_pair(seg, faulty_ids_annot)
             else: return
-
-        annot_error = Compute4Mask.assert_missing_classes(seg)
-        if annot_error:
-            message_text = (
-                "You still haven't annotated all obects in your class mask. Please go back and complete the annotation, replacing" \
-                + "any objects with default value '-1' with the actual class label."
-            )
-            usr_response = self.create_selection_box(message_text, "Annotation incomplete!")
-            return
+            
+        if self.app.num_classes>1:
+            annot_error = Compute4Mask.assert_missing_classes(seg)
+            if annot_error:
+                message_text = (
+                    "You still haven't annotated all obects in your class mask. Please go back and complete the annotation, replacing" \
+                    + "any objects with default value '-1' with the actual class label."
+                )
+                usr_response = self.create_selection_box(message_text, "Annotation incomplete!")
+                return
         
-        annot_error = Compute4Mask.assert_num_classes(seg, self.app.num_classes)
-        if annot_error: 
-            class_ids = Compute4Mask.get_unique_objects(seg[1])
-            message_text = (
-                "Your class label contains "+ str(len(class_ids)) +" classses, whereas you specified "
-                + str(self.app.num_classes) + " number of classes at runtime."
-                + "Please go back and fix your class mask. Current class ids in your image are: " 
-                + ", ".join(str(id) for id in class_ids)
-            )
-            usr_response = self.create_selection_box(message_text, "Annotation incomplete!")
-            return
+            annot_error = Compute4Mask.assert_num_classes(seg, self.app.num_classes)
+            if annot_error: 
+                class_ids = Compute4Mask.get_unique_objects(seg[1])
+                message_text = (
+                    "Your class label contains "+ str(len(class_ids)) +" classses, whereas you specified "
+                    + str(self.app.num_classes) + " number of classes at runtime."
+                    + "Please go back and fix your class mask. Current class ids in your image are: " 
+                    + ", ".join(str(id) for id in class_ids)
+                )
+                usr_response = self.create_selection_box(message_text, "Annotation incomplete!")
+                return
 
         # Move original image
         self.app.move_images(save_folder, move_segs)
