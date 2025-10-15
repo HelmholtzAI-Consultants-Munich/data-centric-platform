@@ -74,12 +74,3 @@ class SegmentationService:
             return np.array(images)
         await seg.segment_image(input_path, images)
         return np.array(unsupported)
-
-    @bentoml.api
-    async def train(self, input_path: str) -> str:
-        seg = self.segmentation
-        print("Calling retrain from server.")
-        msg = await seg.train(input_path)
-        if msg != seg.no_files_msg:
-            return f"Success! Trained model saved in: {msg}"
-        return msg
