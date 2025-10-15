@@ -7,7 +7,7 @@ from dcp_client.app import Model
 
 
 class BentomlModel(Model):
-    """BentomlModel class for connecting to a BentoML server and running training and inference tasks."""
+    """BentomlModel class for connecting to a BentoML server and running inference tasks."""
 
     def __init__(self, client: Optional[SyncHTTPClient] = None):
         """Initializes the BentomlModel.
@@ -42,29 +42,6 @@ class BentomlModel(Model):
         :rtype: bool
         """
         return bool(self.client)
-
-    def _run_train(self, data_path: str) -> Optional[str]:
-        """Runs the training task asynchronously.
-
-        :param data_path: Path to the training data.
-        :type data_path: str
-        :return: Response from the server if successful, None otherwise.
-        :rtype: str, or None
-        """
-        try:
-            response = self.client.train(data_path) # train is part of running server
-            return response
-        except BentoMLException:
-            return None
-
-    def run_train(self, data_path: str):
-        """Runs the training.
-
-        :param data_path: Path to the training data.
-        :type data_path: str
-        :return: Response from the server if successful, None otherwise.
-        """
-        return self._run_train(data_path)
 
     def _run_inference(self, data_path: str) -> Optional[np.ndarray]:
         """Runs the inference task asynchronously.
