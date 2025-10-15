@@ -2,7 +2,7 @@ from typing import List
 import numpy as np
 from skimage.measure import find_contours, label
 from skimage.draw import polygon_perimeter
-
+from scipy.ndimage import label as labelnd
 
 class Compute4Mask:
     """
@@ -166,7 +166,7 @@ class Compute4Mask:
         return list(np.unique(active_mask)[1:])
 
     @staticmethod
-    def assert_consistent_labels(mask: np.ndarray) -> tuple:
+    def assert_connected_objects(mask: np.ndarray) -> tuple:
         """Before saving the final mask make sure the user has not mistakenly made an error during annotation,
         such that one instance id does not correspond to exactly one class id. Also checks whether for one instance id
         multiple classes exist.
@@ -174,37 +174,67 @@ class Compute4Mask:
         :type mask: numpy.ndarray
         :return:
             - A boolean which is True if there is more than one connected components corresponding to an instance id and Fale otherwise.
-            - A boolean which is True if there is a missmatch between the instance mask and class masks (not 1-1 correspondance) and Flase otherwise.
             - A list with all the instance ids for which more than one connected component was found.
-            - A list with all the instance ids for which a missmatch between class and instance masks was found.
         :rtype :
             - bool
-            - bool
-            - list[int]
             - list[int]
         """
         user_annot_error = False
-        mask_mismatch_error = False
         faulty_ids_annot = []
-        faulty_ids_missmatch = []
-        instance_mask, class_mask = mask[0], mask[1]
+        instance_mask = mask[0]
         instance_ids = Compute4Mask.get_unique_objects(instance_mask)
         for instance_id in instance_ids:
             # check if there are more than one objects (connected components) with same instance_id
             if np.unique(label(instance_mask == instance_id)).shape[0] > 2:
                 user_annot_error = True
                 faulty_ids_annot.append(instance_id)
-            # and check if there is a mismatch between class mask and instance mask - should never happen!
-            if (
-                np.unique(class_mask[np.where(instance_mask == instance_id)]).shape[0]
-                > 1
-            ):
-                mask_mismatch_error = True
-                faulty_ids_missmatch.append(instance_id)
-
         return (
             user_annot_error,
-            mask_mismatch_error,
             faulty_ids_annot,
-            faulty_ids_missmatch,
         )
+    
+    @staticmethod
+    def keep_largest_components_pair(mask, faulty_ids: list):
+        """
+        Keeps only the largest connected component for each label in faulty_ids
+        in mask.
+
+        :param mask: The mask which we want to test.
+        :type mask: numpy.ndarray
+        :param faulty_ids: List of label IDs for which to keep only the largest component.
+        :type faulty_ids: List
+        :return: Tuple of cleaned masks: (cleaned_mask, cleaned_class_mask)
+        """
+
+        cleaned_mask = mask[0].copy()
+        cleaned_class_mask = mask[1].copy()
+
+        for label_id in faulty_ids:
+            # binary mask for current label
+            binary_mask = (cleaned_mask == label_id)
+
+            if np.any(binary_mask):
+                # label connected components
+                labeled_array, num_features = labelnd(binary_mask)
+
+                if num_features == 0:
+                    continue
+
+                # count pixels in each component
+                component_sizes = np.bincount(labeled_array.ravel())
+                component_sizes[0] = 0  # ignore background
+
+                # largest component
+                largest_component_label = component_sizes.argmax()
+
+                # mask for pixels to remove
+                remove_mask = (labeled_array != largest_component_label) & (labeled_array != 0)
+
+                # set these pixels to 0 in both masks
+                cleaned_mask[remove_mask] = 0
+                cleaned_class_mask[remove_mask] = 0
+
+                # Stack along new first axis
+                stacked = np.stack([cleaned_mask, cleaned_class_mask], axis=0)
+
+        return stacked

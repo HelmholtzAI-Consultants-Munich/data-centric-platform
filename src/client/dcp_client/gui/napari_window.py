@@ -389,7 +389,7 @@ class NapariWindow(MyWidget):
         an object from the instance mask and then directly tries to move the data to in 
         progress. The class label needs to be updated with the change.
         :param seg: Current seg layers
-        :type status: List
+        :type seg: List
         :param seg_name_to_save: Name of the segmentation layer user wants to save
         :type seg_name_to_save: str
         """
@@ -404,8 +404,16 @@ class NapariWindow(MyWidget):
             seg[1] = Compute4Mask.add_contour(seg[1], seg[0])
         return seg
 
-    def on_add_to_curated_button_clicked(self) -> None:
-        """Defines what happens when the "Move to curated dataset folder" button is clicked."""
+    def on_save_to_folder_clicked(self, save_folder, move_segs=False) -> None:
+        """ Is called when either of the two buttons are clicked to save data to new folder
+        :param save_folder: Indicates the directory where we wish to save the data
+        :type save_folder: str
+        :param move_segs: Indicates whether all labels layers found in same directory with the image should be moved too. 
+                            If we are moving to in_progress directory all segs are moved, otherwise only the one selected by the user.
+        :type move_segs: bool
+        """
+         # TODO: Do we allow this? What if they moved it by mistake? User can always manually move from their folders?)
+        # check if user is trying to save image which is already in curated folder - not allowed to change!
         if self.app.cur_selected_path == str(self.app.train_data_path):
             message_text = "Image is already in the 'Curated data' folder and should not be changed again"
             _ = self.create_warning_box(message_text, message_title="Warning")
@@ -422,76 +430,46 @@ class NapariWindow(MyWidget):
             _ = self.create_warning_box(message_text, message_title="Warning")
             return
 
-        # Save the (changed) seg
+        # get the labels layer
         seg = self.viewer.layers[seg_name_to_save].data
-        seg[1] = Compute4Mask.add_contour(seg[1], seg[0])
+        seg[1] = Compute4Mask.add_contour(seg[1], seg[0]) # add contour to labels mask
 
         seg = self.check_and_update_if_layers_changed(seg, seg_name_to_save)
 
-        annot_error, mask_mismatch_error, faulty_ids_annot, faulty_ids_missmatch = (
-            Compute4Mask.assert_consistent_labels(seg)
-        )
+        annot_error, faulty_ids_annot = Compute4Mask.assert_connected_objects(seg)
+
         if annot_error:
             message_text = (
-                "There seems to be a problem with your mask. We expect each object to be a connected component. For object(s) with ID(s) \n"
-                + str(faulty_ids_annot)
-                + "\n"
-                "more than one connected component was found. Please go back and fix this."
+                "There seems to be a problem with your mask. We expect each object to be a connected component. For object(s) with ID(s): \n"
+                + ", ".join(str(id) for id in faulty_ids_annot[:-1])
+                + (", " if len(faulty_ids_annot) > 1 else "")
+                + str(faulty_ids_annot[-1])
+                + " more than one connected component was found. Would you like us to clean this up and keep only the largest connect component?"
             )
-            self.create_warning_box(message_text, "Warning")
-        elif mask_mismatch_error:
-            message_text = (
-                "There seems to be a mismatch between your class and instance masks for object(s) with ID(s) \n"
-                + str(faulty_ids_missmatch)
-                + "\n"
-                "This should not occur and will cause a problem later during model training. Please go back and check."
-            )
-            self.create_warning_box(message_text, "Warning")
-        else:
-            # Move original image
-            self.app.move_images(self.app.train_data_path)
-
-            self.app.save_image(
-                self.app.train_data_path, seg_name_to_save + ".tiff", seg
-            )
-
-            # We remove seg from the current directory if it exists (both eval and inprogr allowed)
-            self.app.delete_images(self.seg_files)
-            # TODO Create the Archive folder for the rest? Or move them as well?
-
-            self.viewer.close()
-            self.close()
-
-    def on_add_to_inprogress_button_clicked(self) -> None:
-        """Defines what happens when the "Move to curation in progress folder" button is clicked."""
-        # TODO: Do we allow this? What if they moved it by mistake? User can always manually move from their folders?)
-        if self.app.cur_selected_path == str(self.app.train_data_path):
-            message_text = "Images from '\Curated data'\ folder can not be moved back to 'Curatation in progress' folder."
-            _ = self.create_warning_box(message_text, message_title="Warning")
-            return
-
-        # take the name of the currently selected layer (by the user)
-        seg_name_to_save = self.viewer.layers.selection.active.name
-        # TODO if more than one item is selected this will break!
-        if "_seg" not in seg_name_to_save:
-            message_text = (
-                "Please select the segmenation you wish to save from the layer list."
-                "The labels layer should have the same name as the image to which it corresponds, followed by _seg."
-            )
-            _ = self.create_warning_box(message_text, message_title="Warning")
-            return
+            usr_response = self.create_selection_box(message_text, "Clean up")
+            if usr_response=='action': 
+                seg = Compute4Mask.keep_largest_components_pair(seg, faulty_ids_annot)
+            else: return
 
         # Move original image
-        self.app.move_images(self.app.inprogr_data_path, move_segs=True)
-        
-        # Save the (changed) seg - this will overwrite existing seg if seg name hasn't been changed in viewer
-        seg = self.viewer.layers[seg_name_to_save].data
-        seg[1] = Compute4Mask.add_contour(seg[1], seg[0])
-        
-        # first check if some item has just been changed without moving slider
-        seg = self.check_and_update_if_layers_changed(seg, seg_name_to_save)
+        self.app.move_images(save_folder, move_segs)
 
-        self.app.save_image(self.app.inprogr_data_path, seg_name_to_save + ".tiff", seg)
+        # Save the (changed) seg
+        self.app.save_image(
+            save_folder, seg_name_to_save + ".tiff", seg
+        )
+
+        # We remove segs from the current directory if it exists (both eval and inprogr allowed)
+        self.app.delete_images(self.seg_files)
+        # TODO Create the Archive folder for the rest? Or move them as well?
 
         self.viewer.close()
         self.close()
+
+    def on_add_to_curated_button_clicked(self) -> None:
+        """Defines what happens when the "Move to curated dataset folder" button is clicked."""
+        self.on_save_to_folder_clicked(self.app.train_data_path)
+    
+    def on_add_to_inprogress_button_clicked(self) -> None:
+        """Defines what happens when the "Move to curation in progress folder" button is clicked."""
+        self.on_save_to_folder_clicked(self.app.inprogr_data_path, move_segs=True)

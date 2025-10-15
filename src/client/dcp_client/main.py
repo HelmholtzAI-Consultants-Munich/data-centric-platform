@@ -2,6 +2,8 @@ import argparse
 import sys
 import warnings
 from os import path
+import os
+from contextlib import contextmanager
 
 from dcp_client.app import Application
 from dcp_client.gui.welcome_window import WelcomeWindow
@@ -14,6 +16,32 @@ from PyQt5.QtWidgets import QApplication
 
 warnings.simplefilter("ignore")
 
+@contextmanager
+def suppress_tiff_warnings():
+    """Suppress only libtiff TIFFReadDirectory warnings while keeping other stderr output."""
+    original_stderr_fd = sys.stderr.fileno()
+    saved_stderr_fd = os.dup(original_stderr_fd)
+
+    # Create a pipe to capture stderr
+    r_fd, w_fd = os.pipe()
+    os.dup2(w_fd, original_stderr_fd)
+    os.close(w_fd)
+
+    try:
+        yield
+    finally:
+        # Restore original stderr
+        os.dup2(saved_stderr_fd, original_stderr_fd)
+        os.close(saved_stderr_fd)
+
+        # Read captured output
+        captured_output = os.read(r_fd, 10000).decode()  # adjust buffer size if needed
+        os.close(r_fd)
+
+        # Filter out TIFF warnings, print the rest
+        for line in captured_output.splitlines():
+            if "TIFFReadDirectory" not in line:
+                sys.stderr.write(line + "\n")
 
 def main():
 
@@ -63,7 +91,7 @@ def main():
     )
     app = QApplication(sys.argv)
     window = WelcomeWindow(welcome_app)
-    sys.exit(app.exec())
+    with suppress_tiff_warnings(): sys.exit(app.exec())
 
 
 if __name__ == "__main__":
