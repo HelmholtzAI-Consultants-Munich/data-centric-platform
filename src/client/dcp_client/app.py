@@ -9,13 +9,17 @@ from dcp_client.utils import settings
 
 class Model(ABC):
     @abstractmethod
+    def run_train(self, path: str) -> None:
+        pass
+
+    @abstractmethod
     def run_inference(self, path: str) -> None:
         pass
 
 
 class DataSync(ABC):
     @abstractmethod
-    def sync(self, src: str, dst: str, path: str) -> tuple:
+    def sync(self, src: str, dst: str, path: str) -> None:
         pass
 
 
@@ -52,6 +56,7 @@ class Application:
         server_ip: str,
         server_port: int,
         eval_data_path: str = "",
+        train_data_path: str = "",
         inprogr_data_path: str = "",
     ):
         self.ml_model = ml_model
@@ -60,6 +65,7 @@ class Application:
         self.server_ip = server_ip
         self.server_port = server_port
         self.eval_data_path = eval_data_path
+        self.train_data_path = train_data_path
         self.inprogr_data_path = inprogr_data_path
         self.cur_selected_img = ""
         self.cur_selected_path = ""
@@ -67,10 +73,11 @@ class Application:
 
     def upload_data_to_server(self):
         """
-        Uploads the eval data to the server.
+        Uploads the train and eval data to the server.
         """
+        success_f1, message1 = self.syncer.first_sync(path=self.train_data_path)
         success_f2, message2 = self.syncer.first_sync(path=self.eval_data_path)
-        return success_f2, message2
+        return success_f1, success_f2, message1, message2
 
     def try_server_connection(self):
         """
@@ -81,6 +88,29 @@ class Application:
         )
         return connection_success
 
+    def run_train(self):
+        """Checks if the ml model is connected to the server, connects if not (and if possible), and trains the model with all data available in train_data_path"""
+        if not self.ml_model.is_connected and not self.try_server_connection():
+            message_title = "Warning"
+            message_text = "Connection could not be established. Please check if the server is running and try again."
+            return message_text, message_title
+        # if syncer.host name is None then local machine is used to train
+        message_title = "Information"
+        if self.syncer.host_name == "local":
+            message_text = self.ml_model.run_train(self.train_data_path)
+        else:
+            success_sync, srv_relative_path = self.syncer.sync(
+                src="client", dst="server", path=self.train_data_path
+            )
+            # make sure syncing of folders was successful
+            if success_sync == "Success":
+                message_text = self.ml_model.run_train(srv_relative_path)
+            else:
+                message_text = None
+        if message_text is None:
+            message_text = "An error has occured on the server. Please check your image data and configurations. If the problem persists contact your software provider."
+            message_title = "Error"
+        return message_text, message_title
 
     def run_inference(self):
         """Checks if the ml model is connected to the server, connects if not (and if possible), and runs inference on all images in eval_data_path"""
