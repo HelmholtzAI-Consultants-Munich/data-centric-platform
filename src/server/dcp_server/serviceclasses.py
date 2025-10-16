@@ -58,27 +58,3 @@ class CustomRunnable:
                 loaded_model.__class__.__name__ == self.model.__class__.__name__
             ), "Check your config, loaded model and model to use not the same!"
             self.model = loaded_model
-
-    async def train(self, imgs: List[np.ndarray], masks: List[np.ndarray]) -> str:
-        """Trains the given model
-
-        :param imgs: images to train on (training data)
-        :type imgs: List[np.ndarray]
-        :param masks: masks of the given images (training labels)
-        :type masks: List[np.ndarray]
-        :return: path of the saved model
-        :rtype: str
-        """
-        self.model.train(imgs, masks)
-        # Save the bentoml model
-        bentoml.picklable_model.save_model(
-            self.save_model_path,
-            self.model,
-            external_modules=[DCPModels],
-        )
-        # bentoml.pytorch.save_model(self.save_model_path,   # Model name in the local Model Store
-        #                            self.model,  # Model instance being saved
-        #                            external_modules=[DCPModels]
-        #                            )
-
-        return self.save_model_path
