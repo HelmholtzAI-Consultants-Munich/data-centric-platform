@@ -17,7 +17,6 @@ class MultiCellpose(Model):
         model_name: str,
         model_config: dict,
         data_config: dict,
-        train_config: dict,
         eval_config: dict,
     ) -> None:
         """Constructs all the necessary attributes for the MultiCellpose model.
@@ -26,18 +25,15 @@ class MultiCellpose(Model):
         :type model_name: str
         :param model_config: Model configuration.
         :type model_config: dict
-        :param train_config: Training configuration.
-        :type train_config: dict
         :param eval_config: Evaluation configuration.
         :type eval_config: dict
         """
         Model.__init__(
-            self, model_name, model_config, data_config, train_config, eval_config
+            self, model_name, model_config, data_config, eval_config
         )
 
         self.model_config = model_config
         self.data_config = data_config
-        self.train_config = train_config
         self.eval_config = eval_config
         self.model_name = model_name
         self.num_of_channels = self.model_config["classifier"]["num_classes"]
@@ -47,39 +43,11 @@ class MultiCellpose(Model):
                 "Cellpose",
                 self.model_config,
                 self.data_config,
-                self.train_config,
                 self.eval_config,
             )
             for _ in range(self.num_of_channels)
         ]
 
-    def train(self, imgs: List[np.ndarray], masks: List[np.ndarray]) -> None:
-        """
-        Train the model on the provided images and masks.
-
-        :param imgs: Input images for training.
-        :type imgs: list[numpy.ndarray]
-        :param masks: Masks corresponding to the input images.
-        :type masks: list[numpy.ndarray]
-        """
-
-        for i in range(self.num_of_channels):
-
-            masks_class = []
-
-            for mask in masks:
-                mask_class = mask[0].copy()  # TODO - Do we need copy??
-                # set all instances in the instance mask not corresponding to the class in question to zero
-                mask_class[0][mask_class[1] != (i + 1)] = 0
-                masks_class.append(mask_class)
-            self.cellpose_models[i].train(imgs, masks_class)
-
-        self.metric = np.mean(
-            [self.cellpose_models[i].metric for i in range(self.num_of_channels)]
-        )
-        self.loss = np.mean(
-            [self.cellpose_models[i].loss for i in range(self.num_of_channels)]
-        )
 
     def eval(self, img: np.ndarray) -> np.ndarray:
         """Evaluate the model on the provided image. The instance mask are computed as the union of the predicted model outputs, while the class of

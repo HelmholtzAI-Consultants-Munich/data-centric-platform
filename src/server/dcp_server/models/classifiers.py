@@ -21,7 +21,6 @@ class PatchClassifier(nn.Module):
         model_name: str,
         model_config: dict,
         data_config: dict,
-        train_config: dict,
         eval_config: dict,
     ) -> None:
         """Initialize the fully convolutional classifier.
@@ -32,8 +31,6 @@ class PatchClassifier(nn.Module):
         :type model_config: dict
         :param data_config: Data configuration.
         :type data_config: dict
-        :param train_config: Training configuration.
-        :type train_config: dict
         :param eval_config: Evaluation configuration.
         :type eval_config: dict
         """
@@ -42,58 +39,9 @@ class PatchClassifier(nn.Module):
         self.model_name = model_name
         self.model_config = model_config["classifier"]
         self.data_config = data_config
-        self.train_config = train_config["classifier"]
         self.eval_config = eval_config["classifier"]
 
         self.build_model()
-
-    def train(self, imgs: List[np.ndarray], labels: List[np.ndarray]) -> None:
-        """Trains the given model
-
-        :param imgs: List of input images with shape (3, dx, dy).
-        :type imgs: List[np.ndarray[np.uint8]]
-        :param labels: List of classification labels.
-        :type labels: List[int]
-        """
-
-        # Convert input images and labels to tensors
-        imgs = torch.stack([torch.from_numpy(img.astype(np.float32)) for img in imgs])
-        imgs = torch.permute(imgs, (0, 3, 1, 2))
-        # Your classification label mask
-        labels = torch.LongTensor([label for label in labels])
-
-        # Create a training dataset and dataloader
-        train_dataloader = DataLoader(
-            TensorDataset(imgs, labels), batch_size=self.train_config["batch_size"]
-        )
-
-        loss_fn = nn.CrossEntropyLoss()
-        optimizer = Adam(params=self.parameters(), lr=self.train_config["lr"])
-        # optimizer_class = self.train_config["optimizer"]
-        # eval(f'{optimizer_class}(params={self.parameters()}, lr={lr})')
-
-        # TODO check if we should replace self.parameters with super.parameters()
-        for _ in tqdm(
-            range(self.train_config["n_epochs"]),
-            desc="Running PatchClassifier training",
-        ):
-
-            self.loss, self.metric = 0, 0
-            for data in train_dataloader:
-                imgs, labels = data
-
-                optimizer.zero_grad()
-                preds = self.forward(imgs)
-
-                l = loss_fn(preds, labels)
-                l.backward()
-                optimizer.step()
-                self.loss += l.item()
-
-                self.metric += self.metric_fn(preds, labels)
-
-            self.loss /= len(train_dataloader)
-            self.metric /= len(train_dataloader)
 
     def eval(self, img: np.ndarray) -> torch.Tensor:
         """Evaluates the model on the provided image and return the predicted label.
@@ -172,7 +120,6 @@ class FeatureClassifier:
         model_name: str,
         model_config: dict,
         data_config: dict,
-        train_config: dict,
         eval_config: dict,
     ) -> None:
         """Constructs all the necessary attributes for the FeatureClassifier
@@ -181,8 +128,6 @@ class FeatureClassifier:
         :type model_config: dict
         :param data_config: Data configuration.
         :type data_config: dict
-        :param train_config: Training configuration.
-        :type train_config: dict
         :param eval_config: Evaluation configuration.
         :type eval_config: dict
         """
@@ -196,23 +141,6 @@ class FeatureClassifier:
         self.model = RandomForestClassifier(
             **self.model_config
         )  # TODO chnage config so RandomForestClassifier accepts input params
-
-    def train(self, X_train: List[np.ndarray], y_train: List[np.ndarray]) -> None:
-        """Trains the model using the provided training data.
-
-        :param X_train: Features of the training data.
-        :type X_train: numpy.ndarray
-        :param y_train: Labels of the training data.
-        :type y_train: numpy.ndarray
-        """
-        self.model.fit(X_train, y_train)
-
-        y_hat = self.model.predict(X_train)
-        y_hat_proba = self.model.predict_proba(X_train)
-
-        # Binary Cross Entrop Loss
-        self.loss = log_loss(y_train, y_hat_proba)
-        self.metric = f1_score(y_train, y_hat, average="micro")
 
     def eval(self, X_test: np.ndarray) -> np.ndarray:
         """Evaluates the model on the provided test data.

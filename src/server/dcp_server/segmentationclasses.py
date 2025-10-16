@@ -56,31 +56,7 @@ class GeneralSegmentation:
             )
             self.imagestorage.save_image(os.path.join(input_path, seg_name), mask)
 
-    async def train(self, input_path: str) -> str:
-        """Train model on images and masks in the given input directory.
-        Calls the runner's train function.
-
-        :param input_path: directory where the images are saved
-        :type input_path: str
-        :return: runner's train function output - path of the saved model
-        :rtype: str
-        """
-
-        train_img_mask_pairs = self.imagestorage.get_image_seg_pairs(input_path)
-
-        if not train_img_mask_pairs:
-            return self.no_files_msg
-
-        imgs, masks = self.imagestorage.prepare_images_and_masks_for_training(
-            train_img_mask_pairs
-        )
-        model_save_path = await self.runner.train(imgs, masks)
-
-        return model_save_path
-
-
 '''
-
 class GFPProjectSegmentation(GeneralSegmentation):
     def __init__(self, imagestorage, runner):
         super().__init__(imagestorage, runner)

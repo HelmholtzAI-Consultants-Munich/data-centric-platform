@@ -65,7 +65,6 @@ class UNet(nn.Module, Model):
         model_name: str,
         model_config: dict,
         data_config: dict,
-        train_config: dict,
         eval_config: dict,
     ) -> None:
         """Constructs all the necessary attributes for the UNet model.
@@ -76,13 +75,11 @@ class UNet(nn.Module, Model):
         :type model_config: dict
         :param data_config: Data configurations
         :type data_config: dict
-        :param train_config: Training configuration.
-        :type train_config: dict
         :param eval_config: Evaluation configuration.
         :type eval_config: dict
         """
         Model.__init__(
-            self, model_name, model_config, data_config, train_config, eval_config
+            self, model_name, model_config, data_config, eval_config
         )
         nn.Module.__init__(self)
         # super().__init__()
@@ -90,7 +87,6 @@ class UNet(nn.Module, Model):
         self.model_name = model_name
         self.model_config = model_config
         self.data_config = data_config
-        self.train_config = train_config
         self.eval_config = eval_config
 
         self.loss = 1e6
@@ -101,59 +97,6 @@ class UNet(nn.Module, Model):
         )
 
         self.build_model()
-
-    def train(self, imgs: List[np.ndarray], masks: List[np.ndarray]) -> None:
-        """
-        Trains the UNet model using the provided images and masks.
-
-        :param imgs: Input images for training.
-        :type imgs: list[numpy.ndarray]
-        :param masks: Masks corresponding to the input images.
-        :type masks: list[numpy.ndarray]
-        """
-
-        imgs = convert_to_tensor(imgs, np.float32)
-        masks = convert_to_tensor(
-            [mask[1] for mask in masks], np.int16, unsqueeze=False
-        )
-
-        # Create a training dataset and dataloader
-        train_dataloader = DataLoader(
-            TensorDataset(imgs, masks),
-            batch_size=self.train_config["classifier"]["batch_size"],
-        )
-
-        loss_fn = nn.CrossEntropyLoss()
-        optimizer = Adam(
-            params=self.parameters(), lr=self.train_config["classifier"]["lr"]
-        )
-
-        for _ in tqdm(
-            range(self.train_config["classifier"]["n_epochs"]),
-            desc="Running UNet training",
-        ):
-
-            self.loss = 0
-
-            for imgs, masks in train_dataloader:
-                # forward path
-                preds = self.forward(imgs.float())
-                loss = loss_fn(preds, masks.long())
-
-                # backward path
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-
-                self.loss += loss.detach().mean().item()
-
-            self.loss /= len(train_dataloader)
-
-        # compute metric on test set after train is complete
-        for imgs, masks in train_dataloader:
-            pred_masks = self.forward(imgs.float())
-            self.metric += self.metric_f(pred_masks, masks)
-        self.metric /= len(train_dataloader)
 
     def eval(self, img: np.ndarray) -> np.ndarray:
         """Evaluate the model on the provided image and return the predicted label.

@@ -23,21 +23,21 @@ class Model(ABC):
     def eval(self, img: np.ndarray) -> np.ndarray:
         pass
 
-    '''
-    def update_configs(self,
-                       config: dict,
-                       ctype: str
-                       ) -> None:
-        """ Update the training or evaluation configurations.
+    # '''
+    # def update_configs(self,
+    #                    config: dict,
+    #                    ctype: str
+    #                    ) -> None:
+    #     """ Update the training or evaluation configurations.
 
-        :param config: Dictionary containing the updated configuration.
-        :type config: dict
-        :param ctype:type of config to update, will be train or eval
-        :type ctype: str
-        """
-        if ctype=='train': self.train_config = config
-        else: self.eval_config = config
-    '''
+    #     :param config: Dictionary containing the updated configuration.
+    #     :type config: dict
+    #     :param ctype:type of config to update, will be train or eval
+    #     :type ctype: str
+    #     """
+    #     if ctype=='train': self.train_config = config
+    #     else: self.eval_config = config
+    # '''
 
 
 # from segment_anything import SamPredictor, sam_model_registry
