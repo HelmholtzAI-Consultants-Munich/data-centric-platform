@@ -349,7 +349,7 @@ class NapariWindow(MyWidget):
         :param labels_mask: The updated labels mask, changed by the user.
         :type labels_mask: numpy.ndarray
         """
-
+        
         # add contours back to labels mask
         labels_mask = Compute4Mask.add_contour(labels_mask, instance_mask)
         # and compute the updated instance mask
@@ -398,6 +398,7 @@ class NapariWindow(MyWidget):
                 seg[0].astype(bool),
                 seg[1].astype(bool)
                 ):
+            print('Updating masks before saving...')
             if self.active_mask_index==1: self.update_instance_mask(seg[0], seg[1])
             else: self.update_labels_mask(seg[0])
             # reload the seg layers after update
@@ -420,6 +421,11 @@ class NapariWindow(MyWidget):
             _ = self.create_warning_box(message_text, message_title="Warning")
             return
 
+        if self.app.cur_selected_path == save_folder:
+            message_text = "Image is already in the 'In progress data' folder - Did you mean to move it to the 'Curated data' folder? Go back and try again!"
+            _ = self.create_warning_box(message_text, message_title="Warning")
+            return
+        
         # take the name of the currently selected layer (by the user)
         seg_name_to_save = self.viewer.layers.selection.active.name
         # TODO if more than one item is selected this will break!
@@ -457,7 +463,7 @@ class NapariWindow(MyWidget):
             if annot_error:
                 message_text = (
                     "You still haven't annotated all obects in your class mask. Please go back and complete the annotation, replacing" \
-                    + "any objects with default value '-1' with the actual class label."
+                    + " any objects with default value '-1' with the actual class label."
                 )
                 usr_response = self.create_selection_box(message_text, "Annotation incomplete!")
                 return

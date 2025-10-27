@@ -63,18 +63,33 @@ class Compute4Mask:
         :return: The updated class mask including contours.
         :rtype: numpy.ndarray
         """
+        labels_mask_with_contours = labels_mask.copy()
         instance_ids = Compute4Mask.get_unique_objects(instance_mask)
+
         for instance_id in instance_ids:
-            where_instances = np.where(instance_mask == instance_id)
-            # get unique class ids where the object is present
-            class_vals, counts = np.unique(
-                labels_mask[where_instances], return_counts=True
-            )
-            # and take the class id which is most heavily represented
-            class_id = class_vals[np.argmax(counts)]
-            # make sure instance mask and class mask match
-            labels_mask[np.where(instance_mask == instance_id)] = class_id
-        return labels_mask
+            
+            # Binary mask for this instance
+            instance_binary = (instance_mask == instance_id)
+    
+            # Label connected components within this instance
+            single_instance_labeled = label(instance_binary, connectivity=1)
+            num_components = single_instance_labeled.max()
+
+            # If multiple components, there may be a case where instance was split
+            for i in range(1, num_components + 1):
+                component_mask = single_instance_labeled == i
+                # get unique class ids where the object is present
+                class_vals, counts = np.unique(labels_mask[component_mask], return_counts=True)
+                # Skip if no class assigned
+                if len(class_vals) == 0: continue
+                # and take the class id which is most heavily represented
+                class_id = class_vals[np.argmax(counts)]
+                # ignore background=0 if dominant
+                if class_id==0: continue
+                # make sure instance mask and class mask match
+                labels_mask_with_contours[component_mask] = class_id   
+
+        return labels_mask_with_contours
 
     @staticmethod
     def compute_new_instance_mask(
@@ -92,6 +107,7 @@ class Compute4Mask:
         :return: The updated instance mask.
         :rtype: numpy.ndarray
         """
+        '''
         instance_ids = Compute4Mask.get_unique_objects(instance_mask)
         for instance_id in instance_ids:
             unique_items_in_class_mask = list(
@@ -103,6 +119,14 @@ class Compute4Mask:
             ):
                 instance_mask[instance_mask == instance_id] = 0
         return instance_mask
+        '''
+        # Create a copy to avoid modifying the original in place
+        updated_instance_mask = instance_mask.copy()
+
+        # Wherever the labels mask is set to background (0), clear the instance mask
+        updated_instance_mask[labels_mask == 0] = 0
+
+        return updated_instance_mask
 
     @staticmethod
     def compute_new_labels_mask(
