@@ -443,21 +443,6 @@ class NapariWindow(MyWidget):
 
         seg = self.check_and_update_if_layers_changed(seg, seg_name_to_save)
 
-        annot_error, faulty_ids_annot = Compute4Mask.assert_connected_objects(seg)
-
-        if annot_error:
-            message_text = (
-                "There seems to be a problem with your mask. We expect each object to be a connected component. For object(s) with ID(s): \n"
-                + ", ".join(str(id) for id in faulty_ids_annot[:-1])
-                + (", " if len(faulty_ids_annot) > 1 else "")
-                + str(faulty_ids_annot[-1])
-                + " more than one connected component was found. Would you like us to clean this up and keep only the largest connect component?"
-            )
-            usr_response = self.create_selection_box(message_text, "Clean up")
-            if usr_response=='action': 
-                seg = Compute4Mask.keep_largest_components_pair(seg, faulty_ids_annot)
-            else: return
-            
         if self.app.num_classes>1:
             annot_error = Compute4Mask.assert_missing_classes(seg)
             if annot_error:
@@ -479,6 +464,21 @@ class NapariWindow(MyWidget):
                 )
                 usr_response = self.create_selection_box(message_text, "Annotation incomplete!")
                 return
+
+        annot_error, faulty_ids_annot = Compute4Mask.assert_connected_objects(seg)
+
+        if annot_error:
+            message_text = (
+                "There seems to be a problem with your mask. We expect each object to be a connected component. For object(s) with ID(s): \n"
+                + ", ".join(str(id) for id in faulty_ids_annot[:-1])
+                + (", " if len(faulty_ids_annot) > 1 else "")
+                + str(faulty_ids_annot[-1])
+                + " more than one connected component was found. Would you like us to clean this up and keep only the largest connect component?"
+            )
+            usr_response = self.create_selection_box(message_text, "Clean up")
+            if usr_response=='action': 
+                seg = Compute4Mask.keep_largest_components_pair(seg, faulty_ids_annot)
+            else: return
 
         # Move original image
         self.app.move_images(save_folder, move_segs)
