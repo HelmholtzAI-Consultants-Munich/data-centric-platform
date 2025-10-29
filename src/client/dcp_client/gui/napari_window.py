@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 from copy import deepcopy
 
-from qtpy.QtWidgets import QPushButton, QComboBox, QLabel, QGridLayout
+from qtpy.QtWidgets import QPushButton, QComboBox, QLabel, QGridLayout, QWidget
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtGui import QGuiApplication
 import napari
@@ -48,7 +48,23 @@ class NapariWindow(MyWidget):
         for seg_file in self.seg_files:
             seg = self.app.load_image(seg_file)
             seg = seg.astype(np.int16)  # fix dtype issue
-            if seg.ndim==2 and self.app.num_classes>1:
+        
+            # check the masks of the loaded segmentation
+            if seg.ndim>2 and self.app.num_classes==1:
+                message_text = (
+                    "Your mask contains a channel for class labels, but you specified only one class at runtime.\n"
+                    + "Click 'Cancel' to go back and re-run the segmentation algorithm to get only instance segmentation masks.\n"
+                    + "If you like to proceed click 'Ok' and the additional class label will be removed automatically."
+                )
+                usr_response = self.create_selection_box(message_text, "Additional mask channel found!")
+                if usr_response=='action': 
+                    seg = seg[0]
+                else:
+                    print('User cancelled due to extra mask channel. Closing viewer.')
+                    QTimer.singleShot(0, self.close)
+                    return
+                
+            elif seg.ndim==2 and self.app.num_classes>1:
                 seg = Compute4Mask.add_seg_layer(seg)
             self.viewer.add_labels(seg, name=get_path_stem(seg_file))
 
@@ -205,6 +221,27 @@ class NapariWindow(MyWidget):
         QTimer.singleShot(0, self.adjust_window_size)
         QTimer.singleShot(0, lambda: self.viewer.reset_view())
         self.show()
+
+    def closeEvent(self, event):
+        """Properly close Napari viewer and all child widgets."""
+        try:
+            # Close Napari viewer if exists
+            if hasattr(self, 'viewer') and self.viewer is not None:
+                if self.viewer.window is not None:
+                    for dock in self.viewer.window._dock_widgets.values():
+                        dock.close()
+                    self.viewer.close()
+                self.viewer = None
+
+            # Close any other child widgets
+            for child in self.findChildren(QWidget):
+                if child is not self:
+                    child.close()
+        except Exception as e:
+            print(f"Error during closeEvent cleanup: {e}")
+
+        # Always accept the close event
+        event.accept()
 
     def adjust_window_size(self):
         """Resize Napari main window to 80% of available screen, centered."""
@@ -455,11 +492,12 @@ class NapariWindow(MyWidget):
 
         # get the labels layer
         seg = self.viewer.layers[seg_name_to_save].data
-        seg[1] = Compute4Mask.add_contour(seg[1], seg[0]) # add contour to labels mask
-
-        seg = self.check_and_update_if_layers_changed(seg, seg_name_to_save)
 
         if self.app.num_classes>1:
+
+            seg[1] = Compute4Mask.add_contour(seg[1], seg[0]) # add contour to labels mask
+            seg = self.check_and_update_if_layers_changed(seg, seg_name_to_save)
+
             annot_error = Compute4Mask.assert_missing_classes(seg)
             if annot_error:
                 message_text = (
