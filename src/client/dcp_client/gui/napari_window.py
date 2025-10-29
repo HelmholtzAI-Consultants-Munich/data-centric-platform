@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Optional
 from copy import deepcopy
 
 from qtpy.QtWidgets import QPushButton, QComboBox, QLabel, QGridLayout
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, QTimer
 from qtpy.QtGui import QGuiApplication
 import napari
 import numpy as np
@@ -47,6 +47,7 @@ class NapariWindow(MyWidget):
         self.viewer.add_image(img, name=get_path_stem(self.app.cur_selected_img))
         for seg_file in self.seg_files:
             seg = self.app.load_image(seg_file)
+            seg = seg.astype(np.int16)  # fix dtype issue
             if seg.ndim==2 and self.app.num_classes>1:
                 seg = Compute4Mask.add_seg_layer(seg)
             self.viewer.add_labels(seg, name=get_path_stem(seg_file))
@@ -54,7 +55,7 @@ class NapariWindow(MyWidget):
         main_window = self.viewer.window._qt_window
         # main_window.setFixedSize(1200,600)
         layout = QGridLayout()
-        layout.addWidget(main_window, 0, 0, 1, 4)
+        layout.addWidget(main_window, 0, 0, 1, 3)
 
         # select the first seg as the currently selected layer if there are any segs
         if (
@@ -159,7 +160,7 @@ class NapariWindow(MyWidget):
                
          
         )
-        layout.addWidget(add_to_inprogress_button, 2, 0, 1, 2)
+        layout.addWidget(add_to_inprogress_button, 2, 0)#, 1, 2)
         add_to_inprogress_button.clicked.connect(
             self.on_add_to_inprogress_button_clicked
         )
@@ -179,12 +180,12 @@ class NapariWindow(MyWidget):
          
         )
 
-        layout.addWidget(add_to_curated_button, 2, 2, 1, 2)
+        layout.addWidget(add_to_curated_button, 2, 1)#, 1, 2)
         add_to_curated_button.clicked.connect(self.on_add_to_curated_button_clicked)
 
         self.setLayout(layout)
 
-        remove_from_dataset_button = QPushButton('Remove from dataset')
+        remove_from_dataset_button = QPushButton('Remove image from dataset')
         remove_from_dataset_button.setStyleSheet(
         """QPushButton 
             { 
@@ -198,8 +199,23 @@ class NapariWindow(MyWidget):
         "QPushButton:pressed { background-color: #006FBA; }" 
          
         )
-        layout.addWidget(remove_from_dataset_button, 3, 0, 1, 4)
+        layout.addWidget(remove_from_dataset_button, 2, 2)
         remove_from_dataset_button.clicked.connect(self.on_remove_from_dataset_button_clicked)
+
+        QTimer.singleShot(0, self.adjust_window_size)
+        QTimer.singleShot(0, lambda: self.viewer.reset_view())
+        self.show()
+
+    def adjust_window_size(self):
+        """Resize Napari main window to 80% of available screen, centered."""
+        window = self.viewer.window._qt_window #self.viewer.window._qt_window
+        screen = QGuiApplication.screenAt(window.pos()) or QGuiApplication.primaryScreen()
+        avail = screen.availableGeometry()
+        w = int(avail.width() * 0.8)
+        h = int(avail.height() * 0.8)
+        x = avail.x() + (avail.width() - w) // 2
+        y = avail.y() + (avail.height() - h) // 2
+        window.setGeometry(x, y, w, h)
 
     def on_remove_from_dataset_button_clicked(self) -> None:
         """
