@@ -148,7 +148,7 @@ class Compute4Mask:
         :return: The new labels mask, with updated changes according to those the user has made in the instance mask.
         :rtype: numpy.ndarray
         """
-        new_labels_mask = np.zeros_like(labels_mask)
+        new_labels_mask = np.zeros_like(labels_mask, dtype=np.int16)
         for instance_id in np.unique(instance_mask):
             where_instance = np.where(instance_mask == instance_id)
             # if the label is background skip

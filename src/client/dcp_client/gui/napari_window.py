@@ -464,6 +464,7 @@ class NapariWindow(MyWidget):
                 )
                 usr_response = self.create_selection_box(message_text, "Annotation incomplete!")
                 return
+        print('Annotation checks passed.')
 
         annot_error, faulty_ids_annot = Compute4Mask.assert_connected_objects(seg)
 
@@ -479,6 +480,7 @@ class NapariWindow(MyWidget):
             if usr_response=='action': 
                 seg = Compute4Mask.keep_largest_components_pair(seg, faulty_ids_annot)
             else: return
+        print('Connected component checks passed.')
 
         # Move original image
         self.app.move_images(save_folder, move_segs)
