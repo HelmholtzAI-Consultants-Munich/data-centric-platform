@@ -513,6 +513,23 @@ class NapariWindow(MyWidget):
             else: return
         print('Connected component checks passed.')
 
+        annot_error, holes = Compute4Mask.assert_filled_objects(seg[0])
+
+        if annot_error:
+            message_text = (
+                "For object(s) with ID(s): "+ ", ".join(str(id) for id in list(holes.keys())[:-1])
+                + (", " if len(list(holes.keys())) > 1 else "")
+                + str(list(holes.keys())[-1])
+                + " holes where found. Would you like us to clean this up and fill the holes in the segmentation?"
+            )
+            usr_response = self.create_selection_box(message_text, "Clean up")
+            if usr_response=='action': 
+                seg = Compute4Mask.fill_holes(seg, holes)
+                self.viewer.layers[seg_name_to_save].data = seg
+                self.viewer.layers[seg_name_to_save].refresh()
+            else: return
+        print('Objects with holes checks passed.')
+
         if self.app.num_classes>1:
 
             class_mask_with_contour = Compute4Mask.add_contour(seg[1], seg[0]) # add contour to labels mask
@@ -548,11 +565,10 @@ class NapariWindow(MyWidget):
         self.app.save_image(
             save_folder, seg_name_to_save + ".tiff", seg
         )
-
         # We remove segs from the current directory if it exists (both eval and inprogr allowed)
         self.app.delete_images(self.seg_files)
+        
         # TODO Create the Archive folder for the rest? Or move them as well?
-
         self.viewer.close()
         self.close()
 

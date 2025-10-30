@@ -2,7 +2,7 @@ from typing import List
 import numpy as np
 from skimage.measure import find_contours, label
 from skimage.draw import polygon_perimeter
-from scipy.ndimage import label as labelnd
+from scipy.ndimage import label as labelnd, binary_fill_holes
 
 class Compute4Mask:
     """
@@ -217,6 +217,82 @@ class Compute4Mask:
             user_annot_error,
             faulty_ids_annot,
         )
+    
+    @staticmethod
+    def _per_label_masks(instance_mask: np.ndarray,):
+        """Yield (label_id, binary_mask) for each nonzero label."""
+        for instance_id in np.unique(instance_mask):
+            if instance_id == 0:
+                continue  # skip background
+            yield instance_id, instance_mask == instance_id
+
+    @staticmethod
+    def assert_filled_objects(instance_mask: np.ndarray,):
+        """
+        Check which label instances contain holes.
+        
+        Parameters
+        ----------
+        labels : np.ndarray
+            Instance mask.
+        
+        Returns
+        -------
+        has_holes : bool
+            True/False if holes are present.
+        hole_masks : dict[int, np.ndarray]
+            Binary masks (same shape as labels) of detected holes per label.
+        """
+        has_holes = False
+        hole_masks = {}
+        
+        for instance_id, mask in Compute4Mask._per_label_masks(instance_mask):
+            filled = binary_fill_holes(mask)
+            holes = filled & ~mask
+            if np.any(holes):
+                has_holes = True
+                hole_masks[instance_id] = holes
+
+        return has_holes, hole_masks
+
+    @staticmethod
+    def fill_holes(mask: np.ndarray, holes_dict: dict = None) -> np.ndarray:
+        """
+        Fill holes in all labeled instances of a mask.
+        
+        Parameters
+        ----------
+        mask : np.ndarray
+            The mask we wish to fill holes in.
+        holes_dict : dict[int, np.ndarray], optional
+            Precomputed hole masks per label. If not provided, holes will be computed.
+        
+        Returns
+        -------
+        filled : np.ndarray
+            Copy of `labels` with internal holes filled.
+        """
+        if mask.ndim>2:
+            filled_mask = mask[0].copy()
+            filled_class_mask = mask[1].copy()
+        else:
+            filled_mask = mask.copy()
+            filled_class_mask = np.zeros_like(mask)
+
+
+        if holes_dict is None:
+            _, holes_dict = find_label_holes(filled_mask)
+
+        for instance_id, holes in holes_dict.items():
+            filled_class_mask[holes] = filled_class_mask[filled_mask == instance_id][0]
+            filled_mask[holes] = instance_id
+
+        # Stack along new first axis
+        stacked = np.stack([filled_mask, filled_class_mask], axis=0)
+
+        if mask.ndim>2: return stacked
+        else: return filled_mask
+
     
     @staticmethod
     def add_seg_layer(mask):
