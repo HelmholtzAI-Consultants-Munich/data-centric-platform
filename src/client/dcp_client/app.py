@@ -51,6 +51,7 @@ class Application:
     def __init__(
         self,
         ml_model: Model,
+        num_classes: int,
         syncer: DataSync,
         image_storage: ImageStorage,
         server_ip: str,
@@ -60,6 +61,7 @@ class Application:
         inprogr_data_path: str = "",
     ):
         self.ml_model = ml_model
+        self.num_classes = num_classes
         self.syncer = syncer
         self.fs_image_storage = image_storage
         self.server_ip = server_ip

@@ -64,6 +64,20 @@ def main():
         default = 'config_remote.yaml',
         help="Pass the remote config file for the project",
     )
+    # Multi-class flag
+    parser.add_argument(
+        "--multi-class",
+        action="store_true",
+        help="Enable multi-class classification",
+    )
+
+    # Num-classes (conditionally required)
+    parser.add_argument(
+        "--num-classes",
+        type=int,
+        help="Number of classes (required if --multi-class is set)",
+    )
+
     args = parser.parse_args()
 
     if args.mode == "local":
@@ -75,6 +89,15 @@ def main():
             "server", config_path=path.join(dir_name, args.config_remote)
         )
 
+    # Conditional validation
+    if args.multi_class and args.num_classes is None:
+        parser.error("--num-classes is required when --multi-class is set. Please provide the number of classes in your data.")
+    
+    if not args.multi_class: 
+        num_classes = 1
+    else:
+        num_classes = args.num_classes
+
     image_storage = FilesystemImageStorage()
     ml_model = BentomlModel()
     data_sync = DataRSync(
@@ -84,6 +107,7 @@ def main():
     )
     welcome_app = Application(
         ml_model=ml_model,
+        num_classes=num_classes,
         syncer=data_sync,
         image_storage=image_storage,
         server_ip=server_config["ip"],

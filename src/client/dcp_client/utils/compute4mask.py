@@ -2,7 +2,7 @@ from typing import List
 import numpy as np
 from skimage.measure import find_contours, label
 from skimage.draw import polygon_perimeter
-from scipy.ndimage import label as labelnd
+from scipy.ndimage import label as labelnd, binary_fill_holes
 
 class Compute4Mask:
     """
@@ -63,18 +63,33 @@ class Compute4Mask:
         :return: The updated class mask including contours.
         :rtype: numpy.ndarray
         """
+        labels_mask_with_contours = labels_mask.copy()
         instance_ids = Compute4Mask.get_unique_objects(instance_mask)
+
         for instance_id in instance_ids:
-            where_instances = np.where(instance_mask == instance_id)
-            # get unique class ids where the object is present
-            class_vals, counts = np.unique(
-                labels_mask[where_instances], return_counts=True
-            )
-            # and take the class id which is most heavily represented
-            class_id = class_vals[np.argmax(counts)]
-            # make sure instance mask and class mask match
-            labels_mask[np.where(instance_mask == instance_id)] = class_id
-        return labels_mask
+            
+            # Binary mask for this instance
+            instance_binary = (instance_mask == instance_id)
+    
+            # Label connected components within this instance
+            single_instance_labeled = label(instance_binary, connectivity=1)
+            num_components = single_instance_labeled.max()
+
+            # If multiple components, there may be a case where instance was split
+            for i in range(1, num_components + 1):
+                component_mask = single_instance_labeled == i
+                # get unique class ids where the object is present
+                class_vals, counts = np.unique(labels_mask[component_mask], return_counts=True)
+                # Skip if no class assigned
+                if len(class_vals) == 0: continue
+                # and take the class id which is most heavily represented
+                class_id = class_vals[np.argmax(counts)]
+                # ignore background=0 if dominant
+                if class_id==0: continue
+                # make sure instance mask and class mask match
+                labels_mask_with_contours[component_mask] = class_id   
+
+        return labels_mask_with_contours
 
     @staticmethod
     def compute_new_instance_mask(
@@ -92,6 +107,7 @@ class Compute4Mask:
         :return: The updated instance mask.
         :rtype: numpy.ndarray
         """
+        '''
         instance_ids = Compute4Mask.get_unique_objects(instance_mask)
         for instance_id in instance_ids:
             unique_items_in_class_mask = list(
@@ -103,6 +119,14 @@ class Compute4Mask:
             ):
                 instance_mask[instance_mask == instance_id] = 0
         return instance_mask
+        '''
+        # Create a copy to avoid modifying the original in place
+        updated_instance_mask = instance_mask.copy()
+
+        # Wherever the labels mask is set to background (0), clear the instance mask
+        updated_instance_mask[labels_mask == 0] = 0
+
+        return updated_instance_mask
 
     @staticmethod
     def compute_new_labels_mask(
@@ -124,7 +148,7 @@ class Compute4Mask:
         :return: The new labels mask, with updated changes according to those the user has made in the instance mask.
         :rtype: numpy.ndarray
         """
-        new_labels_mask = np.zeros_like(labels_mask)
+        new_labels_mask = np.zeros_like(labels_mask, dtype=labels_mask.dtype)
         for instance_id in np.unique(instance_mask):
             where_instance = np.where(instance_mask == instance_id)
             # if the label is background skip
@@ -133,7 +157,7 @@ class Compute4Mask:
             # if the label is a newly added object, add with the same id to the labels mask
             # this is an indication to the user that this object needs to be assigned a class
             elif instance_id not in old_instances:
-                new_labels_mask[where_instance] = instance_id
+                new_labels_mask[where_instance] = -1 #instance_id
             else:
                 where_instance_orig = np.where(original_instance_mask == instance_id)
                 # if the locations of the instance haven't changed, means object wasn't changed, do nothing
@@ -181,17 +205,146 @@ class Compute4Mask:
         """
         user_annot_error = False
         faulty_ids_annot = []
-        instance_mask = mask[0]
+        if mask.ndim>2: instance_mask = mask[0]
+        else: instance_mask = mask
         instance_ids = Compute4Mask.get_unique_objects(instance_mask)
         for instance_id in instance_ids:
             # check if there are more than one objects (connected components) with same instance_id
-            if np.unique(label(instance_mask == instance_id)).shape[0] > 2:
+            if np.unique(label(instance_mask == instance_id, connectivity=1)).shape[0] > 2:
                 user_annot_error = True
                 faulty_ids_annot.append(instance_id)
         return (
             user_annot_error,
             faulty_ids_annot,
         )
+    
+    @staticmethod
+    def _per_label_masks(instance_mask: np.ndarray,):
+        """Yield (label_id, binary_mask) for each nonzero label."""
+        for instance_id in np.unique(instance_mask):
+            if instance_id == 0:
+                continue  # skip background
+            yield instance_id, instance_mask == instance_id
+
+    @staticmethod
+    def assert_filled_objects(instance_mask: np.ndarray,):
+        """
+        Check which label instances contain holes.
+        
+        Parameters
+        ----------
+        labels : np.ndarray
+            Instance mask.
+        
+        Returns
+        -------
+        has_holes : bool
+            True/False if holes are present.
+        hole_masks : dict[int, np.ndarray]
+            Binary masks (same shape as labels) of detected holes per label.
+        """
+        has_holes = False
+        hole_masks = {}
+        
+        for instance_id, mask in Compute4Mask._per_label_masks(instance_mask):
+            filled = binary_fill_holes(mask)
+            holes = filled & ~mask
+            if np.any(holes):
+                has_holes = True
+                hole_masks[instance_id] = holes
+
+        return has_holes, hole_masks
+
+    @staticmethod
+    def fill_holes(mask: np.ndarray, holes_dict: dict = None) -> np.ndarray:
+        """
+        Fill holes in all labeled instances of a mask.
+        
+        Parameters
+        ----------
+        mask : np.ndarray
+            The mask we wish to fill holes in.
+        holes_dict : dict[int, np.ndarray], optional
+            Precomputed hole masks per label. If not provided, holes will be computed.
+        
+        Returns
+        -------
+        filled : np.ndarray
+            Copy of `labels` with internal holes filled.
+        """
+        if mask.ndim>2:
+            filled_mask = mask[0].copy()
+            filled_class_mask = mask[1].copy()
+        else:
+            filled_mask = mask.copy()
+            filled_class_mask = np.zeros_like(mask)
+
+
+        if holes_dict is None:
+            _, holes_dict = find_label_holes(filled_mask)
+
+        for instance_id, holes in holes_dict.items():
+            filled_class_mask[holes] = filled_class_mask[filled_mask == instance_id][0]
+            filled_mask[holes] = instance_id
+
+        # Stack along new first axis
+        stacked = np.stack([filled_mask, filled_class_mask], axis=0)
+
+        if mask.ndim>2: return stacked
+        else: return filled_mask
+
+    
+    @staticmethod
+    def add_seg_layer(mask):
+        """
+        The input mask has only one channel representing the instance ids - add an additional channel which represents 
+        the classes of the instances. These are originally all set to -1, meaning that the user should annotate them.
+        :param mask: The mask with the instance ids
+        :type mask: numpy.ndarray
+        :return: The mask with an additional channel added representing the class mask
+        """
+        if mask.ndim != 2:
+            raise ValueError(f"Expected 2D mask, got shape {mask.shape}")
+
+        # Create class mask filled with -1
+        class_mask = np.where(mask == 0, 0, -1)#.astype(np.int32)
+
+        # Stack into shape (2, H, W)
+        mask_with_classes = np.stack([mask, class_mask], axis=0)
+
+        return mask_with_classes
+    
+    @staticmethod
+    def assert_missing_classes(mask) -> bool:
+        """
+        Check if the class mask (second channel) contains any -1 values,
+        which indicate unannotated regions.
+
+        :param mask: The 2xHxW mask (first channel = instance ids, 
+                                  second channel = class ids)
+        :type mask: numpy.ndarray
+        :return: True if any -1 values are found in the class mask, otherwise False
+        """
+        if mask.ndim != 3 or mask.shape[0] != 2:
+            raise ValueError(f"Expected shape (2, H, W), got {mask.shape}")
+
+        class_mask = mask[1]
+        return np.any(class_mask == -1)
+    
+    @staticmethod
+    def assert_num_classes(mask, num_classes) -> bool:
+        """
+        Check if the class mask (second channel) contains a number of classes larger than that specified by the user at rutime.
+
+        :param mask: The 2xHxW mask (first channel = instance ids, 
+                                  second channel = class ids)
+        :type mask: numpy.ndarray
+        :return: True if more classes found, otherwise False
+        """
+        class_ids = Compute4Mask.get_unique_objects(mask[1])
+        if len(class_ids)>num_classes: return True
+        else: return False
+
     
     @staticmethod
     def keep_largest_components_pair(mask, faulty_ids: list):
@@ -203,11 +356,14 @@ class Compute4Mask:
         :type mask: numpy.ndarray
         :param faulty_ids: List of label IDs for which to keep only the largest component.
         :type faulty_ids: List
-        :return: Tuple of cleaned masks: (cleaned_mask, cleaned_class_mask)
+        :return: Numpy array of cleaned masks: (cleaned_mask, cleaned_class_mask)
         """
-
-        cleaned_mask = mask[0].copy()
-        cleaned_class_mask = mask[1].copy()
+        if mask.ndim>2:
+            cleaned_mask = mask[0].copy()
+            cleaned_class_mask = mask[1].copy()
+        else:
+            cleaned_mask = mask.copy()
+            cleaned_class_mask = np.zeros_like(mask)
 
         for label_id in faulty_ids:
             # binary mask for current label
@@ -237,4 +393,5 @@ class Compute4Mask:
                 # Stack along new first axis
                 stacked = np.stack([cleaned_mask, cleaned_class_mask], axis=0)
 
-        return stacked
+        if mask.ndim>2: return stacked
+        else: return cleaned_mask
