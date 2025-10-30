@@ -210,7 +210,7 @@ class Compute4Mask:
         instance_ids = Compute4Mask.get_unique_objects(instance_mask)
         for instance_id in instance_ids:
             # check if there are more than one objects (connected components) with same instance_id
-            if np.unique(label(instance_mask == instance_id)).shape[0] > 2:
+            if np.unique(label(instance_mask == instance_id, connectivity=1)).shape[0] > 2:
                 user_annot_error = True
                 faulty_ids_annot.append(instance_id)
         return (
@@ -280,7 +280,7 @@ class Compute4Mask:
         :type mask: numpy.ndarray
         :param faulty_ids: List of label IDs for which to keep only the largest component.
         :type faulty_ids: List
-        :return: Tuple of cleaned masks: (cleaned_mask, cleaned_class_mask)
+        :return: Numpy array of cleaned masks: (cleaned_mask, cleaned_class_mask)
         """
         if mask.ndim>2:
             cleaned_mask = mask[0].copy()

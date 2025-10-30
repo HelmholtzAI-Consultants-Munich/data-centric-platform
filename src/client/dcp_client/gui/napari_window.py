@@ -436,7 +436,7 @@ class NapariWindow(MyWidget):
         except:
             pass
 
-    def check_and_update_if_layers_changed(self, seg, seg_name_to_save):
+    def check_and_update_if_layers_changed(self, seg, class_mask_with_contour, seg_name_to_save):
         """
         Checks to see if changes have been made to the layers right before saving. 
         Updates the masks if so. This function handles the case when e.g. user deletes
@@ -444,12 +444,14 @@ class NapariWindow(MyWidget):
         progress. The class label needs to be updated with the change.
         :param seg: Current seg layers
         :type seg: List
+        :param class_mask_with_contour: Class mask with contour added
+        :type class_mask_with_contour: np.ndarray
         :param seg_name_to_save: Name of the segmentation layer user wants to save
         :type seg_name_to_save: str
         """
         if not check_equal_arrays(
                 seg[0].astype(bool),
-                seg[1].astype(bool)
+                class_mask_with_contour.astype(bool)
                 ):
             print('Updating masks before saving...')
             if self.active_mask_index==1: self.update_instance_mask(seg[0], seg[1])
@@ -489,20 +491,39 @@ class NapariWindow(MyWidget):
             )
             _ = self.create_warning_box(message_text, message_title="Warning")
             return
-
+        
         # get the labels layer
         seg = self.viewer.layers[seg_name_to_save].data
+        
+        annot_error, faulty_ids_annot = Compute4Mask.assert_connected_objects(seg)
+
+        if annot_error:
+            message_text = (
+                "There seems to be a problem with your mask. We expect each object to be a connected component. For object(s) with ID(s): \n"
+                + ", ".join(str(id) for id in faulty_ids_annot[:-1])
+                + (", " if len(faulty_ids_annot) > 1 else "")
+                + str(faulty_ids_annot[-1])
+                + " more than one connected component was found. Would you like us to clean this up and keep only the largest connect component?"
+            )
+            usr_response = self.create_selection_box(message_text, "Clean up")
+            if usr_response=='action': 
+                seg = Compute4Mask.keep_largest_components_pair(seg, faulty_ids_annot)
+                self.viewer.layers[seg_name_to_save].data = seg
+                self.viewer.layers[seg_name_to_save].refresh()
+            else: return
+        print('Connected component checks passed.')
 
         if self.app.num_classes>1:
 
-            seg[1] = Compute4Mask.add_contour(seg[1], seg[0]) # add contour to labels mask
-            seg = self.check_and_update_if_layers_changed(seg, seg_name_to_save)
+            class_mask_with_contour = Compute4Mask.add_contour(seg[1], seg[0]) # add contour to labels mask
+            seg = self.check_and_update_if_layers_changed(seg, class_mask_with_contour, seg_name_to_save)
 
             annot_error = Compute4Mask.assert_missing_classes(seg)
             if annot_error:
+                inst= seg[0]
                 message_text = (
                     "You still haven't annotated all obects in your class mask. Please go back and complete the annotation, replacing" \
-                    + " any objects with default value '-1' with the actual class label."
+                    + " any objects with default value '-1' with the actual class label. Instance id "+ str(np.unique(inst[np.where(seg[1]==-1)]) ) +" is still unlabelled."
                 )
                 usr_response = self.create_selection_box(message_text, "Annotation incomplete!")
                 return
@@ -519,22 +540,6 @@ class NapariWindow(MyWidget):
                 usr_response = self.create_selection_box(message_text, "Annotation incomplete!")
                 return
         print('Annotation checks passed.')
-
-        annot_error, faulty_ids_annot = Compute4Mask.assert_connected_objects(seg)
-
-        if annot_error:
-            message_text = (
-                "There seems to be a problem with your mask. We expect each object to be a connected component. For object(s) with ID(s): \n"
-                + ", ".join(str(id) for id in faulty_ids_annot[:-1])
-                + (", " if len(faulty_ids_annot) > 1 else "")
-                + str(faulty_ids_annot[-1])
-                + " more than one connected component was found. Would you like us to clean this up and keep only the largest connect component?"
-            )
-            usr_response = self.create_selection_box(message_text, "Clean up")
-            if usr_response=='action': 
-                seg = Compute4Mask.keep_largest_components_pair(seg, faulty_ids_annot)
-            else: return
-        print('Connected component checks passed.')
 
         # Move original image
         self.app.move_images(save_folder, move_segs)
