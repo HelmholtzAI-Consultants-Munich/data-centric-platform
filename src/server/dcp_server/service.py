@@ -12,11 +12,9 @@ from dcp_server.utils.helpers import read_config
 # -------------------------------
 script_path = os.path.abspath(__file__)
 config_path = os.path.join(os.path.dirname(script_path), "config.yaml")
-
 service_config = read_config("service", config_path=config_path)
 model_config = read_config("model", config_path=config_path)
 data_config = read_config("data", config_path=config_path)
-train_config = read_config("train", config_path=config_path)
 eval_config = read_config("eval", config_path=config_path)
 setup_config = read_config("setup", config_path=config_path)
 
@@ -29,7 +27,6 @@ model = model_class(
     model_name=setup_config["model_to_use"],
     model_config=model_config,
     data_config=data_config,
-    train_config=train_config,
     eval_config=eval_config,
 )
 
@@ -74,12 +71,3 @@ class SegmentationService:
             return np.array(images)
         await seg.segment_image(input_path, images)
         return np.array(unsupported)
-
-    @bentoml.api
-    async def train(self, input_path: str) -> str:
-        seg = self.segmentation
-        print("Calling retrain from server.")
-        msg = await seg.train(input_path)
-        if msg != seg.no_files_msg:
-            return f"Success! Trained model saved in: {msg}"
-        return msg

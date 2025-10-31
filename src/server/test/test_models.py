@@ -17,15 +17,11 @@ def test_eval_rf_not_fitted():
     data_config = read_config(
         "data", config_path="test/configs/test_config_Inst2MultiSeg_RF.yaml"
     )
-    train_config = read_config(
-        "train", config_path="test/configs/test_config_Inst2MultiSeg_RF.yaml"
-    )
     eval_config = read_config(
         "eval", config_path="test/configs/test_config_Inst2MultiSeg_RF.yaml"
     )
-
     model_rf = FeatureClassifier(
-        "Random Forest", model_config, data_config, train_config, eval_config
+        "Random Forest", model_config, data_config, eval_config
     )
 
     X_test = np.array([[1, 2, 3]])

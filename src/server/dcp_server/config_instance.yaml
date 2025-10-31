@@ -25,14 +25,6 @@
         "rescale": True
     },
 
-    "train":{
-        "segmentor":{
-            "n_epochs": 5,
-            "channels": [0,0],
-            "min_train_masks": 1
-        }
-    },
-
     "eval":{
         "segmentor": {
             "z_axis": null,

@@ -38,20 +38,6 @@
         "rescale": True
     },
 
-    "train":{
-        "segmentor":{
-            "n_epochs": 5,
-            "channels": [0,0],
-            "min_train_masks": 1
-        },
-        "classifier":{
-            "n_epochs": 20,
-            "lr": 0.001,
-            "batch_size": 1,
-            "optimizer": "Adam"
-        }
-    },
-
     "eval":{
         "segmentor": {
             "z_axis": null,

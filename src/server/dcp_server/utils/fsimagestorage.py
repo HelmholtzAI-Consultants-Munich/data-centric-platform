@@ -109,7 +109,7 @@ class FilesystemImageStorage:
     def get_image_seg_pairs(self, directory: str) -> List[tuple]:
         """Get pairs of (image, image_seg).
 
-        Used, e.g., in training to create training data-training labels pairs.
+        Used to create image-segmentation pairs for various processing tasks.
 
         :param directory: Path to the directory to search images and segmentations in.
         :type directory: str
@@ -121,7 +121,7 @@ class FilesystemImageStorage:
         seg_files = []
         for image in image_files:
             seg = self.search_segs(image)
-            # TODO - the search seg returns all the segs, but here we need only one, hence the seg[0]. Check if it is from training path?
+            # TODO - the search seg returns all the segs, but here we need only one, hence the seg[0]
             seg_files.append(seg[0])
         return list(zip(image_files, seg_files))
 
@@ -242,42 +242,6 @@ class FilesystemImageStorage:
                 output_size = [self.img_height, self.img_width]
             return resize(mask, output_size, order=order)
 
-    def prepare_images_and_masks_for_training(
-        self, train_img_mask_pairs: List[tuple]
-    ) -> tuple:
-        """Image and mask processing for training.
-
-        :param train_img_mask_pairs: List pairs of (image, image_seg) (as returned by get_image_seg_pairs() function).
-        :type train_img_mask_pairs: list
-        :return: Lists of processed images and masks.
-        :rtype: tuple
-        """
-
-        imgs = []
-        masks = []
-        for img_file, mask_file in train_img_mask_pairs:
-            img = self.load_image(img_file)
-            img = normalise(img)
-            mask = self.load_image(mask_file, gray=False)
-            self.get_image_size_properties(img, helpers.get_file_extension(img_file))
-            # Unet only accepts image sizes divisable by 16
-            if self.model_used == "UNet":
-                img = pad_image(
-                    img,
-                    self.img_height,
-                    self.img_width,
-                    channel_ax=self.channel_ax,
-                    dividable=16,
-                )
-                mask = pad_image(
-                    mask, self.img_height, self.img_width, channel_ax=0, dividable=16
-                )
-            if self.model_used == "CustomCellpose" and len(mask.shape) == 3:
-                # if we also have class mask drop it
-                mask = masks[0]  # assuming mask_channel_axis=0
-            imgs.append(img)
-            masks.append(mask)
-        return imgs, masks
 
     def prepare_img_for_eval(self, img_file: str) -> np.ndarray:
         """Image processing for model inference.

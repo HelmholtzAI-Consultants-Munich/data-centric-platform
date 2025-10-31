@@ -30,7 +30,6 @@ class Inst2MultiSeg(Model):
         model_name: str,
         model_config: dict,
         data_config: dict,
-        train_config: dict,
         eval_config: dict,
     ) -> None:
         """Constructs all the necessary attributes for the Inst2MultiSeg
@@ -41,20 +40,17 @@ class Inst2MultiSeg(Model):
         :type model_config: dict
         :param data_config: Data configurations
         :type data_config: dict
-        :param train_config: Training configuration.
-        :type train_config: dict
         :param eval_config: Evaluation configuration.
         :type eval_config: dict
         """
         # super().__init__()
         Model.__init__(
-            self, model_name, model_config, data_config, train_config, eval_config
+            self, model_name, model_config, data_config, eval_config
         )
 
         self.model_name = model_name
         self.model_config = model_config
         self.data_config = data_config
-        self.train_config = train_config
         self.eval_config = eval_config
 
         self.segmentor_class = self.model_config.get("segmentor_name", "Cellpose")
@@ -68,7 +64,6 @@ class Inst2MultiSeg(Model):
             self.segmentor_class,
             self.model_config,
             self.data_config,
-            self.train_config,
             self.eval_config,
         )
         classifier = classifier_mapping.get(self.classifier_class)
@@ -76,7 +71,6 @@ class Inst2MultiSeg(Model):
             self.classifier_class,
             self.model_config,
             self.data_config,
-            self.train_config,
             self.eval_config,
         )
 
@@ -88,41 +82,6 @@ class Inst2MultiSeg(Model):
             ):
                 # print("Include mask=True was found, but for Random Forest, this parameter must be set to False. Doing this now.")
                 self.model_config["classifier"]["include_mask"] = False
-
-    def train(self, imgs: List[np.ndarray], masks: List[np.ndarray]) -> None:
-        """Trains the given model. First trains the segmentor and then the clasiffier.
-
-        :param imgs: images to train on (training data)
-        :type imgs: List[np.ndarray]
-        :param masks: masks of the given images (training labels)
-        :type masks: List[np.ndarray] of same shape as output of eval, i.e. one channel instances,
-                    second channel classes, so [2, H, W] or [2, 3, H, W] for 3D.
-        """
-        # train cellpose
-        masks_instances = [mask[0] for mask in masks]
-        # masks_instances = list(np.array(masks)[:,0,...]) #[mask.sum(-1) for mask in masks] if masks[0].ndim == 3 else masks
-        self.segmentor.train(imgs, masks_instances)
-        masks_classes = [mask[1] for mask in masks]
-        # create patch dataset to train classifier
-        # masks_classes = list(
-        #    masks[:,1,...]
-        # ) #[((mask > 0) * np.arange(1, 4)).sum(-1) for mask in masks]
-        x, patch_masks, labels = create_patch_dataset(
-            imgs,
-            masks_classes,
-            masks_instances,
-            noise_intensity=self.data_config["noise_intensity"],
-            max_patch_size=self.data_config["patch_size"],
-            include_mask=self.model_config["classifier"]["include_mask"],
-        )
-        # additionally extract features from the patches if you are in RF model
-        if self.classifier_class == "RandomForest":
-            x = create_dataset_for_rf(x, patch_masks)
-        # train classifier
-        self.classifier.train(x, labels)
-        # and compute metric and loss
-        self.metric = (self.segmentor.metric + self.classifier.metric) / 2
-        self.loss = (self.segmentor.loss + self.classifier.loss) / 2
 
     def eval(self, img: np.ndarray) -> np.ndarray:
         """Evaluate the model on the provided image and return the final mask.

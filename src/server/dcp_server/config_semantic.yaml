@@ -27,15 +27,6 @@
         "rescale": True
     },
 
-    "train":{
-        "classifier":{
-            "n_epochs": 2,
-            "lr": 0.001,
-            "batch_size": 1,
-            "optimizer": "Adam"
-        }
-    },
-
     "eval":{
         "classifier": {
             
