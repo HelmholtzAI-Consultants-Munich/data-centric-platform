@@ -66,3 +66,12 @@ class BentomlModel(Model):
         """
         list_of_files_not_suported = self._run_inference(data_path)
         return list_of_files_not_suported
+
+    def run_train(self, path: str) -> None:
+        """Training functionality has been removed from the server.
+        
+        :param path: Path to training data (not used).
+        :type path: str
+        :raises NotImplementedError: Training is no longer available.
+        """
+        raise NotImplementedError("Training functionality has been removed from the server. Please use inference only.")
