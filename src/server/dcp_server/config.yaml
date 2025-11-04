@@ -1,7 +1,7 @@
 {
     "setup": {
         "segmentation": "GeneralSegmentation",
-        "model_to_use": "Inst2MultiSeg"
+        "model_to_use": "CustomCellpose"
     },
 
     "service": {
