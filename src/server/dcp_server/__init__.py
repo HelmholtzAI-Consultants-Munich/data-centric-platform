@@ -8,8 +8,8 @@ Submodules:
 ------------
 
 dcp_server.models
-    Defines various models for cell classification and segmentation, including CellClassifierFCNN, CellClassifierShallowModel, CellposePatchCNN, CustomCellposeModel, and UNet.
-    These models handle tasks such as evaluation, forward pass, training, and updating configurations.
+    Defines the CustomCellpose model for cell segmentation.
+    The model handles evaluation and forward pass tasks.
 
 dcp_server.segmentationclasses
     Defines segmentation classes for specific projects, such as GFPProjectSegmentation, GeneralSegmentation, and MitoProjectSegmentation.

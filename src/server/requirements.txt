@@ -7,4 +7,3 @@ torch>=2.1.0
 scikit-learn>=1.2.2
 SimpleITK>=2.2.1
 numpy
-pyradiomics==3.0.1

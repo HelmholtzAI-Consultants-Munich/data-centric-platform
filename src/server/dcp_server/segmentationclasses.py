@@ -2,14 +2,14 @@ import os
 
 from dcp_server.utils import helpers
 from dcp_server.utils.fsimagestorage import FilesystemImageStorage
-from dcp_server import models as DCPModels
+from dcp_server.models import CustomCellpose
 
 
 class GeneralSegmentation:
     """Segmentation class. Defining the main functions needed for this project and served by service - segment image and train on images."""
 
     def __init__(
-        self, imagestorage: FilesystemImageStorage, runner, model: DCPModels
+        self, imagestorage: FilesystemImageStorage, runner, model: CustomCellpose
     ) -> None:
         """Constructs all the necessary attributes for the GeneralSegmentation.
 
@@ -37,10 +37,9 @@ class GeneralSegmentation:
         for img_filepath in list_of_images:
             img = self.imagestorage.prepare_img_for_eval(img_filepath)
             # Add channel ax into the model's evaluation parameters dictionary
-            if self.imagestorage.model_used != "UNet":
-                self.model.eval_config["segmentor"][
-                    "channel_axis"
-                ] = self.imagestorage.channel_ax
+            self.model.eval_config["segmentor"][
+                "channel_axis"
+            ] = self.imagestorage.channel_ax
             # Evaluate the model
             mask = await self.runner.evaluate(img=img)
 

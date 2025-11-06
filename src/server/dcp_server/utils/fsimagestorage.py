@@ -185,17 +185,12 @@ class FilesystemImageStorage:
         :rtype: ndarray
         """
 
-        if self.model_used == "UNet":
-            return pad_image(
-                img, self.img_height, self.img_width, self.channel_ax, dividable=16
-            )
-        else:
-            # Cellpose segmentation runs best with 512 size? TODO: check
-            max_dim = max(self.img_height, self.img_width)
-            rescale_factor = max_dim / 512
-            return rescale(
-                img, 1 / rescale_factor, order=order, channel_axis=self.channel_ax
-            )
+        # Cellpose segmentation runs best with 512 size? TODO: check
+        max_dim = max(self.img_height, self.img_width)
+        rescale_factor = max_dim / 512
+        return rescale(
+            img, 1 / rescale_factor, order=order, channel_axis=self.channel_ax
+        )
 
     def resize_mask(
         self, mask: np.ndarray, channel_ax: Optional[int] = None, order: int = 0
@@ -214,26 +209,6 @@ class FilesystemImageStorage:
         :rtype: ndarray
         """
 
-        if self.model_used == "UNet":
-            # we assume an order C, H, W
-            if channel_ax is not None and channel_ax == 0:
-                height_pad = mask.shape[1] - self.img_height
-                width_pad = mask.shape[2] - self.img_width
-                return mask[:, :-height_pad, :-width_pad]
-            elif channel_ax is not None and channel_ax == 2:
-                height_pad = mask.shape[0] - self.img_height
-                width_pad = mask.shape[1] - self.img_width
-                return mask[:-height_pad, :-width_pad, :]
-            elif channel_ax is not None and channel_ax == 1:
-                height_pad = mask.shape[2] - self.img_height
-                width_pad = mask.shape[0] - self.img_width
-                return mask[:-width_pad, :, :-height_pad]
-            else:
-                height_pad = mask.shape[0] - self.img_height
-                width_pad = mask.shape[1] - self.img_width
-                return mask[:-height_pad, :-width_pad]
-
-        else:
             if channel_ax is not None:
                 n_channel_dim = mask.shape[channel_ax]
                 output_size = [self.img_height, self.img_width]

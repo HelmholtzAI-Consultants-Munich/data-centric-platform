@@ -3,7 +3,7 @@ import bentoml
 from typing import List
 import numpy as np
 
-from dcp_server import models as DCPModels
+from dcp_server.models import CustomCellpose
 
 class CustomRunnable:
     """
@@ -14,7 +14,7 @@ class CustomRunnable:
     SUPPORTED_RESOURCES = ("cpu",)  # TODO add here?
     SUPPORTS_CPU_MULTI_THREADING = False
 
-    def __init__(self, name:str, model: DCPModels, save_model_path: str) -> None:
+    def __init__(self, name:str, model: CustomCellpose, save_model_path: str) -> None:
         """Constructs all the necessary attributes for the CustomRunnable.
 
         :param model: model to be trained or evaluated - will be one of classes in models.py

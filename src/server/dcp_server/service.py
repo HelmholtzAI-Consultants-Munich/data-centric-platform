@@ -21,9 +21,8 @@ setup_config = read_config("setup", config_path=config_path)
 # -------------------------------
 # 2. Instantiate model globally
 # -------------------------------
-models_module = __import__("models")
-model_class = getattr(models_module, setup_config["model_to_use"])
-model = model_class(
+from dcp_server.models import CustomCellpose
+model = CustomCellpose(
     model_name=setup_config["model_to_use"],
     model_config=model_config,
     data_config=data_config,
