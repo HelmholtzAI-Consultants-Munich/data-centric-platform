@@ -44,11 +44,15 @@ class NapariWindow(MyWidget):
         self.viewer = napari.Viewer(show=False)
         self.viewer.window.add_plugin_dock_widget("napari-sam")
 
+        # Initialize qctrl and mask_choice_dropdown early to ensure they exist as attributes
+        # They may remain None if the multi-channel segmentation condition is not met
+        self.qctrl = None
+        self.mask_choice_dropdown = None
+
         self.viewer.add_image(img, name=get_path_stem(self.app.cur_selected_img))
         for seg_file in self.seg_files:
             seg = self.app.load_image(seg_file)
             seg = seg.astype(np.int16)  # fix dtype issue
-        
             # check the masks of the loaded segmentation
             if seg.ndim>2 and self.app.num_classes==1:
                 message_text = (
@@ -227,16 +231,34 @@ class NapariWindow(MyWidget):
         try:
             # Close Napari viewer if exists
             if hasattr(self, 'viewer') and self.viewer is not None:
-                if self.viewer.window is not None:
-                    for dock in self.viewer.window._dock_widgets.values():
-                        dock.close()
-                    self.viewer.close()
+                try:
+                    if self.viewer.window is not None:
+                        # Close any dock widgets
+                        try:
+                            for dock in self.viewer.window._dock_widgets.values():
+                                try:
+                                    dock.close()
+                                except Exception:
+                                    pass
+                        except Exception:
+                            pass
+                        # Try to close the napari window and viewer
+                        try:
+                            self.viewer.window.close()
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
+                # Clear the viewer reference
                 self.viewer = None
 
             # Close any other child widgets
             for child in self.findChildren(QWidget):
                 if child is not self:
-                    child.close()
+                    try:
+                        child.close()
+                    except Exception:
+                        pass
         except Exception as e:
             print(f"Error during closeEvent cleanup: {e}")
 
@@ -567,15 +589,15 @@ class NapariWindow(MyWidget):
         )
         # We remove segs from the current directory if it exists (both eval and inprogr allowed)
         self.app.delete_images(self.seg_files)
-        
-        # TODO Create the Archive folder for the rest? Or move them as well?
-        self.viewer.close()
-        self.close()
 
     def on_add_to_curated_button_clicked(self) -> None:
         """Defines what happens when the "Move to curated dataset folder" button is clicked."""
         self.on_save_to_folder_clicked(self.app.train_data_path)
+        self.viewer.close()
+        self.close()
     
     def on_add_to_inprogress_button_clicked(self) -> None:
         """Defines what happens when the "Move to curation in progress folder" button is clicked."""
         self.on_save_to_folder_clicked(self.app.inprogr_data_path, move_segs=True)
+        self.viewer.close()
+        self.close()

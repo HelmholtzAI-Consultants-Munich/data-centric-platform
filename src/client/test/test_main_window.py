@@ -49,6 +49,7 @@ def app(qtbot, setup_global_variable):
     rsyncer = DataRSync(user_name="local", host_name="local", server_repo_path=".")
     application = Application(
         BentomlModel(),
+        1,
         rsyncer,
         FilesystemImageStorage(),
         "0.0.0.0",
