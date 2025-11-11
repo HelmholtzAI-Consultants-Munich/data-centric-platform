@@ -35,6 +35,8 @@ class NapariWindow(MyWidget):
         screen_size = QGuiApplication.primaryScreen().geometry()
         self.resize(int(screen_size.width()*0.8), int(screen_size.height()*0.8))
 
+        self.fix_small_objs = True  # flag to control whether to fix small objects or not
+        self.fix_small_holes = True # flag to control whether to fix small holes or not
         # Load image and get corresponding segmentation filenames
         img = self.app.load_image()
         self.app.search_segs()
@@ -528,15 +530,18 @@ class NapariWindow(MyWidget):
                 + " more than one connected component was found. Would you like us to clean this up and keep only the largest connect component?"
             )
             usr_response = self.create_selection_box(message_text, "Clean up")
-            if usr_response=='action': 
+            print('User response to connected components check:', usr_response)
+            if usr_response=='action' and self.fix_small_objs: 
                 seg = Compute4Mask.keep_largest_components_pair(seg, faulty_ids_annot)
                 self.viewer.layers[seg_name_to_save].data = seg
                 self.viewer.layers[seg_name_to_save].refresh()
-            else: return
+            else: 
+                self.fix_small_objs = False
+                
         print('Connected component checks passed.')
 
-        annot_error, holes = Compute4Mask.assert_filled_objects(seg[0])
-
+        annot_error, holes = Compute4Mask.assert_filled_objects(seg)
+        print('Holes found in objects:', annot_error)
         if annot_error:
             message_text = (
                 "For object(s) with ID(s): "+ ", ".join(str(id) for id in list(holes.keys())[:-1])
@@ -545,11 +550,14 @@ class NapariWindow(MyWidget):
                 + " holes where found. Would you like us to clean this up and fill the holes in the segmentation?"
             )
             usr_response = self.create_selection_box(message_text, "Clean up")
-            if usr_response=='action': 
+            print('User response to holes check:', usr_response)
+            if usr_response=='action' and self.fix_small_holes: 
                 seg = Compute4Mask.fill_holes(seg, holes)
                 self.viewer.layers[seg_name_to_save].data = seg
                 self.viewer.layers[seg_name_to_save].refresh()
-            else: return
+            else:
+                self.fix_small_holes = False 
+                
         print('Objects with holes checks passed.')
 
         if self.app.num_classes>1:
@@ -590,14 +598,13 @@ class NapariWindow(MyWidget):
         # We remove segs from the current directory if it exists (both eval and inprogr allowed)
         self.app.delete_images(self.seg_files)
 
+        self.viewer.close()
+        self.close()
+
     def on_add_to_curated_button_clicked(self) -> None:
         """Defines what happens when the "Move to curated dataset folder" button is clicked."""
         self.on_save_to_folder_clicked(self.app.train_data_path)
-        self.viewer.close()
-        self.close()
     
     def on_add_to_inprogress_button_clicked(self) -> None:
         """Defines what happens when the "Move to curation in progress folder" button is clicked."""
         self.on_save_to_folder_clicked(self.app.inprogr_data_path, move_segs=True)
-        self.viewer.close()
-        self.close()
