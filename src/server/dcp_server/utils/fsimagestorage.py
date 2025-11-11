@@ -208,14 +208,13 @@ class FilesystemImageStorage:
         :return: Resized image.
         :rtype: ndarray
         """
-
-            if channel_ax is not None:
-                n_channel_dim = mask.shape[channel_ax]
-                output_size = [self.img_height, self.img_width]
-                output_size.insert(channel_ax, n_channel_dim)
-            else:
-                output_size = [self.img_height, self.img_width]
-            return resize(mask, output_size, order=order)
+        if channel_ax is not None:
+            n_channel_dim = mask.shape[channel_ax]
+            output_size = [self.img_height, self.img_width]
+            output_size.insert(channel_ax, n_channel_dim)
+        else:
+            output_size = [self.img_height, self.img_width]
+        return resize(mask, output_size, order=order)
 
 
     def prepare_img_for_eval(self, img_file: str) -> np.ndarray:
