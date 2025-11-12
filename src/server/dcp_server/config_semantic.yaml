@@ -1,7 +1,7 @@
 {
     "setup": {
         "segmentation": "GeneralSegmentation",
-        "model_to_use": "UNet"
+        "model_to_use": "CustomCellpose"
     },
 
     "service": {
@@ -25,15 +25,6 @@
         "seg_name_string": "_seg",
         "gray": True,
         "rescale": True
-    },
-
-    "train":{
-        "classifier":{
-            "n_epochs": 2,
-            "lr": 0.001,
-            "batch_size": 1,
-            "optimizer": "Adam"
-        }
     },
 
     "eval":{

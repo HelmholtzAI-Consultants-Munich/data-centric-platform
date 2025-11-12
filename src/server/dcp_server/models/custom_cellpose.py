@@ -22,7 +22,6 @@ class CustomCellpose(models.CellposeModel, Model):
         model_name: str,
         model_config: dict,
         data_config: dict,
-        train_config: dict,
         eval_config: dict,
     ) -> None:
         """Constructs all the necessary attributes for the CustomCellpose.
@@ -35,8 +34,6 @@ class CustomCellpose(models.CellposeModel, Model):
         :type model_config: dict
         :param data_config: dictionary passed from the config file with all the data configurations
         :type data_config: dict
-        :param train_config: dictionary passed from the config file with all the arguments for training function
-        :type train_config: dict
         :param eval_config: dictionary passed from the config file with all the arguments for eval function
         :type eval_config: dict
         """
@@ -44,38 +41,16 @@ class CustomCellpose(models.CellposeModel, Model):
         # Initialize the cellpose model
         # super().__init__(**model_config["segmentor"])
         Model.__init__(
-            self, model_name, model_config, data_config, train_config, eval_config
+            self, model_name, model_config, data_config, eval_config
         )
         models.CellposeModel.__init__(self, **model_config["segmentor"])
         self.model_config = model_config
         self.data_config = data_config
-        self.train_config = train_config
         self.eval_config = eval_config
         self.model_name = model_name
         self.mkldnn = False  # otherwise we get error with saving model
         self.loss = 1e6
         self.metric = 0
-
-    def train(self, imgs: List[np.ndarray], masks: List[np.ndarray]) -> None:
-        """Trains the given model
-        Calls the original train function.
-
-        :param imgs: images to train on (training data)
-        :type imgs: List[np.ndarray]
-        :param masks: masks of the given images (training labels)
-        :type masks: List[np.ndarray]
-        """
-        if self.train_config["segmentor"]["n_epochs"] == 0:
-            return
-        super().train(
-            train_data=deepcopy(imgs),  # Cellpose changes the images
-            train_labels=masks,
-            **self.train_config["segmentor"]
-        )
-        pred_masks, pred_flows, true_flows = self.compute_masks_flows(imgs, masks)
-        # get loss, combination of mse for flows and bce for cell probability
-        self.loss = self.loss_fn(true_flows, pred_flows)
-        self.metric = np.mean(aggregated_jaccard_index(masks, pred_masks))
 
     def eval(self, img: np.ndarray) -> np.ndarray:
         """Evaluate the model - find mask of the given image
@@ -106,9 +81,9 @@ class CustomCellpose(models.CellposeModel, Model):
     ) -> tuple:
         """Computes instance, binary mask and flows in x and y - needed for loss and metric computations
 
-        :param imgs: images to train on (training data)
+        :param imgs: images to process
         :type imgs: List[np.ndarray]
-        :param masks: masks of the given images (training labels)
+        :param masks: masks of the given images
         :type masks: List[np.ndarray]
         :return: A tuple containing the following elements:
             - pred_masks List [np.ndarray]: A list of predicted instance masks

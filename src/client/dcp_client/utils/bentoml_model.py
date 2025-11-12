@@ -7,7 +7,7 @@ from dcp_client.app import Model
 
 
 class BentomlModel(Model):
-    """BentomlModel class for connecting to a BentoML server and running training and inference tasks."""
+    """BentomlModel class for connecting to a BentoML server and running inference tasks."""
 
     def __init__(self, client: Optional[SyncHTTPClient] = None):
         """Initializes the BentomlModel.
@@ -43,29 +43,6 @@ class BentomlModel(Model):
         """
         return bool(self.client)
 
-    def _run_train(self, data_path: str) -> Optional[str]:
-        """Runs the training task asynchronously.
-
-        :param data_path: Path to the training data.
-        :type data_path: str
-        :return: Response from the server if successful, None otherwise.
-        :rtype: str, or None
-        """
-        try:
-            response = self.client.train(data_path) # train is part of running server
-            return response
-        except BentoMLException:
-            return None
-
-    def run_train(self, data_path: str):
-        """Runs the training.
-
-        :param data_path: Path to the training data.
-        :type data_path: str
-        :return: Response from the server if successful, None otherwise.
-        """
-        return self._run_train(data_path)
-
     def _run_inference(self, data_path: str) -> Optional[np.ndarray]:
         """Runs the inference task asynchronously.
 
@@ -89,3 +66,12 @@ class BentomlModel(Model):
         """
         list_of_files_not_suported = self._run_inference(data_path)
         return list_of_files_not_suported
+
+    def run_train(self, path: str) -> None:
+        """Training functionality has been removed from the server.
+        
+        :param path: Path to training data (not used).
+        :type path: str
+        :raises NotImplementedError: Training is no longer available.
+        """
+        raise NotImplementedError("Training functionality has been removed from the server. Please use inference only.")

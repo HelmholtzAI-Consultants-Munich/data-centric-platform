@@ -4,8 +4,6 @@ import numpy as np
 
 from scipy.ndimage import find_objects
 from skimage import measure
-import SimpleITK as sitk
-from radiomics import shape2D
 import torch
 
 
@@ -97,8 +95,7 @@ def crop_centered_padded_patch(
     :param obj_label: the instance label of the mask at the patch
     :type obj_label: int
     :param mask: The mask array associated with the array x.
-                Mask is used during training to mask out non-central elements. 
-                For RandomForest, it is used to calculate pyradiomics features.
+                Mask is used during training to mask out non-central elements.
     :type mask: np.ndarray, optional
     :param noise_intensity: intensity of noise to be added to the background
     :type noise_intensity: float, optional
@@ -415,76 +412,3 @@ def create_patch_dataset(
     return patches, patch_masks, labels
 
 
-def get_shape_features(img: np.ndarray, mask: np.ndarray) -> np.ndarray:
-    """Calculate shape-based radiomic features from an image within the region defined by the mask.
-
-    :param img: The input image.
-    :type img: numpy.ndarray
-    :param mask: The mask corresponding to the image.
-    :type mask: numpy.ndarray
-    :return: An array containing the calculated shape-based radiomic features, such as elongation, sphericity, and perimeter surface.
-    :rtype: numpy.ndarray
-    """
-
-    mask = 255 * ((mask) > 0).astype(np.uint8)
-    image = sitk.GetImageFromArray(img.squeeze())
-    roi_mask = sitk.GetImageFromArray(mask.squeeze())
-
-    shape_calculator = shape2D.RadiomicsShape2D(
-        inputImage=image, inputMask=roi_mask, label=255
-    )
-    # Calculate the shape-based radiomic features
-    shape_features = shape_calculator.execute()
-
-    return np.array(list(shape_features.values()))
-
-
-def extract_intensity_features(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
-    """Extracts intensity-based features from an image within the region defined by the mask.
-
-    :param image: The input image.
-    :type image: numpy.ndarray
-    :param mask: The mask defining the region of interest.
-    :type mask: numpy.ndarray
-    :return: An array containing the extracted intensity-based features, including median intensity, mean intensity, and 25th/75th percentile intensity within the masked region.
-    :rtype: numpy.ndarray
-    """
-
-    features = {}
-
-    # Ensure the image and mask have the same dimensions
-
-    if image.shape != mask.shape:
-        raise ValueError("Image and mask must have the same dimensions")
-
-    masked_image = image[(mask > 0)]
-    # features["min_intensity"] = np.min(masked_image)
-    # features["max_intensity"] = np.max(masked_image)
-    features["median_intensity"] = np.median(masked_image)
-    features["mean_intensity"] = np.mean(masked_image)
-    features["25th_percentile_intensity"] = np.percentile(masked_image, 25)
-    features["75th_percentile_intensity"] = np.percentile(masked_image, 75)
-
-    return np.array(list(features.values()))
-
-
-def create_dataset_for_rf(
-    imgs: List[np.ndarray], masks: List[np.ndarray]
-) -> List[np.ndarray]:
-    """Extracts shape and intensity-based features from images within regions defined by masks.
-
-    :param imgs: A list of input images.
-    :type imgs: list
-    :param masks: A list of corresponding masks defining regions of interest.
-    :type masks: list
-    :return: A list of arrays containing shape and intensity-based features.
-    :rtype: list
-    """
-    X = []
-    for img, mask in zip(imgs, masks):
-        shape_features = get_shape_features(img, mask)
-        intensity_features = extract_intensity_features(img, mask)
-        features_list = np.concatenate((shape_features, intensity_features), axis=0)
-        X.append(features_list)
-
-    return X

@@ -21,7 +21,7 @@
         "classifier_name": "PatchClassifier",
         "classifier":{
             "in_channels": 1,
-            " ": 2,
+            "num_classes": 2,
             "features":[64,128,256,512],
             "black_bg": False,
             "include_mask": True
@@ -36,20 +36,6 @@
         "noise_intensity": 5,
         "gray": True,
         "rescale": True
-    },
-
-    "train":{
-        "segmentor":{
-            "n_epochs": 5,
-            "channels": [0,0],
-            "min_train_masks": 1
-        },
-        "classifier":{
-            "n_epochs": 20,
-            "lr": 0.001,
-            "batch_size": 1,
-            "optimizer": "Adam"
-        }
     },
 
     "eval":{

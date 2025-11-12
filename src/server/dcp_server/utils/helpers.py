@@ -5,7 +5,7 @@ import yaml
 def read_config(name: str, config_path: str) -> dict:
     """Reads the configuration file
 
-    :param name: name of the section you want to read (e.g. 'setup','train')
+    :param name: name of the section you want to read (e.g. 'setup', 'eval')
     :type name: string
     :param config_path: path to the configuration file
     :type config_path: str
@@ -20,7 +20,7 @@ def read_config(name: str, config_path: str) -> dict:
         assert all(
             [
                 i in config_dict.keys()
-                for i in ["setup", "service", "model", "train", "eval"]
+                for i in ["setup", "service", "model", "eval"]
             ]
         )
         return config_dict[name]

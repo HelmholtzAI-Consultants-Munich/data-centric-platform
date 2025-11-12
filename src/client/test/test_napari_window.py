@@ -3,12 +3,11 @@ import os
 from skimage import data
 from skimage.io import imsave
 import numpy as np
+import napari
 
 import pytest
 from dcp_client.app import Application
 from dcp_client.gui.napari_window import NapariWindow
-
-from dcp_client.app import Application
 from dcp_client.utils.bentoml_model import BentomlModel
 from dcp_client.utils.fsimagestorage import FilesystemImageStorage
 from dcp_client.utils.sync_src_dst import DataRSync
@@ -28,13 +27,10 @@ def napari_window(qtbot):
     # img1 = data.astronaut()
     # img2 = data.coffee()
     img = data.cat()
-    img_mask = np.zeros((2, img.shape[0], img.shape[1]), dtype=np.uint8)
-    img_mask[0, 50:50, 50:50] = 1
-    img_mask[1, 50:50, 50:50] = 1
-    img_mask[0, 100:200, 100:200] = 2
-    img_mask[1, 100:200, 100:200] = 1
-    img_mask[0, 200:300, 200:300] = 3
-    img_mask[1, 200:300, 200:300] = 2
+    img_mask = np.zeros((img.shape[0], img.shape[1]), dtype=np.uint8)
+    img_mask[50:50, 50:50] = 1
+    img_mask[100:200, 100:200] = 2
+    img_mask[200:300, 200:300] = 3
     # img3_mask = img2_mask.copy()
 
     if not os.path.exists("train_data_path"):
@@ -45,13 +41,14 @@ def napari_window(qtbot):
 
     if not os.path.exists("eval_data_path"):
         os.mkdir("eval_data_path")
-        imsave("eval_data_path/cat.png", img)
-
+    
+    imsave("eval_data_path/cat.png", img)
     imsave("eval_data_path/cat_seg.tiff", img_mask)
 
     rsyncer = DataRSync(user_name="local", host_name="local", server_repo_path=".")
     application = Application(
         BentomlModel(),
+        1,
         rsyncer,
         FilesystemImageStorage(),
         "0.0.0.0",
@@ -72,8 +69,9 @@ def napari_window(qtbot):
 
 def test_napari_window_initialization(napari_window):
     assert napari_window.viewer is not None
-    assert napari_window.qctrl is not None
-    assert napari_window.mask_choice_dropdown is not None
+    if napari_window.app.num_classes > 1:
+        assert napari_window.qctrl is not None
+        assert napari_window.mask_choice_dropdown is not None
 
 
 def test_on_add_to_curated_button_clicked(napari_window, monkeypatch):

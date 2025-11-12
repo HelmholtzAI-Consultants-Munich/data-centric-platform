@@ -3,7 +3,7 @@ import bentoml
 from typing import List
 import numpy as np
 
-from dcp_server import models as DCPModels
+from dcp_server.models import CustomCellpose
 
 class CustomRunnable:
     """
@@ -14,7 +14,7 @@ class CustomRunnable:
     SUPPORTED_RESOURCES = ("cpu",)  # TODO add here?
     SUPPORTS_CPU_MULTI_THREADING = False
 
-    def __init__(self, name:str, model: DCPModels, save_model_path: str) -> None:
+    def __init__(self, name:str, model: CustomCellpose, save_model_path: str) -> None:
         """Constructs all the necessary attributes for the CustomRunnable.
 
         :param model: model to be trained or evaluated - will be one of classes in models.py
@@ -58,27 +58,3 @@ class CustomRunnable:
                 loaded_model.__class__.__name__ == self.model.__class__.__name__
             ), "Check your config, loaded model and model to use not the same!"
             self.model = loaded_model
-
-    async def train(self, imgs: List[np.ndarray], masks: List[np.ndarray]) -> str:
-        """Trains the given model
-
-        :param imgs: images to train on (training data)
-        :type imgs: List[np.ndarray]
-        :param masks: masks of the given images (training labels)
-        :type masks: List[np.ndarray]
-        :return: path of the saved model
-        :rtype: str
-        """
-        self.model.train(imgs, masks)
-        # Save the bentoml model
-        bentoml.picklable_model.save_model(
-            self.save_model_path,
-            self.model,
-            external_modules=[DCPModels],
-        )
-        # bentoml.pytorch.save_model(self.save_model_path,   # Model name in the local Model Store
-        #                            self.model,  # Model instance being saved
-        #                            external_modules=[DCPModels]
-        #                            )
-
-        return self.save_model_path

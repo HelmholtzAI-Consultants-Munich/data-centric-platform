@@ -32,7 +32,7 @@ class FilesystemImageStorage:
         :param cur_selected_img: full path of the image that needs to be loaded
         :type cur_selected_img: str
         :param gray: whether to load the image as a grayscale or not
-        :type gray: bool or None, default=Nonee
+        :type gray: bool or None, default=None
         :return: loaded image
         :rtype: ndarray
         """
@@ -109,7 +109,7 @@ class FilesystemImageStorage:
     def get_image_seg_pairs(self, directory: str) -> List[tuple]:
         """Get pairs of (image, image_seg).
 
-        Used, e.g., in training to create training data-training labels pairs.
+        Used to create image-segmentation pairs for various processing tasks.
 
         :param directory: Path to the directory to search images and segmentations in.
         :type directory: str
@@ -121,7 +121,7 @@ class FilesystemImageStorage:
         seg_files = []
         for image in image_files:
             seg = self.search_segs(image)
-            # TODO - the search seg returns all the segs, but here we need only one, hence the seg[0]. Check if it is from training path?
+            # TODO - the search seg returns all the segs, but here we need only one, hence the seg[0]
             seg_files.append(seg[0])
         return list(zip(image_files, seg_files))
 
@@ -185,17 +185,12 @@ class FilesystemImageStorage:
         :rtype: ndarray
         """
 
-        if self.model_used == "UNet":
-            return pad_image(
-                img, self.img_height, self.img_width, self.channel_ax, dividable=16
-            )
-        else:
-            # Cellpose segmentation runs best with 512 size? TODO: check
-            max_dim = max(self.img_height, self.img_width)
-            rescale_factor = max_dim / 512
-            return rescale(
-                img, 1 / rescale_factor, order=order, channel_axis=self.channel_ax
-            )
+        # Cellpose segmentation runs best with 512 size? TODO: check
+        max_dim = max(self.img_height, self.img_width)
+        rescale_factor = max_dim / 512
+        return rescale(
+            img, 1 / rescale_factor, order=order, channel_axis=self.channel_ax
+        )
 
     def resize_mask(
         self, mask: np.ndarray, channel_ax: Optional[int] = None, order: int = 0
@@ -213,71 +208,14 @@ class FilesystemImageStorage:
         :return: Resized image.
         :rtype: ndarray
         """
-
-        if self.model_used == "UNet":
-            # we assume an order C, H, W
-            if channel_ax is not None and channel_ax == 0:
-                height_pad = mask.shape[1] - self.img_height
-                width_pad = mask.shape[2] - self.img_width
-                return mask[:, :-height_pad, :-width_pad]
-            elif channel_ax is not None and channel_ax == 2:
-                height_pad = mask.shape[0] - self.img_height
-                width_pad = mask.shape[1] - self.img_width
-                return mask[:-height_pad, :-width_pad, :]
-            elif channel_ax is not None and channel_ax == 1:
-                height_pad = mask.shape[2] - self.img_height
-                width_pad = mask.shape[0] - self.img_width
-                return mask[:-width_pad, :, :-height_pad]
-            else:
-                height_pad = mask.shape[0] - self.img_height
-                width_pad = mask.shape[1] - self.img_width
-                return mask[:-height_pad, :-width_pad]
-
+        if channel_ax is not None:
+            n_channel_dim = mask.shape[channel_ax]
+            output_size = [self.img_height, self.img_width]
+            output_size.insert(channel_ax, n_channel_dim)
         else:
-            if channel_ax is not None:
-                n_channel_dim = mask.shape[channel_ax]
-                output_size = [self.img_height, self.img_width]
-                output_size.insert(channel_ax, n_channel_dim)
-            else:
-                output_size = [self.img_height, self.img_width]
-            return resize(mask, output_size, order=order)
+            output_size = [self.img_height, self.img_width]
+        return resize(mask, output_size, order=order)
 
-    def prepare_images_and_masks_for_training(
-        self, train_img_mask_pairs: List[tuple]
-    ) -> tuple:
-        """Image and mask processing for training.
-
-        :param train_img_mask_pairs: List pairs of (image, image_seg) (as returned by get_image_seg_pairs() function).
-        :type train_img_mask_pairs: list
-        :return: Lists of processed images and masks.
-        :rtype: tuple
-        """
-
-        imgs = []
-        masks = []
-        for img_file, mask_file in train_img_mask_pairs:
-            img = self.load_image(img_file)
-            img = normalise(img)
-            mask = self.load_image(mask_file, gray=False)
-            self.get_image_size_properties(img, helpers.get_file_extension(img_file))
-            # Unet only accepts image sizes divisable by 16
-            if self.model_used == "UNet":
-                img = pad_image(
-                    img,
-                    self.img_height,
-                    self.img_width,
-                    channel_ax=self.channel_ax,
-                    dividable=16,
-                )
-                mask = pad_image(
-                    mask, self.img_height, self.img_width, channel_ax=0, dividable=16
-                )
-            if self.model_used == "CustomCellpose" and len(mask.shape) == 3:
-                # if we also have class mask drop it
-                mask = masks[0]  # assuming mask_channel_axis=0
-            imgs.append(img)
-            masks.append(mask)
-        return imgs, masks
 
     def prepare_img_for_eval(self, img_file: str) -> np.ndarray:
         """Image processing for model inference.
@@ -302,7 +240,7 @@ class FilesystemImageStorage:
         :param mask: the mask
         :type mask: np.ndarray
         :param channel_ax: the channel dimension of the mask
-        :rype channel_ax: int
+        :type channel_ax: int
         :return: the ready to save mask
         :rtype: np.ndarray
         """

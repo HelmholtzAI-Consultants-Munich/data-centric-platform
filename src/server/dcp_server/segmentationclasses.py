@@ -2,14 +2,14 @@ import os
 
 from dcp_server.utils import helpers
 from dcp_server.utils.fsimagestorage import FilesystemImageStorage
-from dcp_server import models as DCPModels
+from dcp_server.models import CustomCellpose
 
 
 class GeneralSegmentation:
     """Segmentation class. Defining the main functions needed for this project and served by service - segment image and train on images."""
 
     def __init__(
-        self, imagestorage: FilesystemImageStorage, runner, model: DCPModels
+        self, imagestorage: FilesystemImageStorage, runner, model: CustomCellpose
     ) -> None:
         """Constructs all the necessary attributes for the GeneralSegmentation.
 
@@ -37,10 +37,9 @@ class GeneralSegmentation:
         for img_filepath in list_of_images:
             img = self.imagestorage.prepare_img_for_eval(img_filepath)
             # Add channel ax into the model's evaluation parameters dictionary
-            if self.imagestorage.model_used != "UNet":
-                self.model.eval_config["segmentor"][
-                    "channel_axis"
-                ] = self.imagestorage.channel_ax
+            self.model.eval_config["segmentor"][
+                "channel_axis"
+            ] = self.imagestorage.channel_ax
             # Evaluate the model
             mask = await self.runner.evaluate(img=img)
 
@@ -56,31 +55,7 @@ class GeneralSegmentation:
             )
             self.imagestorage.save_image(os.path.join(input_path, seg_name), mask)
 
-    async def train(self, input_path: str) -> str:
-        """Train model on images and masks in the given input directory.
-        Calls the runner's train function.
-
-        :param input_path: directory where the images are saved
-        :type input_path: str
-        :return: runner's train function output - path of the saved model
-        :rtype: str
-        """
-
-        train_img_mask_pairs = self.imagestorage.get_image_seg_pairs(input_path)
-
-        if not train_img_mask_pairs:
-            return self.no_files_msg
-
-        imgs, masks = self.imagestorage.prepare_images_and_masks_for_training(
-            train_img_mask_pairs
-        )
-        model_save_path = await self.runner.train(imgs, masks)
-
-        return model_save_path
-
-
 '''
-
 class GFPProjectSegmentation(GeneralSegmentation):
     def __init__(self, imagestorage, runner):
         super().__init__(imagestorage, runner)
