@@ -95,8 +95,7 @@ def crop_centered_padded_patch(
     :param obj_label: the instance label of the mask at the patch
     :type obj_label: int
     :param mask: The mask array associated with the array x.
-                Mask is used during training to mask out non-central elements. 
-                
+                Mask is used during training to mask out non-central elements.
     :type mask: np.ndarray, optional
     :param noise_intensity: intensity of noise to be added to the background
     :type noise_intensity: float, optional
@@ -410,3 +409,6 @@ def create_patch_dataset(
         patches.extend(patch)
         patch_masks.extend(patch_mask)
         labels.extend(label)
+    return patches, patch_masks, labels
+
+
