@@ -32,7 +32,7 @@ class FilesystemImageStorage:
         :param cur_selected_img: full path of the image that needs to be loaded
         :type cur_selected_img: str
         :param gray: whether to load the image as a grayscale or not
-        :type gray: bool or None, default=Nonee
+        :type gray: bool or None, default=None
         :return: loaded image
         :rtype: ndarray
         """
@@ -240,7 +240,7 @@ class FilesystemImageStorage:
         :param mask: the mask
         :type mask: np.ndarray
         :param channel_ax: the channel dimension of the mask
-        :rype channel_ax: int
+        :type channel_ax: int
         :return: the ready to save mask
         :rtype: np.ndarray
         """
