@@ -24,7 +24,7 @@ def setup_global_variable():
 def app(qtbot):
     rsyncer = DataRSync(user_name="local", host_name="local", server_repo_path=".")
     application = Application(
-        BentomlModel(), rsyncer, FilesystemImageStorage(), "0.0.0.0", 7010
+        BentomlModel(), 1, rsyncer, FilesystemImageStorage(), "0.0.0.0", 7010
     )
     # Create an instance of WelcomeWindow
     # q_app = QApplication([])
@@ -38,7 +38,7 @@ def app(qtbot):
 def app_remote(qtbot):
     rsyncer = DataRSync(user_name="remote", host_name="remote", server_repo_path=".")
     application = Application(
-        BentomlModel(), rsyncer, FilesystemImageStorage(), "0.0.0.0", 7010
+        BentomlModel(), 1, rsyncer, FilesystemImageStorage(), "0.0.0.0", 7010
     )
     # Create an instance of WelcomeWindow
     # q_app = QApplication([])

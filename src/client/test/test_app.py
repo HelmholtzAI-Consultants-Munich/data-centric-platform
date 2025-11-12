@@ -23,15 +23,17 @@ def app():
 
     if not os.path.exists("in_prog"):
         os.mkdir("in_prog")
-        imsave("in_prog/coffee.png", img2)
+    imsave("in_prog/coffee.png", img2)
 
     if not os.path.exists("eval_data_path"):
         os.mkdir("eval_data_path")
-        imsave("eval_data_path/cat.png", img3)
+    imsave("eval_data_path/cat.png", img3)
 
     rsyncer = DataRSync(user_name="local", host_name="local", server_repo_path=".")
+    # Note: Application signature is (ml_model, num_classes, syncer, image_storage, server_ip, server_port, eval_data_path, ...)
     app = Application(
         BentomlModel(),
+        1,
         rsyncer,
         FilesystemImageStorage(),
         "0.0.0.0",
