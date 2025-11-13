@@ -14,6 +14,8 @@ setup(
                    "marie.piraud@helmholtz-munich.de"],
     url="https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform",
     packages=find_packages(),
+    include_package_data=True,
+    package_data={"dcp_client": ["config.yaml", "config_remote.yaml"]},
     install_requires=[
         "matplotlib >=3.3",
         "scikit-image >=0.20",
