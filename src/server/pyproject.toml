@@ -9,6 +9,9 @@ include = ["dcp_server*"]
 [tool.setuptools.package-data]
 "*" = ["*.yaml"]
 
+[tool.setuptools.package-data]
+"*" = ["*.yaml"]
+
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
 
