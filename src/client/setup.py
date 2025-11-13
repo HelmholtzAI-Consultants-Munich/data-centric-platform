@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="data-centric-platform-client",
-    version="0.1",
+    version="0.2.0",
     description="The client of the data centric platform for microscopy image segmentation",
     author=["Christina Bukas", 
             "Helena Pelin",
