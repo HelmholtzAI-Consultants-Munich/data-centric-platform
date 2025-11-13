@@ -10,7 +10,7 @@ dependencies = {file = ["requirements.txt"]}
 
 [project]
 name = "data-centric-platform-server"
-version = "0.1"
+version = "0.2.0"
 requires-python = ">=3.9, <3.12"
 description = "The server of the data centric platform for microscopy image segmentation"
 keywords = []
