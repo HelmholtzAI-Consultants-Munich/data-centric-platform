@@ -227,7 +227,7 @@ class Compute4Mask:
             yield instance_id, instance_mask == instance_id
 
     @staticmethod
-    def assert_filled_objects(instance_mask: np.ndarray,):
+    def assert_filled_objects(mask: np.ndarray,):
         """
         Check which label instances contain holes.
         
@@ -245,10 +245,13 @@ class Compute4Mask:
         """
         has_holes = False
         hole_masks = {}
+
+        if mask.ndim>2: instance_mask = mask[0]
+        else: instance_mask = mask
         
-        for instance_id, mask in Compute4Mask._per_label_masks(instance_mask):
-            filled = binary_fill_holes(mask)
-            holes = filled & ~mask
+        for instance_id, bin_mask in Compute4Mask._per_label_masks(instance_mask):
+            filled = binary_fill_holes(bin_mask)
+            holes = filled & ~bin_mask
             if np.any(holes):
                 has_holes = True
                 hole_masks[instance_id] = holes
