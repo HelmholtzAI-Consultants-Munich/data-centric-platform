@@ -2,7 +2,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 from copy import deepcopy
 
-from qtpy.QtWidgets import QPushButton, QComboBox, QLabel, QGridLayout, QWidget
+from qtpy.QtWidgets import (
+    QPushButton, QComboBox, QLabel, QGridLayout, QWidget, 
+    QRadioButton, QButtonGroup, QVBoxLayout, QHBoxLayout
+)
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtGui import QGuiApplication
 import napari
@@ -44,7 +47,6 @@ class NapariWindow(MyWidget):
 
         # Set the viewer
         self.viewer = napari.Viewer(show=False)
-        self.viewer.window.add_plugin_dock_widget("napari-sam")
 
         # Initialize qctrl and mask_choice_dropdown early to ensure they exist as attributes
         # They may remain None if the multi-channel segmentation condition is not met
@@ -78,6 +80,99 @@ class NapariWindow(MyWidget):
         # main_window.setFixedSize(1200,600)
         layout = QGridLayout()
         layout.addWidget(main_window, 0, 0, 1, 3)
+
+        # ===== Assisted Labelling Control Panel =====
+        assisted_labelling_widget = QWidget()
+        assisted_labelling_layout = QHBoxLayout()
+        assisted_labelling_widget.setStyleSheet("background-color: #262930; padding: 10px;")
+
+        # Add stretch on the left to push content to the right
+        assisted_labelling_layout.addStretch(1)
+
+        # Left side: Toggle button for Assisted Labelling
+        toggle_label = QLabel("Assisted labelling")
+        toggle_label.setStyleSheet("color: #D1D2D4; font-size: 12px; font-weight: bold;")
+        toggle_button = QPushButton()
+        toggle_button.setCheckable(True)
+        toggle_button.setChecked(False)
+        toggle_button.setMaximumWidth(50)
+        toggle_button.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #5A626C;
+                color: #D1D2D4;
+                border-radius: 3px;
+                padding: 2px;
+                font-weight: bold;
+                font-size: 12px;
+            }
+            QPushButton:checked {
+                background-color: #0064A8;
+            }
+            """
+        )
+        toggle_button.setText("OFF")
+        
+        def update_toggle_text(checked):
+            toggle_button.setText("ON" if checked else "OFF")
+        
+        toggle_button.toggled.connect(update_toggle_text)
+        toggle_button.toggled.connect(self.on_assisted_labelling)
+        toggle_button.setToolTip("Enable or disable assisted labelling mode")
+
+        left_layout = QHBoxLayout()
+        left_layout.addWidget(toggle_label)
+        left_layout.addWidget(toggle_button)
+        left_layout.addStretch()
+
+        # Right side: Prompting radio buttons
+        prompting_label = QLabel("Prompting")
+        prompting_label.setStyleSheet("color: #D1D2D4; font-size: 12px; font-weight: bold;")
+
+        self.prompting_group = QButtonGroup()
+        boxes_radio = QRadioButton("Boxes")
+        points_radio = QRadioButton("Points")
+
+        boxes_radio.setStyleSheet("color: #D1D2D4; font-size: 12px; font-weight: bold;")
+        points_radio.setStyleSheet("color: #D1D2D4; font-size: 12px; font-weight: bold;")
+
+        boxes_radio.setToolTip("Draw bounding boxes around objects to prompt the model")
+        points_radio.setToolTip("Click points on objects to prompt the model")
+
+        self.prompting_group.addButton(boxes_radio, 0)
+        self.prompting_group.addButton(points_radio, 1)
+        points_radio.setChecked(True)  # Default to Points
+
+        right_layout = QHBoxLayout()
+        right_layout.addWidget(prompting_label)
+        right_layout.addWidget(boxes_radio)
+        right_layout.addWidget(points_radio)
+        right_layout.addStretch()
+
+        # Bottom right: Hover explanation text
+        hover_help = QLabel("Hover over the options for explanations")
+        hover_help.setStyleSheet(
+            "color: #A0A2A4; font-size: 10px; font-style: italic; "
+            "background-color: transparent;"
+        )
+        hover_help_layout = QHBoxLayout()
+        hover_help_layout.addStretch()
+        hover_help_layout.addWidget(hover_help)
+
+        # Combine layouts
+        assisted_labelling_layout.addLayout(left_layout, 1)
+        assisted_labelling_layout.addLayout(right_layout, 1)
+        assisted_labelling_widget.setLayout(assisted_labelling_layout)
+
+        # Add tooltip widget below
+        tooltip_widget = QWidget()
+        tooltip_layout = QVBoxLayout()
+        tooltip_layout.addWidget(assisted_labelling_widget)
+        tooltip_layout.addLayout(hover_help_layout)
+        tooltip_layout.setContentsMargins(0, 0, 10, 5)
+        tooltip_widget.setLayout(tooltip_layout)
+
+        layout.addWidget(tooltip_widget, 1, 0, 1, 3)
 
         # select the first seg as the currently selected layer if there are any segs
         if (
@@ -133,7 +228,7 @@ class NapariWindow(MyWidget):
                 )
 
                 message_label.setAlignment(Qt.AlignRight)
-                layout.addWidget(message_label, 1, 0)
+                layout.addWidget(message_label, 2, 0)
 
                 # Drop list to choose which is an active mask
                 self.mask_choice_dropdown = QComboBox()
@@ -142,7 +237,7 @@ class NapariWindow(MyWidget):
                     "Instance Segmentation Mask", userData=0
                 )
                 self.mask_choice_dropdown.addItem("Labels Mask", userData=1)
-                layout.addWidget(self.mask_choice_dropdown, 1, 1)
+                layout.addWidget(self.mask_choice_dropdown, 2, 1)
 
                 # when user has chosen the mask, we don't want to change it anymore to avoid errors
                 lock_button = QPushButton("Confirm Final Choice")
@@ -162,7 +257,7 @@ class NapariWindow(MyWidget):
                 lock_button.setEnabled(True)
                 lock_button.clicked.connect(self.set_editable_mask)
 
-                layout.addWidget(lock_button, 1, 2)
+                layout.addWidget(lock_button, 2, 2)
         else:
             self.layer = None
 
@@ -182,7 +277,7 @@ class NapariWindow(MyWidget):
                
          
         )
-        layout.addWidget(add_to_inprogress_button, 2, 0)#, 1, 2)
+        layout.addWidget(add_to_inprogress_button, 3, 0)#, 1, 2)
         add_to_inprogress_button.clicked.connect(
             self.on_add_to_inprogress_button_clicked
         )
@@ -202,7 +297,7 @@ class NapariWindow(MyWidget):
          
         )
 
-        layout.addWidget(add_to_curated_button, 2, 1)#, 1, 2)
+        layout.addWidget(add_to_curated_button, 3, 1)#, 1, 2)
         add_to_curated_button.clicked.connect(self.on_add_to_curated_button_clicked)
 
         self.setLayout(layout)
@@ -221,7 +316,7 @@ class NapariWindow(MyWidget):
         "QPushButton:pressed { background-color: #006FBA; }" 
          
         )
-        layout.addWidget(remove_from_dataset_button, 2, 2)
+        layout.addWidget(remove_from_dataset_button, 3, 2)
         remove_from_dataset_button.clicked.connect(self.on_remove_from_dataset_button_clicked)
 
         QTimer.singleShot(0, self.adjust_window_size)
@@ -308,6 +403,30 @@ class NapariWindow(MyWidget):
         the class labels can be changed.
         """
         pass
+
+    def on_assisted_labelling(self, checked: bool) -> None:
+        """
+        Triggered when the user toggles the Assisted labelling mode ON or OFF.
+        
+        :param checked: True if assisted labelling is enabled, False if disabled.
+        :type checked: bool
+        """
+        if checked:
+            # Assisted labelling mode enabled
+            print("Assisted labelling mode enabled")
+            # TODO: Implement assisted labelling initialization here
+            # - Initialize SAM model
+            # - Set up prompting based on self.prompting_group.checkedId()
+            # - Enable appropriate UI elements
+            pass
+        else:
+            # Assisted labelling mode disabled
+            print("Assisted labelling mode disabled")
+            # TODO: Implement assisted labelling cleanup here
+            # - Unload SAM model
+            # - Disable prompting elements
+            # - Clear any cached data
+            pass
 
     def on_seg_channel_changed(self, event) -> None:
         """

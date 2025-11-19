@@ -24,7 +24,6 @@ setup(
         "segment-anything @ git+https://github.com/facebookresearch/segment-anything.git@main",
         "torch",
         "torchvision",
-        "napari-sam @ git+https://github.com/christinab12/napari-sam.git@main",
         "bentoml[grpc]>=1.2.5"
     ],
     extras_require={
