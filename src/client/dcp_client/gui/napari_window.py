@@ -404,6 +404,34 @@ class NapariWindow(MyWidget):
         """
         pass
 
+    def on_box_added(self, event) -> None:
+        """Triggered whenever a new box is added to the 'box-prompts' Shapes layer."""
+        try:
+            layer = event.source
+            if layer.name != "box-prompts":
+                return
+
+            # Get the index of the newly added shape
+            new_shape_index = len(layer.data) - 1
+            new_shape = layer.data[new_shape_index]
+
+            # Example logic placeholder: you could pass these box coordinates to SAM later
+            print(f"New box added at index {new_shape_index}, coordinates: {new_shape}")
+
+        except Exception as e:
+            print(f"Error handling new box event: {e}")
+
+    def _connect_box_prompt_events(self) -> None:
+        """Attach the on_box_added handler to the 'box-prompts' layer if it exists."""
+        try:
+            layer = self.viewer.layers["box-prompts"]
+            if layer is None:
+                return
+            layer.events.data.connect(self.on_box_added)
+        except Exception as e:
+            print(f"Could not connect box prompt event: {e}")
+
+
     def on_assisted_labelling(self, checked: bool) -> None:
         """
         Triggered when the user toggles the Assisted labelling mode ON or OFF.
@@ -415,10 +443,31 @@ class NapariWindow(MyWidget):
             # Assisted labelling mode enabled
             print("Assisted labelling mode enabled")
             # TODO: Implement assisted labelling initialization here
-            # - Initialize SAM model
-            # - Set up prompting based on self.prompting_group.checkedId()
-            # - Enable appropriate UI elements
-            pass
+            shapes = None
+        try:
+            if "box-prompts" in self.viewer.layers:
+                shapes = self.viewer.layers["box-prompts"]
+                shapes.visible = True
+            else:
+                # Create an empty shapes layer configured for rectangle prompts
+                shapes = self.viewer.add_shapes(
+                    name="box-prompts",
+                    edge_color="yellow",
+                    face_color="transparent",
+                    edge_width=2,
+                )
+            # Switch to rectangle-adding mode and select the layer
+            try:
+                shapes.mode = "add_rectangle"  # available in napari>=0.4.17
+            except Exception:
+                # Fallback to generic add mode if exact tool not available
+                shapes.mode = "add"
+            self.viewer.layers.selection = {shapes}
+            self._connect_box_prompt_events()
+        except Exception as e:
+            print(f"Failed to prepare 'box-prompts' layer: {e}")
+            # Best-effort: don't crash; the toggle stays on but user can retry
+
         else:
             # Assisted labelling mode disabled
             print("Assisted labelling mode disabled")
