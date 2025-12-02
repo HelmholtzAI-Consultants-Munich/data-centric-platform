@@ -81,22 +81,20 @@ class NapariWindow(MyWidget):
         layout = QGridLayout()
         layout.addWidget(main_window, 0, 0, 1, 3)
 
-        # ===== Assisted Labelling Control Panel =====
+        # Assisted Labelling Control Panel
         assisted_labelling_widget = QWidget()
         assisted_labelling_layout = QHBoxLayout()
         assisted_labelling_widget.setStyleSheet("background-color: #262930; padding: 10px;")
-
-        # Add stretch on the left to push content to the right
-        assisted_labelling_layout.addStretch(1)
+        assisted_labelling_layout.addStretch(1) # Add stretch on the left to push content to the right
 
         # Left side: Toggle button for Assisted Labelling
         toggle_label = QLabel("Assisted labelling")
         toggle_label.setStyleSheet("color: #D1D2D4; font-size: 12px; font-weight: bold;")
-        toggle_button = QPushButton()
-        toggle_button.setCheckable(True)
-        toggle_button.setChecked(False)
-        toggle_button.setMaximumWidth(50)
-        toggle_button.setStyleSheet(
+        self.toggle_button = QPushButton()
+        self.toggle_button.setCheckable(True)
+        self.toggle_button.setChecked(False)
+        self.toggle_button.setMaximumWidth(50)
+        self.toggle_button.setStyleSheet(
             """
             QPushButton {
                 background-color: #5A626C;
@@ -111,18 +109,19 @@ class NapariWindow(MyWidget):
             }
             """
         )
-        toggle_button.setText("OFF")
+        self.toggle_button.setText("OFF")
         
         def update_toggle_text(checked):
-            toggle_button.setText("ON" if checked else "OFF")
+            self.toggle_button.setText("ON" if checked else "OFF")
         
-        toggle_button.toggled.connect(update_toggle_text)
-        toggle_button.toggled.connect(self.on_assisted_labelling)
-        toggle_button.setToolTip("Enable or disable assisted labelling mode")
+        self.toggle_button.toggled.connect(update_toggle_text)
+        self.toggle_button.toggled.connect(self.on_assisted_labelling)
+        #self.toggle_button.setStyleSheet("color: #D1D2D4; font-size: 12px; font-weight: bold;")
+        #self.toggle_button.setToolTip("Enable or disable assisted labelling mode")
 
         left_layout = QHBoxLayout()
         left_layout.addWidget(toggle_label)
-        left_layout.addWidget(toggle_button)
+        left_layout.addWidget(self.toggle_button)
         left_layout.addStretch()
 
         # Right side: Prompting radio buttons
@@ -137,11 +136,15 @@ class NapariWindow(MyWidget):
         points_radio.setStyleSheet("color: #D1D2D4; font-size: 12px; font-weight: bold;")
 
         boxes_radio.setToolTip("Draw bounding boxes around objects to prompt the model")
-        points_radio.setToolTip("Click points on objects to prompt the model")
+        point_hover_text = ("Click points inside objects to prompt the model. To add background points (recommended),"
+                            " select any other color that the default (white). Once you are done click the 'd' key on your"
+                            " keyboard to get the result!")
+        points_radio.setToolTip(point_hover_text)
 
         self.prompting_group.addButton(boxes_radio, 0)
         self.prompting_group.addButton(points_radio, 1)
-        points_radio.setChecked(True)  # Default to Points
+        boxes_radio.setChecked(True)  # Default to boxes
+        self.prompting_group.idClicked.connect(self.on_prompting_mode_changed)
 
         right_layout = QHBoxLayout()
         right_layout.addWidget(prompting_label)
@@ -150,7 +153,7 @@ class NapariWindow(MyWidget):
         right_layout.addStretch()
 
         # Bottom right: Hover explanation text
-        hover_help = QLabel("Hover over the options for explanations")
+        hover_help = QLabel("Hover over the prompting options for explanations on how to use!")
         hover_help.setStyleSheet(
             "color: #A0A2A4; font-size: 10px; font-style: italic; "
             "background-color: transparent;"
@@ -404,20 +407,79 @@ class NapariWindow(MyWidget):
         """
         pass
 
+    def on_points_confirmed(self, layer):
+        """
+        Called when the user presses 'd' while the point-prompts layer is active.
+        """
+        try:
+            if layer.name != "point-prompts": return layer  # do nothing if some other layer triggered it
+            # else get all points added by the user
+            points = np.asarray(layer.data)
+            
+            if len(points) == 0: 
+                print("No points to confirm.")
+                return layer
+            else:
+                print(f"Confirming {len(points)} points: {points}")
+                colors = np.asarray(layer.face_color) #(N x 4 RGBA)
+                # white (1,1,1,1) in napari is exactly [1., 1., 1., 1.], but use a tolerance
+                is_white = np.all(np.isclose(colors[:, :3], [1, 1, 1]), axis=1)
+
+                # seperate foreground and background points
+                foreground_points = points[is_white]        # white points
+                background_points = points[~is_white]       # all others
+
+                # SAM expects coords as (N, 2) in (x, y) format, not (y, x)
+                def to_sam_coords(arr):
+                    if arr.size == 0:
+                        return arr.reshape(0, 2)
+                    return np.flip(arr, axis=1)  # swap columns
+
+                sam_fg = to_sam_coords(foreground_points)
+                sam_bg = to_sam_coords(background_points)
+
+                # TODO: Run SAM2 with the current set of points
+        except Exception as e:
+            print(f"Error in on_points_confirmed: {e}")
+        
+        return layer # napari keybindings expect you to return the layer
+
+    def _napari_box_to_sam(self, box_vertices):
+        """
+        Convert a napari 4x2 array of (y, x) rectangle vertices into
+        SAM-ready box format [x_min, y_min, x_max, y_max].
+        """
+        box_vertices = np.asarray(box_vertices)  # shape (4, 2)
+
+        ys = box_vertices[:, 0]
+        xs = box_vertices[:, 1]
+
+        x_min, x_max = xs.min(), xs.max()
+        y_min, y_max = ys.min(), ys.max()
+
+        return np.array([x_min, y_min, x_max, y_max], dtype=float)
+
     def on_box_added(self, event) -> None:
-        """Triggered whenever a new box is added to the 'box-prompts' Shapes layer."""
+        """
+        Triggered whenever a new box is added to the 'box-prompts' Shapes layer.
+        """
         try:
             layer = event.source
-            if layer.name != "box-prompts":
-                return
+            if layer.name != "box-prompts": return
 
-            # Get the index of the newly added shape
-            new_shape_index = len(layer.data) - 1
-            new_shape = layer.data[new_shape_index]
+            # check if new box has actually been added
+            prev_len = getattr(self, "_box_prompts_len", 0)
+            new_len = len(layer.data)
+            if new_len > prev_len:
+                # Handle all newly added shapes - should be 1
+                for idx in range(prev_len, new_len):
+                    new_box = layer.data[idx] # (4, 2) 
+                    sam_box = self._napari_box_to_sam(new_box)
+                    print(f"New box added at index {idx}, coordinates: {new_box}")
+                    # TODO: Run SAM2 with newly added box
 
-            # Example logic placeholder: you could pass these box coordinates to SAM later
-            print(f"New box added at index {new_shape_index}, coordinates: {new_shape}")
-
+            # Update tracker whether shapes were added/removed/changed
+            self._box_prompts_len = new_len
         except Exception as e:
             print(f"Error handling new box event: {e}")
 
@@ -425,12 +487,10 @@ class NapariWindow(MyWidget):
         """Attach the on_box_added handler to the 'box-prompts' layer if it exists."""
         try:
             layer = self.viewer.layers["box-prompts"]
-            if layer is None:
-                return
+            if layer is None: return
             layer.events.data.connect(self.on_box_added)
         except Exception as e:
             print(f"Could not connect box prompt event: {e}")
-
 
     def on_assisted_labelling(self, checked: bool) -> None:
         """
@@ -439,43 +499,131 @@ class NapariWindow(MyWidget):
         :param checked: True if assisted labelling is enabled, False if disabled.
         :type checked: bool
         """
-        if checked:
-            # Assisted labelling mode enabled
-            print("Assisted labelling mode enabled")
-            # TODO: Implement assisted labelling initialization here
-            shapes = None
-        try:
-            if "box-prompts" in self.viewer.layers:
-                shapes = self.viewer.layers["box-prompts"]
-                shapes.visible = True
-            else:
-                # Create an empty shapes layer configured for rectangle prompts
-                shapes = self.viewer.add_shapes(
-                    name="box-prompts",
-                    edge_color="yellow",
-                    face_color="transparent",
-                    edge_width=2,
-                )
-            # Switch to rectangle-adding mode and select the layer
-            try:
-                shapes.mode = "add_rectangle"  # available in napari>=0.4.17
-            except Exception:
-                # Fallback to generic add mode if exact tool not available
-                shapes.mode = "add"
-            self.viewer.layers.selection = {shapes}
-            self._connect_box_prompt_events()
-        except Exception as e:
-            print(f"Failed to prepare 'box-prompts' layer: {e}")
-            # Best-effort: don't crash; the toggle stays on but user can retry
+        # Disable: hide all prompt layers and reset modes
+        if not checked:
+            print("Assisted labelling disabled")
 
-        else:
-            # Assisted labelling mode disabled
-            print("Assisted labelling mode disabled")
+            for lname in ("box-prompts", "point-prompts"):
+                layer = next((l for l in self.viewer.layers if l.name == lname), None)
+                if layer is not None:
+                    try:
+                        layer.visible = False
+                        layer.mode = "pan_zoom"
+                    except Exception: pass
             # TODO: Implement assisted labelling cleanup here
-            # - Unload SAM model
-            # - Disable prompting elements
-            # - Clear any cached data
-            pass
+            return
+
+        # Assisted labelling enabled
+        print("Assisted labelling enabled")
+
+        # Decide prompting mode: 0 = Boxes, 1 = Points
+        mode_id = None
+        try: mode_id = self.prompting_group.checkedId()
+        except Exception:
+            # Fallback: default to boxes if something goes wrong
+            mode_id = 0
+
+        use_boxes = (mode_id == 0)
+        use_points = (mode_id == 1)
+
+        try:
+            if use_boxes:
+                # ----- BOX PROMPTS -----
+                layer = next((l for l in self.viewer.layers if l.name == "box-prompts"), None)
+                if layer is None:
+                    layer = self.viewer.add_shapes(
+                        name="box-prompts",
+                        edge_color="magenta",
+                        face_color="transparent",
+                        edge_width=4,
+                    )
+                else: layer.visible = True
+                # Switch to rectangle-adding mode
+                try:
+                    layer.mode = "add_rectangle"
+                except Exception:
+                    layer.mode = "add"
+
+                # Hide point prompts layer if it exists
+                point_layer = next((l for l in self.viewer.layers if l.name == "point-prompts"), None)
+                if point_layer is not None: point_layer.visible = False
+
+                self.viewer.layers.selection = {layer}
+
+                # Initialize box prompt tracking & events (if you use them)
+                if hasattr(self, "_box_prompts_len"): self._box_prompts_len = len(layer.data)
+                self._connect_box_prompt_events()
+
+            elif use_points:
+                # ----- POINT PROMPTS -----
+                layer = next((l for l in self.viewer.layers if l.name == "point-prompts"), None)
+                if layer is None:
+                    layer = self.viewer.add_points(
+                        name="point-prompts",
+                        size=10,
+                    )
+                else: layer.visible = True
+                # Set to add-point mode (generic "add" is usually fine)
+                try: layer.mode = "add"
+                except Exception: pass
+
+                # Hide box prompts layer if it exists
+                box_layer = next((l for l in self.viewer.layers if l.name == "box-prompts"), None)
+                if box_layer is not None: box_layer.visible = False
+
+                self.viewer.layers.selection = {layer}
+
+                # Bind the 'd' key **for this layer** to confirm points
+                try:
+                    layer.bind_key('d', overwrite=True)(self.on_points_confirmed)
+                except Exception as e:
+                    print(f"Could not bind 'd' for point-prompts layer: {e}")
+
+            else:
+                # Fallback if unknown id: default to boxes
+                print("Unknown prompting mode, defaulting to Boxes.")
+                layer = next((l for l in self.viewer.layers if l.name == "box-prompts"), None)
+                if layer is None:
+                    layer = self.viewer.add_shapes(
+                        name="box-prompts",
+                        edge_color="magenta",
+                        face_color="transparent",
+                        edge_width=4,
+                    )
+                else:
+                    layer.visible = True
+
+                try:
+                    layer.mode = "add_rectangle"
+                except Exception:
+                    layer.mode = "add"
+
+                self.viewer.layers.selection = {layer}
+                self._box_prompts_len = len(layer.data)
+                self._connect_box_prompt_events()
+
+        except Exception as e:
+            print(f"Failed to set up prompts for assisted labelling: {e}")
+
+    def on_prompting_mode_changed(self, _id: int) -> None:
+        """
+        Triggered when the user switches between 'Boxes' and 'Points'.
+        If Assisted labelling is enabled, we immediately apply the new mode
+        (switch active layer, tools, etc.).
+        """
+        try:
+            # Only react if assisted labelling is currently ON
+            if not getattr(self, "toggle_button", None):
+                return
+            if not self.toggle_button.isChecked():
+                return
+
+            # Re-apply assisted labelling setup with the new mode.
+            self.on_assisted_labelling(True)
+
+        except Exception as e:
+            print(f"Error updating prompting mode: {e}")
+
 
     def on_seg_channel_changed(self, event) -> None:
         """
