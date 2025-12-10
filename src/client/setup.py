@@ -10,24 +10,28 @@ class PostInstallCommand(install):
         self._download_sam_models()
     
     def _download_sam_models(self):
-        """Download SAM model checkpoints after installation."""
+        """Download the appropriate SAM model checkpoint based on detected hardware."""
         try:
             from dcp_client.utils.sam_model_manager import SAMModelManager
             
-            print("\nDownloading SAM model checkpoints...")
+            print("\nDetecting hardware and downloading appropriate SAM model...")
             manager = SAMModelManager()
             
+            # Auto-detect hardware and select best model
             hardware = manager.detect_hardware()
-            models_to_download = ["vit_b", "mobilesam"]
+            best_model = manager.select_model("auto")
             
-            for model_type in models_to_download:
-                try:
-                    print(f"Downloading {model_type} checkpoint...")
-                    manager.get_checkpoint_path(model_type)
-                    print(f"✓ {model_type} checkpoint downloaded successfully")
-                except Exception as e:
-                    print(f"⚠ Warning: Failed to download {model_type} checkpoint: {e}")
-                    print(f"  The checkpoint will be downloaded on first use.")
+            device_info = "CUDA GPU" if hardware["cuda"] else ("Apple Silicon (MPS)" if hardware["mps"] else "CPU")
+            print(f"Detected: {device_info}")
+            print(f"Selected model: {best_model}")
+            
+            try:
+                print(f"Downloading {best_model} checkpoint...")
+                manager.get_checkpoint_path(best_model)
+                print(f"✓ {best_model} checkpoint downloaded successfully")
+            except Exception as e:
+                print(f"⚠ Warning: Failed to download {best_model} checkpoint: {e}")
+                print(f"  The checkpoint will be downloaded on first use.")
             
             print("SAM model checkpoint download complete.\n")
         except ImportError as e:
