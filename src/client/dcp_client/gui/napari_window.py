@@ -333,6 +333,11 @@ class NapariWindow(MyWidget):
     def closeEvent(self, event):
         """Properly close Napari viewer and all child widgets."""
         try:
+            # Stop SAM worker thread (signal only, no blocking wait)
+            if self.sam_controller:
+                self.sam_controller.stop()
+                self.sam_controller = None
+            
             # Close Napari viewer if exists
             if hasattr(self, 'viewer') and self.viewer is not None:
                 try:
