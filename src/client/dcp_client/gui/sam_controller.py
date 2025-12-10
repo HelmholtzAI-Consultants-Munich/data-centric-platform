@@ -39,6 +39,7 @@ class SAMController:
         self._mask_label_history: list[int] = []
         self._box_prompts_len = 0
         self._bg_point_mode = False
+        self._box_events_connected = False
     
     def _get_layer(self, name: str) -> Optional[napari.layers.Layer]:
         """Get layer by name, returns None if not found."""
@@ -91,6 +92,7 @@ class SAMController:
     
     def stop(self) -> None:
         """Stop the SAM worker thread - signal only, no wait."""
+        self._disconnect_box_events()
         if self.sam_worker:
             try:
                 self.sam_worker._should_stop = True
@@ -185,11 +187,26 @@ class SAMController:
         self._bind_layer_keys(layer, include_points=True)
     
     def _connect_box_events(self, layer: napari.layers.Shapes) -> None:
-        """Connect box data change events."""
+        """Connect box data change events (ensures no duplicate connections)."""
+        if self._box_events_connected:
+            return
         try:
             layer.events.data.connect(self._on_box_data_changed)
+            self._box_events_connected = True
         except Exception:
             pass
+    
+    def _disconnect_box_events(self) -> None:
+        """Disconnect box data change events."""
+        if not self._box_events_connected:
+            return
+        layer = self._get_layer(self.BOX_PROMPTS)
+        if layer:
+            try:
+                layer.events.data.disconnect(self._on_box_data_changed)
+            except Exception:
+                pass
+        self._box_events_connected = False
     
     def _bind_layer_keys(self, layer, include_points: bool) -> None:
         """Bind keybindings to a prompt layer."""
