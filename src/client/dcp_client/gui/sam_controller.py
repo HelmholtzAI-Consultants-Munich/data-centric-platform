@@ -270,6 +270,10 @@ class SAMController:
             return layer
         
         colors = np.asarray(layer.face_color)
+        # Handle both uniform (1D) and per-point (2D) color arrays
+        if colors.ndim == 1:
+            # Uniform color for all points - broadcast to (N, 4)
+            colors = np.tile(colors, (len(points), 1))
         is_white = np.all(np.isclose(colors[:, :3], [1, 1, 1]), axis=1)
         
         fg_points = points[is_white]
