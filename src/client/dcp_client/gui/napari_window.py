@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 from dcp_client.utils.utils import get_path_stem, check_equal_arrays
 from dcp_client.utils.compute4mask import Compute4Mask
 from dcp_client.gui._my_widget import MyWidget
+from dcp_client.gui.sam_controller import SAMController
 
 
 class NapariWindow(MyWidget):
@@ -52,6 +53,9 @@ class NapariWindow(MyWidget):
         # They may remain None if the multi-channel segmentation condition is not met
         self.qctrl = None
         self.mask_choice_dropdown = None
+        
+        # SAM controller (lazy initialized when assisted labelling is enabled)
+        self.sam_controller: Optional[SAMController] = None
 
         self.viewer.add_image(img, name=get_path_stem(self.app.cur_selected_img))
         for seg_file in self.seg_files:
@@ -495,134 +499,43 @@ class NapariWindow(MyWidget):
     def on_assisted_labelling(self, checked: bool) -> None:
         """
         Triggered when the user toggles the Assisted labelling mode ON or OFF.
-        
-        :param checked: True if assisted labelling is enabled, False if disabled.
-        :type checked: bool
         """
-        # Disable: hide all prompt layers and reset modes
         if not checked:
-            print("Assisted labelling disabled")
-
-            for lname in ("box-prompts", "point-prompts"):
-                layer = next((l for l in self.viewer.layers if l.name == lname), None)
-                if layer is not None:
-                    try:
-                        layer.visible = False
-                        layer.mode = "pan_zoom"
-                    except Exception: pass
-            # TODO: Implement assisted labelling cleanup here
+            if self.sam_controller:
+                self.sam_controller.disable()
+            try:
+                self.viewer.bind_key('Enter', None, overwrite=True)
+                self.viewer.bind_key('Escape', None, overwrite=True)
+            except Exception:
+                pass
             return
 
-        # Assisted labelling enabled
-        print("Assisted labelling enabled")
-
-        # Decide prompting mode: 0 = Boxes, 1 = Points
-        mode_id = None
-        try: mode_id = self.prompting_group.checkedId()
-        except Exception:
-            # Fallback: default to boxes if something goes wrong
-            mode_id = 0
-
-        use_boxes = (mode_id == 0)
-        use_points = (mode_id == 1)
-
-        try:
-            if use_boxes:
-                # ----- BOX PROMPTS -----
-                layer = next((l for l in self.viewer.layers if l.name == "box-prompts"), None)
-                if layer is None:
-                    layer = self.viewer.add_shapes(
-                        name="box-prompts",
-                        edge_color="magenta",
-                        face_color="transparent",
-                        edge_width=4,
-                    )
-                else: layer.visible = True
-                # Switch to rectangle-adding mode
-                try:
-                    layer.mode = "add_rectangle"
-                except Exception:
-                    layer.mode = "add"
-
-                # Hide point prompts layer if it exists
-                point_layer = next((l for l in self.viewer.layers if l.name == "point-prompts"), None)
-                if point_layer is not None: point_layer.visible = False
-
-                self.viewer.layers.selection = {layer}
-
-                # Initialize box prompt tracking & events (if you use them)
-                if hasattr(self, "_box_prompts_len"): self._box_prompts_len = len(layer.data)
-                self._connect_box_prompt_events()
-
-            elif use_points:
-                # ----- POINT PROMPTS -----
-                layer = next((l for l in self.viewer.layers if l.name == "point-prompts"), None)
-                if layer is None:
-                    layer = self.viewer.add_points(
-                        name="point-prompts",
-                        size=10,
-                    )
-                else: layer.visible = True
-                # Set to add-point mode (generic "add" is usually fine)
-                try: layer.mode = "add"
-                except Exception: pass
-
-                # Hide box prompts layer if it exists
-                box_layer = next((l for l in self.viewer.layers if l.name == "box-prompts"), None)
-                if box_layer is not None: box_layer.visible = False
-
-                self.viewer.layers.selection = {layer}
-
-                # Bind the 'd' key **for this layer** to confirm points
-                try:
-                    layer.bind_key('d', overwrite=True)(self.on_points_confirmed)
-                except Exception as e:
-                    print(f"Could not bind 'd' for point-prompts layer: {e}")
-
-            else:
-                # Fallback if unknown id: default to boxes
-                print("Unknown prompting mode, defaulting to Boxes.")
-                layer = next((l for l in self.viewer.layers if l.name == "box-prompts"), None)
-                if layer is None:
-                    layer = self.viewer.add_shapes(
-                        name="box-prompts",
-                        edge_color="magenta",
-                        face_color="transparent",
-                        edge_width=4,
-                    )
-                else:
-                    layer.visible = True
-
-                try:
-                    layer.mode = "add_rectangle"
-                except Exception:
-                    layer.mode = "add"
-
-                self.viewer.layers.selection = {layer}
-                self._box_prompts_len = len(layer.data)
-                self._connect_box_prompt_events()
-
-        except Exception as e:
-            print(f"Failed to set up prompts for assisted labelling: {e}")
+        # Initialize SAM controller if needed
+        if not self.sam_controller:
+            self.sam_controller = SAMController(self.viewer, self.app)
+        
+        if not self.sam_controller.initialize():
+            self.toggle_button.setChecked(False)
+            return
+        
+        self.sam_controller.set_image()
+        
+        def bind_viewer_keys():
+            try:
+                self.viewer.bind_key('Enter', lambda v: self.sam_controller.accept_masks(), overwrite=True)
+                self.viewer.bind_key('Escape', lambda v: self.sam_controller.reject_last_mask(), overwrite=True)
+            except Exception:
+                pass
+        
+        mode = self.prompting_group.checkedId()
+        self.sam_controller.enable(mode, bind_viewer_keys)
 
     def on_prompting_mode_changed(self, _id: int) -> None:
         """
         Triggered when the user switches between 'Boxes' and 'Points'.
-        If Assisted labelling is enabled, we immediately apply the new mode
-        (switch active layer, tools, etc.).
         """
-        try:
-            # Only react if assisted labelling is currently ON
-            if not getattr(self, "toggle_button", None):
-                return
-            if not self.toggle_button.isChecked():
-                return
-
-            # Re-apply assisted labelling setup with the new mode.
+        if hasattr(self, 'toggle_button') and self.toggle_button.isChecked():
             self.on_assisted_labelling(True)
-
-        except Exception as e:
-            print(f"Error updating prompting mode: {e}")
 
 
     def on_seg_channel_changed(self, event) -> None:
@@ -630,13 +543,12 @@ class NapariWindow(MyWidget):
         Is triggered each time the user selects a different layer in the viewer.
         """
         if (act := self.viewer.layers.selection.active) is not None:
-            # updater cur_selected_seg with the new selection from the user
-            self.cur_selected_seg = act.name
-            if type(self.viewer.layers[self.cur_selected_seg]) == napari.layers.Image:
+            # Only update cur_selected_seg for actual segmentation layers (not SAM layers)
+            if isinstance(act, napari.layers.Labels) and "_seg" in act.name:
+                self.cur_selected_seg = act.name
+                self.layer = act
+            elif isinstance(act, napari.layers.Image):
                 pass
-            # set self.layer to new selection from user
-            elif self.layer is not None:
-                self.layer = self.viewer.layers[self.cur_selected_seg]
         else:
             pass
 
@@ -645,11 +557,21 @@ class NapariWindow(MyWidget):
         Is triggered each time the user switches the viewer between the mask channels. At this point the class mask
         needs to be updated according to the changes made to the instance segmentation mask.
         """
-
         if self.app.cur_selected_img=="": return # because this also gets triggered when removing outlier
 
         self.active_mask_index = self.viewer.dims.current_step[0]
-        masks = deepcopy(self.layer.data)
+        
+        # Ensure self.layer points to the correct segmentation layer
+        if hasattr(self, 'cur_selected_seg') and self.cur_selected_seg:
+            try:
+                self.layer = self.viewer.layers[self.cur_selected_seg]
+            except KeyError:
+                return
+        
+        try:
+            masks = deepcopy(self.layer.data)
+        except Exception:
+            return
 
         # if user has switched to the instance mask
         if self.active_mask_index == 0:
@@ -679,6 +601,15 @@ class NapariWindow(MyWidget):
         self.switch_controls("paint_button", True)
         self.switch_controls("erase_button", True)
         self.switch_controls("fill_button", True)
+        
+        # Re-enable SAM toggle on instance channel
+        if hasattr(self, 'toggle_button'):
+            self.toggle_button.setEnabled(True)
+            self.toggle_button.setToolTip("")
+            # Restore SAM if it was on before channel switch
+            if getattr(self, '_sam_was_enabled_before_channel_switch', False):
+                self._sam_was_enabled_before_channel_switch = False
+                self.toggle_button.setChecked(True)
 
     def switch_to_labels_mask(self) -> None:
         """
@@ -686,8 +617,30 @@ class NapariWindow(MyWidget):
         """
 
         self.original_instance_mask[self.cur_selected_seg] = deepcopy(self.layer.data[0])
+        
+        # Remove SAM layers when switching to class channel
+        if hasattr(self, 'toggle_button') and self.toggle_button.isChecked():
+            self._sam_was_enabled_before_channel_switch = True
+            self.toggle_button.blockSignals(True)
+            self.toggle_button.setChecked(False)
+            self.toggle_button.blockSignals(False)
+        
+        for lname in ("box-prompts", "point-prompts", "sam-preview"):
+            if lname in self.viewer.layers:
+                self.viewer.layers.remove(lname)
+        
+        # Disable SAM toggle on class channel
+        if hasattr(self, 'toggle_button'):
+            self.toggle_button.setEnabled(False)
+            self.toggle_button.setToolTip("SAM is only available on Instance channel")
+        
+        # Select segmentation layer and set fill mode
         if self.cur_selected_seg in [layer.name for layer in self.viewer.layers]:
-            self.viewer.layers[self.cur_selected_seg].mode = "pan_zoom"
+            seg_layer = self.viewer.layers[self.cur_selected_seg]
+            self.viewer.layers.selection.clear()
+            self.viewer.layers.selection.add(seg_layer)
+            seg_layer.mode = "fill"
+            
         info_message_paint = (
             "Painting objects is only possible in the instance layer for now."
         )
