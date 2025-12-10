@@ -1,4 +1,42 @@
 from setuptools import setup, find_packages
+from setuptools.command.install import install
+
+
+class PostInstallCommand(install):
+    """Post-installation command to download SAM model checkpoints."""
+    
+    def run(self):
+        install.run(self)
+        self._download_sam_models()
+    
+    def _download_sam_models(self):
+        """Download SAM model checkpoints after installation."""
+        try:
+            from dcp_client.utils.sam_model_manager import SAMModelManager
+            
+            print("\nDownloading SAM model checkpoints...")
+            manager = SAMModelManager()
+            
+            hardware = manager.detect_hardware()
+            models_to_download = ["vit_b", "mobilesam"]
+            
+            for model_type in models_to_download:
+                try:
+                    print(f"Downloading {model_type} checkpoint...")
+                    manager.get_checkpoint_path(model_type)
+                    print(f"✓ {model_type} checkpoint downloaded successfully")
+                except Exception as e:
+                    print(f"⚠ Warning: Failed to download {model_type} checkpoint: {e}")
+                    print(f"  The checkpoint will be downloaded on first use.")
+            
+            print("SAM model checkpoint download complete.\n")
+        except ImportError as e:
+            print(f"⚠ Warning: Could not import SAMModelManager: {e}")
+            print("  SAM model checkpoints will be downloaded on first use.\n")
+        except Exception as e:
+            print(f"⚠ Warning: Error during SAM model download: {e}")
+            print("  SAM model checkpoints will be downloaded on first use.\n")
+
 
 setup(
     name="data-centric-platform-client",
@@ -40,6 +78,9 @@ setup(
         "console_scripts": [
             "dcp-client=dcp_client.main:main",
         ]
+    },
+    cmdclass={
+        "install": PostInstallCommand,
     },
     python_requires=">=3.9",
     keywords=[],  
