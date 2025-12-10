@@ -404,14 +404,13 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app_ = Application(
         ml_model=ml_model,
-        num_classes=1,
         syncer=data_sync,
         image_storage=image_storage,
         server_ip="0.0.0.0",
         server_port=7010,
-        eval_data_path="/Users/christinabukas/Desktop/uncurated",
-        train_data_path="/Users/christinabukas/Desktop/curated",  # set path
-        inprogr_data_path="/Users/christinabukas/Desktop/in_prog",
+        eval_data_path="data",
+        train_data_path="",  # set path
+        inprogr_data_path="",
     )  # set path
     window = MainWindow(app=app_)
     sys.exit(app.exec())
