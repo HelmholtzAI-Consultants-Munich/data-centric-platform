@@ -457,7 +457,6 @@ class SAMInferenceWorker(QThread):
             torch.cuda.empty_cache()
     
     def stop(self):
-        """Stop worker thread."""
+        """Signal worker thread to stop - no blocking wait."""
         self._should_stop = True
         self.condition.wakeAll()
-        self.wait()
