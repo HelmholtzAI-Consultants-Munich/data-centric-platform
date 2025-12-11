@@ -49,5 +49,38 @@ This installation has been thoroughly tested using a conda environment with pyth
   dcp-client --mode local --multi-class --num-classes 3
   ```
 
+### SAM Assisted Labelling
+
+The client includes **SAM (Segment Anything Model)** integration for AI-assisted segmentation. This feature helps you quickly annotate objects by drawing bounding boxes or clicking points.
+
+#### Enabling SAM
+
+1. Open an image in the Napari viewer
+2. Toggle the **"Assisted labelling"** button to **ON**
+3. The SAM model will load (first use may take a moment to download the model checkpoint)
+
+#### Prompting Modes
+
+**Box Prompting (default):**
+- Select "Boxes" in the prompting options
+- Draw bounding boxes around objects you want to segment
+- SAM will automatically generate a segmentation mask for each box
+- Press **Enter** to accept all masks, or **Escape** to reject the last mask
+- Press **Ctrl+Z** to undo the last box
+
+**Point Prompting:**
+- Select "Points" in the prompting options
+- Click inside objects to add **foreground points** (white)
+- Press **'b'** to toggle to **background point mode** (red) for refining masks
+- Press **'d'** to confirm points and generate the mask
+- Press **Enter** to accept, **Escape** to reject
+
+#### Important Notes
+
+- SAM is only available on the **Instance channel** (channel 0) in multi-class mode
+- When switching to the Labels channel, SAM is automatically disabled
+- SAM state is restored when switching back to the Instance channel
+- Hover over the prompting options in the UI for additional usage tips
+
 ## Want to know more?
 Visit our [documentation](https://data-centric-platform.readthedocs.io/en/latest/dcp_client_installation.html) for more information and a step by step guide on how to run the client.
