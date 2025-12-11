@@ -139,9 +139,8 @@ class NapariWindow(MyWidget):
         boxes_radio.setStyleSheet("color: #D1D2D4; font-size: 12px; font-weight: bold;")
         points_radio.setStyleSheet("color: #D1D2D4; font-size: 12px; font-weight: bold;")
 
-        boxes_radio.setToolTip("Draw bounding boxes around objects to prompt the model")
-        point_hover_text = ("Click points inside objects to prompt the model. To add background points (recommended),"
-                            " select any other color that the default (white). Once you are done click the 'd' key on your"
+        boxes_radio.setToolTip("Draw bounding boxes around objects to prompt the model. Press enter to accept the boxes, or escape to reject the last box.")
+        point_hover_text = ("Click points inside objects to prompt the model. Toggle between foreground (white) and background (red) point mode with the 'b' key. Once you are done click the 'd' key on your"
                             " keyboard to get the result!")
         points_radio.setToolTip(point_hover_text)
 
