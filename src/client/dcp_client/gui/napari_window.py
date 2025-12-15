@@ -430,14 +430,17 @@ class NapariWindow(MyWidget):
             return
 
         # Initialize SAM controller if needed
+        needs_image_set = False
         if not self.sam_controller:
             self.sam_controller = SAMController(self.viewer, self.app)
+            needs_image_set = True
         
         if not self.sam_controller.initialize():
             self.toggle_button.setChecked(False)
             return
         
-        self.sam_controller.set_image()
+        if needs_image_set:
+            self.sam_controller.set_image()
         
         def bind_viewer_keys():
             try:
