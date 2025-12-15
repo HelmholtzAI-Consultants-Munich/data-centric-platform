@@ -6,6 +6,7 @@ uncurated/
 
 # model dir
 *mytrainedmodel/
+src/client/dcp_client/models/
 
 #configs
 src/client/dcp_client/config.cfg
@@ -18,7 +19,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+.cursor/
 # Distribution / packaging
 .Python
 build/

@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from skimage.io import imread, imsave
+import imageio.v3 as iio
 
 from dcp_client.app import ImageStorage
 
@@ -17,8 +18,13 @@ class FilesystemImageStorage(ImageStorage):
         :type cur_selected_img: str
         :return: Loaded image.
         """
-        # Read the selected image and read the segmentation if any:
-        return imread(os.path.join(from_directory, cur_selected_img))
+        filepath = os.path.join(from_directory, cur_selected_img)
+        try:
+            return imread(filepath)
+        except Exception:
+            # Fallback: use imageio which auto-detects format by magic bytes
+            # This handles cases where file extension doesn't match actual format
+            return np.asarray(iio.imread(filepath))
 
     def move_image(self, from_directory: str, to_directory: str, cur_selected_img: str) -> None:
         """Moves an image from one directory to another.

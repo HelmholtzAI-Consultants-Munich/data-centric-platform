@@ -2,7 +2,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 from copy import deepcopy
 
-from qtpy.QtWidgets import QPushButton, QComboBox, QLabel, QGridLayout, QWidget
+from qtpy.QtWidgets import (
+    QPushButton, QComboBox, QLabel, QGridLayout, QWidget, 
+    QRadioButton, QButtonGroup, QVBoxLayout, QHBoxLayout
+)
 from qtpy.QtCore import Qt, QTimer
 from qtpy.QtGui import QGuiApplication
 import napari
@@ -13,6 +16,7 @@ if TYPE_CHECKING:
 from dcp_client.utils.utils import get_path_stem, check_equal_arrays
 from dcp_client.utils.compute4mask import Compute4Mask
 from dcp_client.gui._my_widget import MyWidget
+from dcp_client.gui.sam_controller import SAMController
 
 
 class NapariWindow(MyWidget):
@@ -44,12 +48,14 @@ class NapariWindow(MyWidget):
 
         # Set the viewer
         self.viewer = napari.Viewer(show=False)
-        self.viewer.window.add_plugin_dock_widget("napari-sam")
 
         # Initialize qctrl and mask_choice_dropdown early to ensure they exist as attributes
         # They may remain None if the multi-channel segmentation condition is not met
         self.qctrl = None
         self.mask_choice_dropdown = None
+        
+        # SAM controller (lazy initialized when assisted labelling is enabled)
+        self.sam_controller: Optional[SAMController] = None
 
         self.viewer.add_image(img, name=get_path_stem(self.app.cur_selected_img))
         for seg_file in self.seg_files:
@@ -78,6 +84,111 @@ class NapariWindow(MyWidget):
         # main_window.setFixedSize(1200,600)
         layout = QGridLayout()
         layout.addWidget(main_window, 0, 0, 1, 3)
+
+        # Assisted Labelling Control Panel
+        assisted_labelling_widget = QWidget()
+        assisted_labelling_layout = QHBoxLayout()
+        assisted_labelling_widget.setStyleSheet("background-color: #262930; padding: 10px;")
+        assisted_labelling_layout.addStretch(1) # Add stretch on the left to push content to the right
+
+        # Left side: Toggle button for Assisted Labelling
+        toggle_label = QLabel("Assisted labelling")
+        toggle_label.setStyleSheet("color: #D1D2D4; font-size: 12px; font-weight: bold;")
+        self.toggle_button = QPushButton()
+        self.toggle_button.setCheckable(True)
+        self.toggle_button.setChecked(False)
+        self.toggle_button.setMaximumWidth(50)
+        self.toggle_button.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #5A626C;
+                color: #D1D2D4;
+                border-radius: 3px;
+                padding: 2px;
+                font-weight: bold;
+                font-size: 12px;
+            }
+            QPushButton:checked {
+                background-color: #0064A8;
+            }
+            """
+        )
+        self.toggle_button.setText("OFF")
+        
+        def update_toggle_text(checked):
+            self.toggle_button.setText("ON" if checked else "OFF")
+        
+        self.toggle_button.toggled.connect(update_toggle_text)
+        self.toggle_button.toggled.connect(self.on_assisted_labelling)
+        self._sam_tooltip = (
+            "<div style='min-width: 280px; color: white; font-size: 12px; font-weight: bold;'>"
+            "<b>SAM (Segment Anything Model)</b> assists with segmentation."
+            "<ul style='margin-top: 8px; margin-bottom: 8px;'>"
+            "<li><b>Box mode:</b> Draw boxes around objects,<br>press Enter to accept.</li>"
+            "<li style='margin-top: 6px;'><b>Point mode:</b> Click foreground (white) / background (red)<br>"
+            "points, press 'd' to generate mask, Enter to accept.</li>"
+            "</ul>"
+            "Only available on Instance channel (channel 0)."
+            "</div>"
+        )
+        self.toggle_button.setToolTip(self._sam_tooltip)
+
+        left_layout = QHBoxLayout()
+        left_layout.addWidget(toggle_label)
+        left_layout.addWidget(self.toggle_button)
+        left_layout.addStretch()
+
+        # Right side: Prompting radio buttons
+        prompting_label = QLabel("Prompting")
+        prompting_label.setStyleSheet("color: #D1D2D4; font-size: 12px; font-weight: bold;")
+
+        self.prompting_group = QButtonGroup()
+        boxes_radio = QRadioButton("Boxes")
+        points_radio = QRadioButton("Points")
+
+        boxes_radio.setStyleSheet("color: #D1D2D4; font-size: 12px; font-weight: bold;")
+        points_radio.setStyleSheet("color: #D1D2D4; font-size: 12px; font-weight: bold;")
+
+        boxes_radio.setToolTip("Draw bounding boxes around objects to prompt the model. Press enter to accept the boxes, or escape to reject the last box.")
+        point_hover_text = ("Click points inside objects to prompt the model. Toggle between foreground (white) and background (red) point mode with the 'b' key. Once you are done click the 'd' key on your"
+                            " keyboard to get the result!")
+        points_radio.setToolTip(point_hover_text)
+
+        self.prompting_group.addButton(boxes_radio, 0)
+        self.prompting_group.addButton(points_radio, 1)
+        boxes_radio.setChecked(True)  # Default to boxes
+        self.prompting_group.idClicked.connect(self.on_prompting_mode_changed)
+
+        right_layout = QHBoxLayout()
+        right_layout.addWidget(prompting_label)
+        right_layout.addWidget(boxes_radio)
+        right_layout.addWidget(points_radio)
+        right_layout.addStretch()
+
+        # Bottom right: Hover explanation text
+        hover_help = QLabel("Hover over the prompting options for explanations on how to use!")
+        hover_help.setStyleSheet(
+            "color: #A0A2A4; font-size: 10px; font-style: italic; "
+            "background-color: transparent;"
+        )
+        hover_help_layout = QHBoxLayout()
+        hover_help_layout.addStretch()
+        hover_help_layout.addWidget(hover_help)
+
+        # Combine layouts
+        assisted_labelling_layout.addLayout(left_layout, 1)
+        assisted_labelling_layout.addLayout(right_layout, 1)
+        assisted_labelling_widget.setLayout(assisted_labelling_layout)
+
+        # Add tooltip widget below
+        tooltip_widget = QWidget()
+        tooltip_layout = QVBoxLayout()
+        tooltip_layout.addWidget(assisted_labelling_widget)
+        tooltip_layout.addLayout(hover_help_layout)
+        tooltip_layout.setContentsMargins(0, 0, 10, 5)
+        tooltip_widget.setLayout(tooltip_layout)
+
+        layout.addWidget(tooltip_widget, 1, 0, 1, 3)
 
         # select the first seg as the currently selected layer if there are any segs
         if (
@@ -133,7 +244,7 @@ class NapariWindow(MyWidget):
                 )
 
                 message_label.setAlignment(Qt.AlignRight)
-                layout.addWidget(message_label, 1, 0)
+                layout.addWidget(message_label, 2, 0)
 
                 # Drop list to choose which is an active mask
                 self.mask_choice_dropdown = QComboBox()
@@ -142,7 +253,7 @@ class NapariWindow(MyWidget):
                     "Instance Segmentation Mask", userData=0
                 )
                 self.mask_choice_dropdown.addItem("Labels Mask", userData=1)
-                layout.addWidget(self.mask_choice_dropdown, 1, 1)
+                layout.addWidget(self.mask_choice_dropdown, 2, 1)
 
                 # when user has chosen the mask, we don't want to change it anymore to avoid errors
                 lock_button = QPushButton("Confirm Final Choice")
@@ -162,7 +273,7 @@ class NapariWindow(MyWidget):
                 lock_button.setEnabled(True)
                 lock_button.clicked.connect(self.set_editable_mask)
 
-                layout.addWidget(lock_button, 1, 2)
+                layout.addWidget(lock_button, 2, 2)
         else:
             self.layer = None
 
@@ -182,7 +293,7 @@ class NapariWindow(MyWidget):
                
          
         )
-        layout.addWidget(add_to_inprogress_button, 2, 0)#, 1, 2)
+        layout.addWidget(add_to_inprogress_button, 3, 0)#, 1, 2)
         add_to_inprogress_button.clicked.connect(
             self.on_add_to_inprogress_button_clicked
         )
@@ -202,7 +313,7 @@ class NapariWindow(MyWidget):
          
         )
 
-        layout.addWidget(add_to_curated_button, 2, 1)#, 1, 2)
+        layout.addWidget(add_to_curated_button, 3, 1)#, 1, 2)
         add_to_curated_button.clicked.connect(self.on_add_to_curated_button_clicked)
 
         self.setLayout(layout)
@@ -221,7 +332,7 @@ class NapariWindow(MyWidget):
         "QPushButton:pressed { background-color: #006FBA; }" 
          
         )
-        layout.addWidget(remove_from_dataset_button, 2, 2)
+        layout.addWidget(remove_from_dataset_button, 3, 2)
         remove_from_dataset_button.clicked.connect(self.on_remove_from_dataset_button_clicked)
 
         QTimer.singleShot(0, self.adjust_window_size)
@@ -231,6 +342,11 @@ class NapariWindow(MyWidget):
     def closeEvent(self, event):
         """Properly close Napari viewer and all child widgets."""
         try:
+            # Stop SAM worker thread (signal only, no blocking wait)
+            if self.sam_controller:
+                self.sam_controller.stop()
+                self.sam_controller = None
+            
             # Close Napari viewer if exists
             if hasattr(self, 'viewer') and self.viewer is not None:
                 try:
@@ -309,18 +425,62 @@ class NapariWindow(MyWidget):
         """
         pass
 
+    def on_assisted_labelling(self, checked: bool) -> None:
+        """
+        Triggered when the user toggles the Assisted labelling mode ON or OFF.
+        """
+        if not checked:
+            if self.sam_controller:
+                self.sam_controller.disable()
+            try:
+                self.viewer.bind_key('Enter', None, overwrite=True)
+                self.viewer.bind_key('Escape', None, overwrite=True)
+            except Exception:
+                pass
+            return
+
+        # Initialize SAM controller if needed
+        needs_image_set = False
+        if not self.sam_controller:
+            self.sam_controller = SAMController(self.viewer, self.app)
+            needs_image_set = True
+        
+        if not self.sam_controller.initialize():
+            self.toggle_button.setChecked(False)
+            return
+        
+        if needs_image_set:
+            self.sam_controller.set_image()
+        
+        def bind_viewer_keys():
+            try:
+                self.viewer.bind_key('Enter', lambda v: self.sam_controller.accept_masks(), overwrite=True)
+                self.viewer.bind_key('Escape', lambda v: self.sam_controller.reject_last_mask(), overwrite=True)
+            except Exception:
+                pass
+        
+        mode = self.prompting_group.checkedId()
+        self.sam_controller.enable(mode, bind_viewer_keys)
+
+    def on_prompting_mode_changed(self, _id: int) -> None:
+        """
+        Triggered when the user switches between 'Boxes' and 'Points'.
+        """
+        if hasattr(self, 'toggle_button') and self.toggle_button.isChecked():
+            self.on_assisted_labelling(True)
+
+
     def on_seg_channel_changed(self, event) -> None:
         """
         Is triggered each time the user selects a different layer in the viewer.
         """
         if (act := self.viewer.layers.selection.active) is not None:
-            # updater cur_selected_seg with the new selection from the user
-            self.cur_selected_seg = act.name
-            if type(self.viewer.layers[self.cur_selected_seg]) == napari.layers.Image:
+            # Only update cur_selected_seg for actual segmentation layers (not SAM layers)
+            if isinstance(act, napari.layers.Labels) and "_seg" in act.name:
+                self.cur_selected_seg = act.name
+                self.layer = act
+            elif isinstance(act, napari.layers.Image):
                 pass
-            # set self.layer to new selection from user
-            elif self.layer is not None:
-                self.layer = self.viewer.layers[self.cur_selected_seg]
         else:
             pass
 
@@ -329,11 +489,21 @@ class NapariWindow(MyWidget):
         Is triggered each time the user switches the viewer between the mask channels. At this point the class mask
         needs to be updated according to the changes made to the instance segmentation mask.
         """
-
         if self.app.cur_selected_img=="": return # because this also gets triggered when removing outlier
 
         self.active_mask_index = self.viewer.dims.current_step[0]
-        masks = deepcopy(self.layer.data)
+        
+        # Ensure self.layer points to the correct segmentation layer
+        if hasattr(self, 'cur_selected_seg') and self.cur_selected_seg:
+            try:
+                self.layer = self.viewer.layers[self.cur_selected_seg]
+            except KeyError:
+                return
+        
+        try:
+            masks = deepcopy(self.layer.data)
+        except Exception:
+            return
 
         # if user has switched to the instance mask
         if self.active_mask_index == 0:
@@ -363,6 +533,15 @@ class NapariWindow(MyWidget):
         self.switch_controls("paint_button", True)
         self.switch_controls("erase_button", True)
         self.switch_controls("fill_button", True)
+        
+        # Re-enable SAM toggle on instance channel
+        if hasattr(self, 'toggle_button'):
+            self.toggle_button.setEnabled(True)
+            self.toggle_button.setToolTip(getattr(self, '_sam_tooltip', ''))
+            # Restore SAM if it was on before channel switch
+            if getattr(self, '_sam_was_enabled_before_channel_switch', False):
+                self._sam_was_enabled_before_channel_switch = False
+                self.toggle_button.setChecked(True)
 
     def switch_to_labels_mask(self) -> None:
         """
@@ -370,8 +549,30 @@ class NapariWindow(MyWidget):
         """
 
         self.original_instance_mask[self.cur_selected_seg] = deepcopy(self.layer.data[0])
+        
+        # Remove SAM layers when switching to class channel
+        if hasattr(self, 'toggle_button') and self.toggle_button.isChecked():
+            self._sam_was_enabled_before_channel_switch = True
+            self.toggle_button.blockSignals(True)
+            self.toggle_button.setChecked(False)
+            self.toggle_button.blockSignals(False)
+        
+        for lname in ("box-prompts", "point-prompts", "sam-preview"):
+            if lname in self.viewer.layers:
+                self.viewer.layers.remove(lname)
+        
+        # Disable SAM toggle on class channel
+        if hasattr(self, 'toggle_button'):
+            self.toggle_button.setEnabled(False)
+            self.toggle_button.setToolTip("SAM is only available on Instance channel")
+        
+        # Select segmentation layer and set fill mode
         if self.cur_selected_seg in [layer.name for layer in self.viewer.layers]:
-            self.viewer.layers[self.cur_selected_seg].mode = "pan_zoom"
+            seg_layer = self.viewer.layers[self.cur_selected_seg]
+            self.viewer.layers.selection.clear()
+            self.viewer.layers.selection.add(seg_layer)
+            seg_layer.mode = "fill"
+            
         info_message_paint = (
             "Painting objects is only possible in the instance layer for now."
         )

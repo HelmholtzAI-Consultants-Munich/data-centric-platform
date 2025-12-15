@@ -1,4 +1,46 @@
 from setuptools import setup, find_packages
+from setuptools.command.install import install
+
+
+class PostInstallCommand(install):
+    """Post-installation command to download SAM model checkpoints."""
+    
+    def run(self):
+        install.run(self)
+        self._download_sam_models()
+    
+    def _download_sam_models(self):
+        """Download the appropriate SAM model checkpoint based on detected hardware."""
+        try:
+            from dcp_client.utils.sam_model_manager import SAMModelManager
+            
+            print("\nDetecting hardware and downloading appropriate SAM model...")
+            manager = SAMModelManager()
+            
+            # Auto-detect hardware and select best model
+            hardware = manager.detect_hardware()
+            best_model = manager.select_model("auto")
+            
+            device_info = "CUDA GPU" if hardware["cuda"] else ("Apple Silicon (MPS)" if hardware["mps"] else "CPU")
+            print(f"Detected: {device_info}")
+            print(f"Selected model: {best_model}")
+            
+            try:
+                print(f"Downloading {best_model} checkpoint...")
+                manager.get_checkpoint_path(best_model)
+                print(f"✓ {best_model} checkpoint downloaded successfully")
+            except Exception as e:
+                print(f"⚠ Warning: Failed to download {best_model} checkpoint: {e}")
+                print(f"  The checkpoint will be downloaded on first use.")
+            
+            print("SAM model checkpoint download complete.\n")
+        except ImportError as e:
+            print(f"⚠ Warning: Could not import SAMModelManager: {e}")
+            print("  SAM model checkpoints will be downloaded on first use.\n")
+        except Exception as e:
+            print(f"⚠ Warning: Error during SAM model download: {e}")
+            print("  SAM model checkpoints will be downloaded on first use.\n")
+
 
 setup(
     name="data-centric-platform-client",
@@ -24,7 +66,6 @@ setup(
         "segment-anything @ git+https://github.com/facebookresearch/segment-anything.git@main",
         "torch",
         "torchvision",
-        "napari-sam @ git+https://github.com/christinab12/napari-sam.git@main",
         "bentoml[grpc]>=1.2.5"
     ],
     extras_require={
@@ -41,6 +82,9 @@ setup(
         "console_scripts": [
             "dcp-client=dcp_client.main:main",
         ]
+    },
+    cmdclass={
+        "install": PostInstallCommand,
     },
     python_requires=">=3.9",
     keywords=[],  
