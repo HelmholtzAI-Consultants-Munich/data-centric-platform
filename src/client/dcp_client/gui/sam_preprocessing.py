@@ -1,13 +1,12 @@
 """
 Preprocessing module for SAM (Segment Anything Model) integration.
 
-Handles image preprocessing, validation, and coordinate transformations
-for converting between Napari and SAM coordinate spaces.
+Handles image preprocessing and format conversion for SAM input.
 """
 
 import numpy as np
 import hashlib
-from typing import Tuple, Optional
+from typing import Tuple
 
 
 def preprocess_image(
@@ -122,24 +121,6 @@ def preprocess_image(
     return processed_image, preproc_hash, original_shape
 
 
-def validate_image_shape(image: np.ndarray) -> bool:
-    """
-    Validate image shape is supported.
-    
-    Args:
-        image: Image array to validate
-    
-    Returns:
-        True if shape is supported, False otherwise
-    """
-    if len(image.shape) == 2:
-        return True
-    elif len(image.shape) == 3:
-        # Check if it's (H, W, C) or (C, H, W) format
-        return True
-    return False
-
-
 def napari_rect_to_sam_box(napari_vertices: np.ndarray) -> np.ndarray:
     """
     Convert Napari rectangle vertices to SAM bounding box format.
@@ -166,98 +147,3 @@ def napari_rect_to_sam_box(napari_vertices: np.ndarray) -> np.ndarray:
     y_min, y_max = y_coords.min(), y_coords.max()
     
     return np.array([x_min, y_min, x_max, y_max])
-
-
-def transform_box_to_sam_space(
-    box: np.ndarray, original_shape: Tuple[int, int], sam_size: int = 1024
-) -> np.ndarray:
-    """
-    Transform bounding box from original image space to SAM's 1024×1024 space.
-    
-    Args:
-        box: [x_min, y_min, x_max, y_max] in original image coordinates
-        original_shape: (height, width) of original image
-        sam_size: SAM's internal size (default 1024)
-    
-    Returns:
-        [x_min, y_min, x_max, y_max] in SAM space
-    """
-    if len(box) != 4:
-        raise ValueError(f"Expected box with 4 values, got {len(box)}")
-    
-    orig_h, orig_w = original_shape
-    scale_x = sam_size / orig_w
-    scale_y = sam_size / orig_h
-    
-    return np.array([
-        box[0] * scale_x,  # x_min
-        box[1] * scale_y,  # y_min
-        box[2] * scale_x,  # x_max
-        box[3] * scale_y   # y_max
-    ])
-
-
-def resize_mask_to_original(
-    mask: np.ndarray, original_shape: Tuple[int, int], method: str = "nearest"
-) -> np.ndarray:
-    """
-    Resize SAM's 1024×1024 mask back to original image dimensions.
-    
-    Args:
-        mask: Binary mask from SAM (1024×1024)
-        original_shape: (height, width) of original image
-        method: Interpolation method ('nearest' for binary masks, 'bilinear' for soft masks)
-    
-    Returns:
-        Resized mask matching original image dimensions
-    """
-    from scipy.ndimage import zoom
-    
-    if len(mask.shape) != 2:
-        raise ValueError(f"Expected 2D mask, got shape {mask.shape}")
-    
-    orig_h, orig_w = original_shape
-    mask_h, mask_w = mask.shape
-    
-    scale_h = orig_h / mask_h
-    scale_w = orig_w / mask_w
-    
-    order = 0 if method == "nearest" else 1
-    resized = zoom(mask, (scale_h, scale_w), order=order)
-    
-    # Ensure binary mask stays binary
-    if method == "nearest":
-        resized = (resized > 0.5).astype(mask.dtype)
-    
-    return resized
-
-
-def transform_points_to_sam_space(
-    points: np.ndarray, original_shape: Tuple[int, int], sam_size: int = 1024
-) -> np.ndarray:
-    """
-    Transform point coordinates from original image space to SAM's 1024×1024 space.
-    
-    Args:
-        points: Array of shape (N, 2) with points in (x, y) format
-        original_shape: (height, width) of original image
-        sam_size: SAM's internal size (default 1024)
-    
-    Returns:
-        Array of shape (N, 2) with points in SAM space (x, y) format
-    """
-    if points.size == 0:
-        return points.reshape(0, 2)
-    
-    if len(points.shape) != 2 or points.shape[1] != 2:
-        raise ValueError(f"Expected points shape (N, 2), got {points.shape}")
-    
-    orig_h, orig_w = original_shape
-    scale_x = sam_size / orig_w
-    scale_y = sam_size / orig_h
-    
-    transformed = np.zeros_like(points, dtype=np.float32)
-    transformed[:, 0] = points[:, 0] * scale_x  # x coordinates
-    transformed[:, 1] = points[:, 1] * scale_y  # y coordinates
-    
-    return transformed
