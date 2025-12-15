@@ -121,7 +121,7 @@ class NapariWindow(MyWidget):
         self.toggle_button.toggled.connect(update_toggle_text)
         self.toggle_button.toggled.connect(self.on_assisted_labelling)
         self._sam_tooltip = (
-            "<div style='min-width: 280px;'>"
+            "<div style='min-width: 280px; color: white; font-size: 12px; font-weight: bold;'>"
             "<b>SAM (Segment Anything Model)</b> assists with segmentation."
             "<ul style='margin-top: 8px; margin-bottom: 8px;'>"
             "<li><b>Box mode:</b> Draw boxes around objects,<br>press Enter to accept.</li>"
