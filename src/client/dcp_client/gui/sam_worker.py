@@ -12,13 +12,7 @@ from typing import Optional, Tuple, List
 from PyQt5.QtCore import QThread, pyqtSignal, QMutex, QWaitCondition
 from queue import Queue, Empty
 
-from dcp_client.gui.sam_preprocessing import (
-    preprocess_image,
-    napari_rect_to_sam_box,
-    transform_box_to_sam_space,
-    transform_points_to_sam_space,
-    resize_mask_to_original,
-)
+from dcp_client.gui.sam_preprocessing import preprocess_image, napari_rect_to_sam_box
 from dcp_client.utils.sam_model_manager import SAMModelManager
 
 
