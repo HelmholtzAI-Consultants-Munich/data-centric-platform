@@ -187,9 +187,8 @@ class SAMController:
         self._bind_layer_keys(layer, include_points=True)
     
     def _connect_box_events(self, layer: napari.layers.Shapes) -> None:
-        """Connect box data change events (ensures no duplicate connections)."""
-        if self._box_events_connected:
-            return
+        """Connect box data change events (always refreshes connection)."""
+        self._disconnect_box_events()
         try:
             layer.events.data.connect(self._on_box_data_changed)
             self._box_events_connected = True
@@ -198,8 +197,6 @@ class SAMController:
     
     def _disconnect_box_events(self) -> None:
         """Disconnect box data change events."""
-        if not self._box_events_connected:
-            return
         layer = self._get_layer(self.BOX_PROMPTS)
         if layer:
             try:
@@ -325,6 +322,17 @@ class SAMController:
     
     # === Mask Actions ===
     
+    def _get_dominant_label(self, region_values: np.ndarray, sam_region_size: int, threshold: float = 0.3) -> int | None:
+        """Return existing label if overlap > threshold, else None."""
+        positives = region_values[region_values > 0]
+        if positives.size == 0:
+            return None
+        counts = np.bincount(positives)
+        dominant_idx = counts.argmax()
+        if counts[dominant_idx] / sam_region_size > threshold:
+            return int(dominant_idx)
+        return None
+    
     def accept_masks(self) -> None:
         """Accept all preview masks and merge into segmentation layer."""
         preview_layer = self._get_layer(self.SAM_PREVIEW)
@@ -341,7 +349,12 @@ class SAMController:
         seg_layer = self._get_seg_layer()
         if not seg_layer:
             seg_name = get_path_stem(self.app.cur_selected_img) + "_seg"
-            seg_layer = self.viewer.add_labels(np.zeros_like(preview_data), name=seg_name)
+            h, w = preview_data.shape[:2]
+            if self.app.num_classes > 1:
+                seg_data_init = np.zeros((2, h, w), dtype=np.int32)
+            else:
+                seg_data_init = np.zeros((h, w), dtype=np.int32)
+            seg_layer = self.viewer.add_labels(seg_data_init, name=seg_name)
         
         seg_data = seg_layer.data.copy()
         
@@ -354,17 +367,36 @@ class SAMController:
             
             for lbl in preview_labels:
                 region = preview_resized == lbl
-                seg_data[active_channel][region] = next_label
+                region_size = region.sum()
+                dominant = self._get_dominant_label(target[region], region_size)
+                
+                if dominant:
+                    seg_data[active_channel][seg_data[active_channel] == dominant] = 0
+                    assign_label = dominant
+                else:
+                    assign_label = next_label
+                    next_label += 1
+                
+                seg_data[active_channel][region] = assign_label
                 if active_channel == 0 and seg_data.shape[0] > 1:
-                    seg_data[1][region] = -1  # Unassigned - user assigns class in channel 1
-                next_label += 1
+                    seg_data[1][region] = -1
         else:
             preview_resized = self._resize_if_needed(preview_data, seg_data.shape)
             next_label = int(np.max(seg_data)) + 1
             
             for lbl in preview_labels:
-                seg_data[preview_resized == lbl] = next_label
-                next_label += 1
+                region = preview_resized == lbl
+                region_size = region.sum()
+                dominant = self._get_dominant_label(seg_data[region], region_size)
+                
+                if dominant:
+                    seg_data[seg_data == dominant] = 0
+                    assign_label = dominant
+                else:
+                    assign_label = next_label
+                    next_label += 1
+                
+                seg_data[region] = assign_label
         
         seg_layer.data = seg_data
         seg_layer.refresh()
