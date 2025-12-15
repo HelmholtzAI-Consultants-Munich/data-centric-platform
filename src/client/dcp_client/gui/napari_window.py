@@ -120,8 +120,18 @@ class NapariWindow(MyWidget):
         
         self.toggle_button.toggled.connect(update_toggle_text)
         self.toggle_button.toggled.connect(self.on_assisted_labelling)
-        #self.toggle_button.setStyleSheet("color: #D1D2D4; font-size: 12px; font-weight: bold;")
-        #self.toggle_button.setToolTip("Enable or disable assisted labelling mode")
+        self._sam_tooltip = (
+            "<div style='min-width: 280px;'>"
+            "<b>SAM (Segment Anything Model)</b> assists with segmentation."
+            "<ul style='margin-top: 8px; margin-bottom: 8px;'>"
+            "<li><b>Box mode:</b> Draw boxes around objects,<br>press Enter to accept.</li>"
+            "<li style='margin-top: 6px;'><b>Point mode:</b> Click foreground (white) / background (red)<br>"
+            "points, press 'd' to generate mask, Enter to accept.</li>"
+            "</ul>"
+            "Only available on Instance channel (channel 0)."
+            "</div>"
+        )
+        self.toggle_button.setToolTip(self._sam_tooltip)
 
         left_layout = QHBoxLayout()
         left_layout.addWidget(toggle_label)
@@ -527,7 +537,7 @@ class NapariWindow(MyWidget):
         # Re-enable SAM toggle on instance channel
         if hasattr(self, 'toggle_button'):
             self.toggle_button.setEnabled(True)
-            self.toggle_button.setToolTip("")
+            self.toggle_button.setToolTip(getattr(self, '_sam_tooltip', ''))
             # Restore SAM if it was on before channel switch
             if getattr(self, '_sam_was_enabled_before_channel_switch', False):
                 self._sam_was_enabled_before_channel_switch = False
