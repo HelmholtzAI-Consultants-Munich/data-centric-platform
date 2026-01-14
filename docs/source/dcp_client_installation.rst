@@ -90,11 +90,7 @@ Set the ``--mode`` argument to ``local`` or ``remote`` depending on which setup 
 3. **Data Overview**
 ~~~~~~~~~~~~~~~~~~~~
 
-   The main working window will appear next. This gives you an overview of the directories selected in the previous step along with three options:
-
-   - **Generate Labels:** Click this button to generate labels for all images in the "Uncurated dataset" directory. This will call the ``segment_image`` service from the server
-   - **View image and fix label:** Click this button to launch your viewer. The napari software is used for visualising, and editing the images segmentations. See **Viewer**
-   - **Train Model:** Click this model to train your model on the images in the "Curated dataset" directory. This will call the ``train`` service from the server
+   The main working window will appear next. This gives you an overview of the directories selected in the previous step. You can select an image to view and hit 'Enter' to launch the viewer. The **Generate Labels:** button will run the segmentation model to generate labels for all images in the "Uncurated dataset" directory (this will call the ``segment_image`` service from the server). The resulting masks will have the same naming as their corresponding image, followed by '_seg'.
    
    .. image:: https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/client_data_overview_window.png
       :width: 500
@@ -104,14 +100,63 @@ Set the ``--mode`` argument to ``local`` or ``remote`` depending on which setup 
 4. **The viewer**
 ~~~~~~~~~~~~~~~~~~~~
 
-   In DCP, we use  `napari <https://napari.org/stable>`_ for viewing our images and masks, adding, editing or removing labels. The newest version of DCP comes with `napari-sam <https://www.napari-hub.org/plugins/napari-sam>`_ integration, to enable even faster labelling! Check out the turorial on the napari-hub to find out how to use this tool. An example of the viewer can be seen below. 
+   In DCP, we use  `napari <https://napari.org/stable>`_ for viewing our images and masks, adding, editing or removing labels. The newest version of DCP comes with an AI-assisted labelling feature, using meta SAM2 model, to enable even faster labelling! An example of the viewer can be seen below. 
 
-In the case where you didn't set the ``--multi-class`` argument on runtime, your mask will have a single chance. If on the other hand, you specified a multi-class task, then your mask will have two channels, the first is used for editing the objects as instances (add or remove objects, make edits), while the second is used only for setting the class label. All objects have default class label -1 (i.e. no class) and the user needs to set the labels using the bucket tool of the viewer. You can switch between instance and class mask, by toggling the axis bar (below the image).
+In the case where you didn't set the ``--multi-class`` argument on runtime, your mask will have a single channel. If on the other hand, you specified a multi-class task, then your mask will have two channels, the first is used for editing the objects as instances (add or remove objects, make edits), while the second is used only for setting the class label. All objects have default class label -1 (i.e. no class) and the user needs to set the labels using the bucket tool of the viewer. You can switch between instance and class mask, by toggling the axis bar (below the image).
 
-After adding or removing any objects and editing existing objects wherever necessary, there are two options available:
+
+SAM Assisted Labelling
+^^^^^^^^^^^^^^^^^^^^^^
+
+The client includes **SAM (Segment Anything Model)** integration for AI-assisted segmentation. This feature helps you quickly annotate objects by drawing bounding boxes or clicking points.
+
+Enabling SAM
+""""""""""""
+
+1. Open an image in the Napari viewer
+2. Toggle the **"Assisted labelling"** button to **ON**
+3. The SAM model will load (first use may take a moment to download the model checkpoint)
+
+Prompting Modes
+"""""""""""""""
+
+**Box Prompting (default):**
+- Select "Boxes" in the prompting options
+- Draw bounding boxes around objects you want to segment
+- SAM will automatically generate a segmentation mask for each box
+- Press **Enter** to accept all masks, or **Escape** to reject the last mask
+- Press **Ctrl+Z** to undo the last box
+
+**Point Prompting:**
+- Select "Points" in the prompting options
+- Click inside objects to add **foreground points** (white)
+- Press **'b'** to toggle to **background point mode** (red) for refining masks
+- Press **'d'** to confirm points and generate the mask
+- Press **Enter** to accept, **Escape** to reject
+
+Important Notes
+"""""""""""""""
+
+- SAM is only available on the **Instance channel** (channel 0) in multi-class mode
+- When switching to the Labels channel, SAM is automatically disabled
+- SAM state is restored when switching back to the Instance channel
+- Hover over the prompting options in the UI for additional usage tips
+
+Saving/removing data
+^^^^^^^^^^^^^^^^^^^^
+After adding or removing any objects and editing existing objects wherever necessary, there are three options available:
   
    - Click the **Move to Curation in progress folder** if you are not 100% certain about the labels you have created. You can also click on the label in the labels layer and change the name. This will result in several label files being created in the *In progress folder*, which can be examined later on.  **Note:** When changing the layer name in Napari, the user should rename it such that they add their initials or any other new info after _seg. E.g., if the labels of 1_seg.tiff have been changed in the Napari viewer, then the appropriate naming would for example be: 1_seg_CB.tiff and not 1_CB_seg.tiff.
    - Click the **Move to Curated dataset folder** if you are certain that the labels you are now viewing are final and require no more curation. These images and labels will later be used for training the machine learning model, so make sure that you select this option only if you are certain about the labels. If several labels are displayed (opened from the 'Curation in progress' step), make sure to **click** on the single label in the labels layer list you wish to be moved to the *Curated data folder*. The other images will then be automatically deleted from this folder.
+   - Click the **Remove image from dataset** if you think that this image is an outlier and should not be included into your curated data.
+
+Auto clean up
+^^^^^^^^^^^^^
+When you hit on of the options above to save your labels to a new directory, an automatic check will be run which makes sure that the annotations added are clean and consistent:
+- If small holes are found in some objects a message appears to the user with the option to fill these
+- If more than one object is found with the same instance ID, then a message appears to the user with the option to clean up and keep the largest component
+- If there are still object labeled with -1 in the class mask, a message appears to the user prompting them to assign class labels
+- If the number of class labels in the class mask surpasses that defined in the ``--num-classes`` argument, a message appears to the user to correct the class mask. Note: the label ids don't need to follow a numeric order, can be 1,4,16, etc.
 
    .. image:: https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/client_napari_viewer.png
       :width: 900
@@ -125,14 +170,7 @@ The intended usage of DCP would include the following:
 
 1. Setting up configuration, run client (with server already running) and select data directories
 2. Generate labels for data in *Uncurated data folder*
-3. Visualise the resulting labels with the viewer and correct labels wherever necessary - once done move the image *Curated data folder*. Repeat this step for a couple of images until a few are placed into the *Curated data folder*. Depending on the qualitative evaluation of the label generation you might want to include fewer or more images, i.e. if the resulting masks require few edits, then few images will most likely be sufficient, whereas if many edits to the mask are required it is likely that more images are needed in the *Curated data folder*. You can always start with a small number and adjust later
-4. Train the model with the images in the *Curated data folder*
-5. Repeat steps 2-4 until you are satisfied with the masks generated for the remaining images in the *Uncurated data folder*. Every time the model is trained in step 4, the masks generated in step 2 should be of higher quality, until the model need not be trained any more 
-
-   .. image:: https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/dcp_pipeline.png
-      :width: 400
-      :height: 400
-      :align: center
+3. Visualise the resulting labels with the viewer and correct labels wherever necessary. If you are not completely sure of your labels you can save them in the *Curation in progress* directory. By adding different extensions to your label files you can have multiple masks for a single image in the *Curation in progress* directory. For example, for 'img_1.tif', label files 'img_1_seg_Kate.tif', 'img_1_seg_Tim.tif', 'img_1_seg_Lucy.tif' can exist. These can be evaluated all together at a later stage, when the annotators can agree on the final labels file, which is then selected and moved to the *Curated data* folder. 
 
 DCP Shortcuts
 -------------
