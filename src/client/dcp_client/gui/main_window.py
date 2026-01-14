@@ -383,7 +383,7 @@ class MainWindow(MyWidget):
         _ = self.create_warning_box(message_text, message_title)
         # Re-enable buttons
         self.inference_button.setEnabled(True)
-        self.train_button.setEnabled(True)
+        #self.train_button.setEnabled(True)
         # Delete the worker thread when it's done
         self.worker_thread.quit()
         self.worker_thread.wait()
