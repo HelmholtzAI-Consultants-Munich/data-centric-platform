@@ -175,7 +175,8 @@ class MainWindow(MyWidget):
             "QPushButton:pressed { background-color: #7bc432; }"
         )
         self.inference_button.clicked.connect(self.on_run_inference_button_clicked)
-        self.uncurated_layout.addWidget(self.inference_button, alignment=Qt.AlignCenter)
+        #self.uncurated_layout.addWidget(self.inference_button, alignment=Qt.AlignCenter)
+        self.uncurated_layout.addSpacing(40)
 
         dir_layout.addLayout(self.uncurated_layout)
 
@@ -215,6 +216,7 @@ class MainWindow(MyWidget):
         self.list_view_inprogr.clicked.connect(self.on_item_inprogr_selected)
         self.inprogr_dir_layout.addWidget(self.list_view_inprogr)
         self.inprogress_layout.addLayout(self.inprogr_dir_layout)
+        self.inprogress_layout.addWidget(self.inference_button, alignment=Qt.AlignCenter)
 
         # the launch napari viewer button is currently hidden!
         launch_nap_button = QPushButton()
@@ -223,7 +225,7 @@ class MainWindow(MyWidget):
         )
 
         launch_nap_button.setEnabled(False)
-        self.inprogress_layout.addWidget(launch_nap_button, alignment=Qt.AlignCenter)
+        #self.inprogress_layout.addWidget(launch_nap_button, alignment=Qt.AlignCenter)
         dir_layout.addLayout(self.inprogress_layout)
         # Create a shortcut for the Enter key to click the button
         enter_shortcut = QShortcut(QKeySequence(Qt.Key_Return), self)
@@ -262,7 +264,8 @@ class MainWindow(MyWidget):
         self.list_view_train.clicked.connect(self.on_item_train_selected)
         self.train_dir_layout.addWidget(self.list_view_train)
         self.curated_layout.addLayout(self.train_dir_layout)
-
+        self.curated_layout.addSpacing(40)
+        '''
         # add train button
         self.train_button = QPushButton("Train Model", self)
         self.train_button.setStyleSheet(
@@ -279,7 +282,7 @@ class MainWindow(MyWidget):
         )
         self.train_button.clicked.connect(self.on_train_button_clicked)
         self.curated_layout.addWidget(self.train_button, alignment=Qt.AlignCenter)
-
+        '''
         dir_layout.addLayout(self.curated_layout)
         main_layout.addLayout(dir_layout)
 
@@ -326,7 +329,7 @@ class MainWindow(MyWidget):
         """
         self.app.cur_selected_img = item.data()
         self.app.cur_selected_path = self.app.inprogr_data_path
-
+    '''
     def on_train_button_clicked(self) -> None:
         """
         Is called once user clicks the "Train Model" button.
@@ -338,7 +341,7 @@ class MainWindow(MyWidget):
         self.worker_thread.task_finished.connect(self.on_finished)
         # start the worker thread to train
         self.worker_thread.start()
-
+    '''
     def on_run_inference_button_clicked(self) -> None:
         """
         Is called once user clicks the "Generate Labels" button.

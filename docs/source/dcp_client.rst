@@ -1,7 +1,7 @@
 dcp\_client package
 ===================
 
-The dcp_client package contains modules and subpackages for interacting with a server for model inference and training. It provides functionalities for managing GUI windows, handling image storage, and connecting to the server for model operations.
+The dcp_client package contains modules and subpackages for interacting with a server for model inference. It provides functionalities for managing GUI windows, handling image storage, and connecting to the server for model operations.
 
 dcp_client.app
    Defines the core application class and related functionalities.

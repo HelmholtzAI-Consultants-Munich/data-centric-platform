@@ -45,15 +45,12 @@ Our platform encourages the use of data centric practices. With the user friendl
 
 - **Detect and remove outliers** from your training data: only confirmed samples are used to train our models
 - **Detect and correct labeling errors**: editing labels with the integrated napari visualisation tool
+- **AI-assisted labelling:** Apply any changes to your labels faster using SAM prompts
+- **Auto cleanup**: Left over pixels remaining after using the eraser tool or an object your forgot to add a class label to? DCP will let you know and clean everything up for you!
 - **Establish consensus**: allows for multiple annotators before curated label is passed to train model
 - **Focus on data curation**: no interaction with model parameters during training and inference
 
-.. image:: https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/dcp_pipeline.png
-   :width: 400
-   :height: 400
-   :align: center
 
-.. centered::
       *Get more with less!*
 
 DCP Imaging Conventions

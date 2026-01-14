@@ -9,7 +9,7 @@
 
 ## How to use this?
 
-This repo includes a client and server side for using our data centric platform. The client and server communicate via the [bentoml](https://www.bentoml.com/?gclid=Cj0KCQiApKagBhC1ARIsAFc7Mc6iqOLi2OcLtqMbGx1KrFjtLUEZ-bhnqlT2zWREE0x7JImhtNmKlFEaAvSSEALw_wcB) library. The client interacts with the server every time we run model inference or training. For full functionality of the software the server should be running, either locally or remotely. 
+This repo includes a client and server side for using our data centric platform. The client and server communicate via the [bentoml](https://www.bentoml.com/?gclid=Cj0KCQiApKagBhC1ARIsAFc7Mc6iqOLi2OcLtqMbGx1KrFjtLUEZ-bhnqlT2zWREE0x7JImhtNmKlFEaAvSSEALw_wcB) library. The client interacts with the server every time we run model inference. For full functionality of the software the server should be running, either locally or remotely. 
 
 To install and start the server side, follow the instructions described in [DCP Server Installation & Launch](https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/server/README.md#using-pypi).
 
@@ -29,8 +29,9 @@ This repo includes the ```data/``` directory with some toy data which you can us
 Our platform encourages the use of data centric practices. With the user friendly client interface you can:
 - Detect and remove outliers from your training data: only confirmed samples are used to train our models
 - Detect and correct labeling errors: editing labels with the integrated napari visualisation tool
+- AI-assisted labelling: Apply any changes to your labels faster using SAM prompts
+- Auto cleanup: Left over pixels remaining after using the eraser tool or an object your forgot to add a class label to? DCP will let you know and clean everything up for you!
 - Establish consensus: allows for multiple annotators before curated label is passed to train model
 - Focus on data curation: no interaction with model parameters during training and inference
 
 #### *Get more with less!*
-<img src="https://github.com/HelmholtzAI-Consultants-Munich/data-centric-platform/blob/main/src/client/readme_figs/dcp_pipeline.png"  width="200" height="200">

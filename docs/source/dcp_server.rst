@@ -4,8 +4,8 @@ dcp\_server package
 The dcp_server package is structured to handle various server-side functionalities related model serving for segmentation and training. 
 
 dcp_server.models
-    Defines various models for cell classification and segmentation, including CellClassifierFCNN, CellClassifierShallowModel, CellposePatchCNN, CustomCellposeModel, and UNet.
-    These models handle tasks such as evaluation, forward pass, training, and updating configurations.
+    Defines various models for cell classification and segmentation, currently CustomCellposeModel.
+    These models handle tasks such as evaluation, forward pass, and updating configurations.
 
 dcp_server.segmentationclasses
     Defines segmentation classes for specific projects, such as GFPProjectSegmentation, GeneralSegmentation, and MitoProjectSegmentation.
