@@ -4,6 +4,10 @@ from bentoml.exceptions import BentoMLException
 import numpy as np
 
 from dcp_client.app import Model
+from dcp_client.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 
 class BentomlModel(Model):
@@ -29,9 +33,12 @@ class BentomlModel(Model):
         """
         url = f"http://{ip}:{port}"  # "http://0.0.0.0:7010"
         try:
+            logger.info(f"Attempting to connect to BentoML server at {url}")
             self.client = SyncHTTPClient(url)
+            logger.info(f"Successfully connected to BentoML server at {url}")
             return True
-        except:
+        except Exception as e:
+            logger.error(f"Failed to connect to BentoML server at {url}: {e}")
             return False  # except ConnectionRefusedError
 
     @property
@@ -52,9 +59,15 @@ class BentomlModel(Model):
         :rtype: np.ndarray, or None
         """
         try:
+            logger.debug(f"Running inference on data at {data_path}")
             response = self.client.segment_image(data_path) # segment_image is part of running server
+            logger.debug(f"Inference completed for {data_path}")
             return response
-        except BentoMLException:
+        except BentoMLException as e:
+            logger.error(f"BentoML error during inference on {data_path}: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error during inference on {data_path}: {e}")
             return None
 
     def run_inference(self, data_path: str) -> List:
