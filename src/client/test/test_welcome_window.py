@@ -10,7 +10,6 @@ from dcp_client.gui.welcome_window import WelcomeWindow
 from dcp_client.app import Application
 from dcp_client.utils.bentoml_model import BentomlModel
 from dcp_client.utils.fsimagestorage import FilesystemImageStorage
-from dcp_client.utils.sync_src_dst import DataRSync
 from dcp_client.utils import settings
 
 
@@ -22,9 +21,8 @@ def setup_global_variable():
 
 @pytest.fixture
 def app(qtbot):
-    rsyncer = DataRSync(user_name="local", host_name="local", server_repo_path=".")
     application = Application(
-        BentomlModel(), 1, rsyncer, FilesystemImageStorage(), "0.0.0.0", 7010
+        BentomlModel(), 1, FilesystemImageStorage(), "0.0.0.0", 7010
     )
     # Create an instance of WelcomeWindow
     # q_app = QApplication([])
@@ -36,9 +34,8 @@ def app(qtbot):
 
 @pytest.fixture
 def app_remote(qtbot):
-    rsyncer = DataRSync(user_name="remote", host_name="remote", server_repo_path=".")
     application = Application(
-        BentomlModel(), 1, rsyncer, FilesystemImageStorage(), "0.0.0.0", 7010
+        BentomlModel(), 1, FilesystemImageStorage(), "0.0.0.0", 7010
     )
     # Create an instance of WelcomeWindow
     # q_app = QApplication([])

@@ -71,17 +71,36 @@ class SegmentationService:
         logger.info(f"[SegmentationService] Initialized segmentation with service_name={self.service_name}")
 
     @bentoml.api
-    async def segment_image(self, input_path: str) -> np.ndarray:
-        logger.debug(f"segment_image called with input_path={input_path}")
-        seg = self.segmentation
-        images = seg.imagestorage.search_images(input_path)
-        unsupported = seg.imagestorage.get_unsupported_files(input_path)
-
-        if not images:
-            logger.warning(f"No images found at {input_path}")
-            return np.array(images)
+    async def segment_image(self, image: np.ndarray) -> np.ndarray:
+        """Segments a single pre-loaded image.
         
-        logger.info(f"Found {len(images)} image(s) to segment")
-        await seg.segment_image(input_path, images)
-        logger.debug(f"Segmentation complete for {input_path}")
-        return np.array(unsupported)
+        :param image: Pre-loaded image as numpy array
+        :type image: np.ndarray
+        :return: Segmentation mask
+        :rtype: np.ndarray
+        """
+        logger.debug(f"segment_image called with image shape={image.shape}")
+        seg = self.segmentation
+        
+        try:
+            # Prepare the image for segmentation
+            prepared_img = seg.imagestorage.prepare_img_for_eval(image)
+            
+            # Add channel axis into the model's evaluation parameters dictionary
+            seg.model.eval_config["segmentor"][
+                "channel_axis"
+            ] = seg.imagestorage.channel_ax
+            
+            # Evaluate the model
+            mask = await seg.runner.evaluate(img=prepared_img)
+            
+            # Prepare the mask for saving
+            mask = seg.imagestorage.prepare_mask_for_save(
+                mask, seg.model.eval_config["mask_channel_axis"]
+            )
+            
+            logger.debug(f"Segmentation complete for image with shape={image.shape}")
+            return mask
+        except Exception as e:
+            logger.error(f"Error during segmentation: {e}")
+            raise

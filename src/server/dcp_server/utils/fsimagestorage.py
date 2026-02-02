@@ -140,32 +140,31 @@ class FilesystemImageStorage:
             and helpers.get_file_extension(file_name) not in self.accepted_types
         ]
 
-    def get_image_size_properties(self, img: np.ndarray, file_extension: str) -> None:
+    def get_image_size_properties(self, img: np.ndarray) -> None:
         """Set properties of the image size
 
         :param img: Image (numpy array).
         :type img: ndarray
-        :param file_extension: File extension of the image as saved in the directory.
-        :type file_extension: str
         """
-        # TODO simplify!
 
         orig_size = img.shape
         # png and jpeg will be RGB by default and 2D
         # tif can be grayscale 2D or 3D [Z, H, W]
         # image channels have already been removed in imread if self.gray=True
         # skimage.imread reads RGB or RGBA images in always with channel axis in dim=2
-        if file_extension in (".jpg", ".jpeg", ".png") and self.gray == False:
+
+        ## TODO: accept also RGB images
+        
+        if self.gray == False and len(orig_size) == 2:
             self.img_height, self.img_width = orig_size[0], orig_size[1]
-            self.channel_ax = 2
-        elif file_extension in (".jpg", ".jpeg", ".png") and self.gray == True:
-            self.img_height, self.img_width = orig_size[0], orig_size[1]
+            print("You have set gray to False, but only two channels found in your image. Will continue assuming grayscale image.")
             self.channel_ax = None
-        elif file_extension in (".tiff", ".tif") and len(orig_size) == 2:
+        elif self.gray == True and len(orig_size) == 2:
             self.img_height, self.img_width = orig_size[0], orig_size[1]
             self.channel_ax = None
         # if we have 3 dimensions the [Z, H, W]
-        elif file_extension in (".tiff", ".tif") and len(orig_size) == 3:
+        elif self.gray == False and len(orig_size) == 3:
+            self.img_height, self.img_width = orig_size[0], orig_size[1]
             print(
                 "Warning: 3D image stack found. We are assuming your last dimension is your channel dimension. Please cross check this."
             )
@@ -217,19 +216,18 @@ class FilesystemImageStorage:
         return resize(mask, output_size, order=order)
 
 
-    def prepare_img_for_eval(self, img_file: str) -> np.ndarray:
+    def prepare_img_for_eval(self, img: np.ndarray) -> np.ndarray:
         """Image processing for model inference.
 
-        :param img_file: the path to the image
-        :type img_file: str
+        :param img: the image to be processed
+        :type img: np.ndarray
         :return: the loaded and processed image
         :rtype: np.ndarray
         """
-        # Load and normalise the image
-        img = self.load_image(img_file)
+        # Normalise and rescale the image
         img = normalise(img)
+        self.get_image_size_properties(img)
         # Get size properties
-        self.get_image_size_properties(img, helpers.get_file_extension(img_file))
         if self.rescale:
             img = self.rescale_image(img)
         return img

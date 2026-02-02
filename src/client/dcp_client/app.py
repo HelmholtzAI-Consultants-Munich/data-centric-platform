@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Tuple
 from numpy.typing import NDArray
 import os
+import numpy as np
 
 from dcp_client.utils import utils
 from dcp_client.utils import settings
@@ -13,13 +14,14 @@ class Model(ABC):
         pass
 
     @abstractmethod
-    def run_inference(self, path: str) -> None:
-        pass
-
-
-class DataSync(ABC):
-    @abstractmethod
-    def sync(self, src: str, dst: str, path: str) -> None:
+    def segment_image(self, image: NDArray) -> NDArray:
+        """Segments a single image.
+        
+        :param image: Pre-loaded image as numpy array
+        :type image: NDArray
+        :return: Segmentation mask
+        :rtype: NDArray
+        """
         pass
 
 
@@ -52,7 +54,6 @@ class Application:
         self,
         ml_model: Model,
         num_classes: int,
-        syncer: DataSync,
         image_storage: ImageStorage,
         server_ip: str,
         server_port: int,
@@ -62,7 +63,6 @@ class Application:
     ):
         self.ml_model = ml_model
         self.num_classes = num_classes
-        self.syncer = syncer
         self.fs_image_storage = image_storage
         self.server_ip = server_ip
         self.server_port = server_port
@@ -72,14 +72,6 @@ class Application:
         self.cur_selected_img = ""
         self.cur_selected_path = ""
         self.seg_filepaths = []
-
-    def upload_data_to_server(self):
-        """
-        Uploads the train and eval data to the server.
-        """
-        success_f1, message1 = self.syncer.first_sync(path=self.train_data_path)
-        success_f2, message2 = self.syncer.first_sync(path=self.eval_data_path)
-        return success_f1, success_f2, message1, message2
 
     def try_server_connection(self):
         """
@@ -96,23 +88,44 @@ class Application:
             message_title = "Warning"
             message_text = "Connection could not be established. Please check if the server is running and try again."
             return message_text, message_title
-        # if syncer.host name is None then local machine is used to train
         message_title = "Information"
-        if self.syncer.host_name == "local":
-            message_text = self.ml_model.run_train(self.train_data_path)
-        else:
-            success_sync, srv_relative_path = self.syncer.sync(
-                src="client", dst="server", path=self.train_data_path
-            )
-            # make sure syncing of folders was successful
-            if success_sync == "Success":
-                message_text = self.ml_model.run_train(srv_relative_path)
-            else:
-                message_text = None
+        message_text = self.ml_model.run_train(self.train_data_path)
         if message_text is None:
             message_text = "An error has occured on the server. Please check your image data and configurations. If the problem persists contact your software provider."
             message_title = "Error"
         return message_text, message_title
+
+    async def _segment_images_recursively(self, image_list, output_directory):
+        """Recursively segments each image in the list.
+        
+        :param image_list: List of image file paths in eval_data_path
+        :type image_list: list
+        :param output_directory: Directory where segmentation masks will be saved
+        :type output_directory: str
+        :return: List of unsupported files
+        :rtype: list
+        """
+        unsupported_files = []
+        for img_path in image_list:
+            try:
+                # Load the image
+                img = self.fs_image_storage.load_image(self.eval_data_path, os.path.basename(img_path))
+                
+                # Segment the image
+                mask = await self.ml_model.segment_image(img)
+                
+                # Save the segmentation mask
+                seg_name = (
+                    utils.get_path_stem(os.path.basename(img_path))
+                    + settings.seg_name_string
+                    + ".tiff"
+                )
+                seg_path = os.path.join(output_directory, seg_name)
+                self.fs_image_storage.save_image(output_directory, seg_name, mask)
+            except Exception as e:
+                unsupported_files.append(os.path.basename(img_path))
+        
+        return unsupported_files
 
     def run_inference(self):
         """Checks if the ml model is connected to the server, connects if not (and if possible), and runs inference on all images in eval_data_path"""
@@ -121,42 +134,37 @@ class Application:
             message_text = "Connection could not be established. Please check if the server is running and try again."
             return message_text, message_title
 
-        if self.syncer.host_name == "local":
-            # model serving directly from local
-            list_of_files_not_suported = self.ml_model.run_inference(
-                self.eval_data_path
-            )
-            success_sync = "Success"
-        else:
-            # sync data so that server gets updated files in client - e.g. if file was moved to curated
-            srv_relative_path = utils.get_relative_path(self.eval_data_path)
-            success_sync, _ = self.syncer.sync(
-                src="client", dst="server", path=self.eval_data_path
-            )
-            # model serving from server
-            list_of_files_not_suported = self.ml_model.run_inference(srv_relative_path)
-            # sync data so that client gets new masks
-            success_sync, _ = self.syncer.sync(
-                src="server", dst="client", path=self.eval_data_path
-            )
-        # check if serving could not be performed for some files and prepare message
-        if list_of_files_not_suported is None or success_sync == "Error":
-            message_text = "An error has occured on the server. Please check your image data and configurations. If the problem persists contact your software provider."
-            message_title = "Error"
-        else:
-            list_of_files_not_suported = list(list_of_files_not_suported)
-            if len(list_of_files_not_suported) > 0:
+        try:
+            # Get all images from eval_data_path
+            image_list = self.fs_image_storage.search_images(self.eval_data_path)
+            unsupported_files = self.fs_image_storage.get_unsupported_files(self.eval_data_path)
+            
+            if not image_list:
+                message_text = "No images found in evaluation directory"
+                message_title = "Warning"
+                return message_text, message_title
+            
+            # Process images recursively
+            import asyncio
+            unsupported_files.extend(asyncio.run(self._segment_images_recursively(image_list, self.eval_data_path)))
+            
+            # Prepare response message
+            if len(unsupported_files) > 0:
                 message_text = (
                     "Image types not supported. Only 2D and 3D image shapes currently supported. 3D stacks must be of type grayscale. \
                 Currently supported image file formats are: "
                     + ", ".join(settings.accepted_types)
                     + ". The files that were not supported are: "
-                    + ", ".join(list_of_files_not_suported)
+                    + ", ".join(set(unsupported_files))
                 )
                 message_title = "Warning"
             else:
                 message_text = "Success! Masks generated for all images"
                 message_title = "Information"
+        except Exception as e:
+            message_text = f"An error has occured during segmentation: {str(e)}"
+            message_title = "Error"
+        
         return message_text, message_title
 
     def load_image(self, image_name=None):

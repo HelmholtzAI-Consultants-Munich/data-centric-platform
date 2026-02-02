@@ -187,12 +187,7 @@ class WelcomeWindow(MyWidget):
           
         )
         self.start_button.show()
-        # check if we need to upload data to server
-        self.done_upload = False  # we only do once
-        if self.app.syncer.host_name == "local":
-            self.start_button.clicked.connect(self.start_main)
-        else:
-            self.start_button.clicked.connect(self.start_upload_and_main)
+        self.start_button.clicked.connect(self.start_main)
         self.main_layout.addWidget(self.start_button, alignment=Qt.AlignCenter)
         self.setLayout(self.main_layout)
 
@@ -290,36 +285,3 @@ class WelcomeWindow(MyWidget):
         else:
             self.message_text = "You need to specify a folder both for your uncurated and curated dataset (even if the curated folder is currently empty). Please go back and select folders for both."
             _ = self.create_warning_box(self.message_text, message_title="Warning")
-
-    def start_upload_and_main(self) -> None:
-        """
-        If the configs are set to use remote not local server then the user is asked to confirm the upload of their data
-        to the server and the upload starts before launching the main window.
-        """
-        if self.done_upload is False:
-            message_text = (
-                "Your current configurations are set to run some operations on the cloud. \n"
-                "For this we need to upload your data to our server."
-                "We will now upload your data. Click ok to continue. \n"
-                "If you do not agree close the application and contact your software provider."
-            )
-            usr_response = self.create_warning_box(
-                message_text, message_title="Warning", add_cancel_btn=True
-            )
-            if usr_response:
-                success_up1, success_up2, _, _ = self.app.upload_data_to_server()
-                if success_up1 == "Error" or success_up2 == "Error":
-                    message_text = (
-                        "An error has occured during data upload to the server. \n"
-                        "Please check your configuration file and ensure that the server connection settings are correct and you have been given access to the server. \n"
-                        "If the problem persists contact your software provider. Exiting now."
-                    )
-                    usr_response = self.create_warning_box(
-                        message_text, message_title="Error"
-                    )
-                    self.close()
-                else:
-                    self.done_upload = True
-                    self.start_upload_and_main()
-        else:
-            self.start_main()

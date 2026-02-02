@@ -436,16 +436,14 @@ if __name__ == "__main__":
     from dcp_client.utils.bentoml_model import BentomlModel
     from dcp_client.utils.fsimagestorage import FilesystemImageStorage
     from dcp_client.utils import settings
-    from dcp_client.utils.sync_src_dst import DataRSync
 
     settings.init()
     image_storage = FilesystemImageStorage()
     ml_model = BentomlModel()
-    data_sync = DataRSync(user_name="local", host_name="local", server_repo_path=None)
     app = QApplication(sys.argv)
     app_ = Application(
         ml_model=ml_model,
-        syncer=data_sync,
+        num_classes=1,
         image_storage=image_storage,
         server_ip="0.0.0.0",
         server_port=7010,

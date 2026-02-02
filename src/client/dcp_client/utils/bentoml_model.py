@@ -2,6 +2,7 @@ from typing import Optional, List
 from bentoml import SyncHTTPClient
 from bentoml.exceptions import BentoMLException
 import numpy as np
+from numpy.typing import NDArray
 
 from dcp_client.app import Model
 from dcp_client.utils.logger import get_logger
@@ -50,35 +51,25 @@ class BentomlModel(Model):
         """
         return bool(self.client)
 
-    def _run_inference(self, data_path: str) -> Optional[np.ndarray]:
-        """Runs the inference task asynchronously.
-
-        :param data_path: Path to the data for inference.
-        :type data_path: str
-        :return: List of files not supported by the server if unsuccessful, otherwise returns None.
-        :rtype: np.ndarray, or None
+    async def segment_image(self, image: NDArray) -> NDArray:
+        """Segments a single image.
+        
+        :param image: Pre-loaded image as numpy array
+        :type image: NDArray
+        :return: Segmentation mask
+        :rtype: NDArray
         """
         try:
-            logger.debug(f"Running inference on data at {data_path}")
-            response = self.client.segment_image(data_path) # segment_image is part of running server
-            logger.debug(f"Inference completed for {data_path}")
+            logger.debug("Running inference on single image")
+            response = self.client.segment_image(image)
+            logger.debug("Inference completed for image")
             return response
         except BentoMLException as e:
-            logger.error(f"BentoML error during inference on {data_path}: {e}")
-            return None
+            logger.error(f"BentoML error during inference: {e}")
+            raise
         except Exception as e:
-            logger.error(f"Unexpected error during inference on {data_path}: {e}")
-            return None
-
-    def run_inference(self, data_path: str) -> List:
-        """Runs the inference.
-
-        :param data_path: Path to the data for inference.
-        :type data_path: str
-        :return: List of files not supported by the server if unsuccessful, otherwise returns None.
-        """
-        list_of_files_not_suported = self._run_inference(data_path)
-        return list_of_files_not_suported
+            logger.error(f"Unexpected error during inference: {e}")
+            raise
 
     def run_train(self, path: str) -> None:
         """Training functionality has been removed from the server.
