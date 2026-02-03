@@ -83,6 +83,40 @@ class SegmentationService:
         seg = self.segmentation
         
         try:
+            # Determine GPU usage for this inference
+            try:
+                import torch
+                gpu_available = torch.cuda.is_available()
+            except Exception:
+                gpu_available = False
+
+            runner_supports_gpu = False
+            try:
+                supports = getattr(seg.runner, "SUPPORTED_RESOURCES", None)
+                if supports:
+                    runner_supports_gpu = any(
+                        ("gpu" in str(s).lower() or "cuda" in str(s).lower()) for s in supports
+                    )
+            except Exception:
+                runner_supports_gpu = False
+
+            model_on_cuda = False
+            try:
+                model_obj = getattr(seg, "model", None)
+                params = getattr(model_obj, "parameters", None)
+                if callable(params):
+                    for p in params():
+                        if getattr(p, "is_cuda", False):
+                            model_on_cuda = True
+                            break
+            except Exception:
+                model_on_cuda = False
+
+            using_gpu = model_on_cuda or (gpu_available and runner_supports_gpu)
+            logger.info(
+                f"GPU available={gpu_available}; runner_supports_gpu={runner_supports_gpu}; model_on_cuda={model_on_cuda}; using_gpu_for_inference={using_gpu}"
+            )
+
             # Prepare the image for segmentation
             prepared_img = seg.imagestorage.prepare_img_for_eval(image)
             
