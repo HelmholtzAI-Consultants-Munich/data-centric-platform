@@ -171,6 +171,7 @@ class MainWindow(MyWidget):
             model_eval.setRootPath(self.app.eval_data_path)
         )
         self.list_view_eval.clicked.connect(self.on_item_eval_selected)
+        self.list_view_eval.doubleClicked.connect(self.on_item_eval_double_clicked)
 
         self.eval_dir_layout.addWidget(self.list_view_eval)
         self.uncurated_layout.addLayout(self.eval_dir_layout)
@@ -230,6 +231,7 @@ class MainWindow(MyWidget):
             model_inprogr.setRootPath(self.app.inprogr_data_path)
         )
         self.list_view_inprogr.clicked.connect(self.on_item_inprogr_selected)
+        self.list_view_inprogr.doubleClicked.connect(self.on_item_inprogr_double_clicked)
         self.inprogr_dir_layout.addWidget(self.list_view_inprogr)
         self.inprogress_layout.addLayout(self.inprogr_dir_layout)
         self.inprogress_layout.addWidget(self.inference_button, alignment=Qt.AlignCenter)
@@ -279,6 +281,7 @@ class MainWindow(MyWidget):
             model_train.setRootPath(self.app.train_data_path)
         )
         self.list_view_train.clicked.connect(self.on_item_train_selected)
+        self.list_view_train.doubleClicked.connect(self.on_item_train_double_clicked)
         self.train_dir_layout.addWidget(self.list_view_train)
         self.curated_layout.addLayout(self.train_dir_layout)
         self.curated_layout.addSpacing(40)
@@ -303,14 +306,19 @@ class MainWindow(MyWidget):
         dir_layout.addLayout(self.curated_layout)
         main_layout.addLayout(dir_layout)
 
-        # add progress bar
+        # add progress bar with hint text
         progress_layout = QHBoxLayout()
-        progress_layout.addStretch(1)
         self.progress_bar = QProgressBar(self)
-        self.progress_bar.setMinimumWidth(1000)
+        self.progress_bar.setMinimumWidth(700)
         self.progress_bar.setAlignment(Qt.AlignCenter)
         self.progress_bar.setRange(0, 1)
         progress_layout.addWidget(self.progress_bar)
+        
+        hint_label = QLabel("Double click on an image to launch the viewer!")
+        hint_label.setStyleSheet("color: #666666; font-size: 11px; font-style: italic;")
+        hint_label.setContentsMargins(15, 0, 10, 0)
+        progress_layout.addWidget(hint_label)
+        
         main_layout.addLayout(progress_layout)
 
         # add it all to main layout and show
@@ -346,6 +354,42 @@ class MainWindow(MyWidget):
         """
         self.app.cur_selected_img = item.data()
         self.app.cur_selected_path = self.app.inprogr_data_path
+
+    def on_item_eval_double_clicked(self, item: QModelIndex) -> None:
+        """
+        Is called once an image is double-clicked in the 'uncurated dataset' folder.
+        Launches the napari viewer immediately.
+
+        :param item: The selected item from the 'uncurated dataset' folder.
+        :type item: QModelIndex
+        """
+        self.app.cur_selected_img = item.data()
+        self.app.cur_selected_path = self.app.eval_data_path
+        self.on_launch_napari_button_clicked()
+
+    def on_item_inprogr_double_clicked(self, item: QModelIndex) -> None:
+        """
+        Is called once an image is double-clicked in the 'in progress' folder.
+        Launches the napari viewer immediately.
+
+        :param item: The selected item from the 'in progress' folder.
+        :type item: QModelIndex
+        """
+        self.app.cur_selected_img = item.data()
+        self.app.cur_selected_path = self.app.inprogr_data_path
+        self.on_launch_napari_button_clicked()
+
+    def on_item_train_double_clicked(self, item: QModelIndex) -> None:
+        """
+        Is called once an image is double-clicked in the 'curated dataset' folder.
+        Launches the napari viewer immediately.
+
+        :param item: The selected item from the 'curated dataset' folder.
+        :type item: QModelIndex
+        """
+        self.app.cur_selected_img = item.data()
+        self.app.cur_selected_path = self.app.train_data_path
+        self.on_launch_napari_button_clicked()
     '''
     def on_train_button_clicked(self) -> None:
         """
