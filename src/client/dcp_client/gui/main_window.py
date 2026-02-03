@@ -156,7 +156,7 @@ class MainWindow(MyWidget):
         model_eval.sort(0, Qt.AscendingOrder)
 
         self.list_view_eval = QTreeView(self)
-        self.list_view_eval.setToolTip("Select an image, click it, then press Enter")
+        self.list_view_eval.setToolTip("To visualize an image double click on it, or select it and then hit Enter")
         self.list_view_eval.setIconSize(QSize(128, 128))
         self.list_view_eval.setStyleSheet("background-color: #ffffff")
         self.list_view_eval.setModel(model_eval)
