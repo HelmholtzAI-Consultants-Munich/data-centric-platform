@@ -1,5 +1,6 @@
 from copy import deepcopy
 from typing import List
+import logging
 import numpy as np
 
 import torch
@@ -51,6 +52,14 @@ class CustomCellpose(models.CellposeModel, Model):
         self.mkldnn = False  # otherwise we get error with saving model
         self.loss = 1e6
         self.metric = 0
+        
+        # Move model to GPU if available
+        logger = logging.getLogger(__name__)
+        if torch.cuda.is_available():
+            self.cuda()
+            logger.info(f"Model moved to GPU: {torch.cuda.get_device_name(0)}")
+        else:
+            logger.info("GPU not available, using CPU")
 
     def eval(self, img: np.ndarray) -> np.ndarray:
         """Evaluate the model - find mask of the given image
