@@ -5,6 +5,7 @@ import numpy as np
 import bentoml
 import logging
 import logging.handlers
+import time
 
 from dcp_server.serviceclasses import CustomRunnable
 from dcp_server.utils.fsimagestorage import FilesystemImageStorage
@@ -169,6 +170,9 @@ class SegmentationService:
                 f"GPU available={gpu_available}; runner_supports_gpu={runner_supports_gpu}; model_on_cuda={model_on_cuda}; using_gpu_for_inference={using_gpu}"
             )
 
+            # Start timing
+            start_time = time.time()
+            
             # Prepare the image for segmentation
             prepared_img = seg.imagestorage.prepare_img_for_eval(image)
             
@@ -185,7 +189,9 @@ class SegmentationService:
                 mask, seg.model.eval_config["mask_channel_axis"]
             )
             
-            logger.debug(f"Segmentation complete for image with shape={image.shape}")
+            # Log elapsed time
+            elapsed_time = time.time() - start_time
+            logger.info(f"Segmentation completed in {elapsed_time:.2f} seconds for image with shape={image.shape}")
             return mask
         except Exception as e:
             logger.error(f"Error during segmentation: {e}")
