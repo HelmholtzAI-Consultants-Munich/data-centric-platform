@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
+import logging 
 from copy import deepcopy
 
 from qtpy.QtWidgets import (
@@ -18,6 +19,7 @@ from dcp_client.utils.compute4mask import Compute4Mask
 from dcp_client.gui._my_widget import MyWidget
 from dcp_client.gui.sam_controller import SAMController
 
+logger = logging.getLogger(__name__)
 
 class NapariWindow(MyWidget):
     """Napari Window Widget object.
@@ -72,7 +74,7 @@ class NapariWindow(MyWidget):
                 if usr_response=='action': 
                     seg = seg[0]
                 else:
-                    print('User cancelled due to extra mask channel. Closing viewer.')
+                    logger.info('User cancelled due to extra mask channel. Closing viewer.')
                     QTimer.singleShot(0, self.close)
                     return
                 
@@ -378,7 +380,7 @@ class NapariWindow(MyWidget):
                     except Exception:
                         pass
         except Exception as e:
-            print(f"Error during closeEvent cleanup: {e}")
+            logger.info(f"Error during closeEvent cleanup: {e}")
 
         # Always accept the close event
         event.accept()
@@ -678,7 +680,7 @@ class NapariWindow(MyWidget):
                 seg[0].astype(bool),
                 class_mask_with_contour.astype(bool)
                 ):
-            print('Updating masks before saving...')
+            logger.info('Updating masks before saving...')
             if self.active_mask_index==1: self.update_instance_mask(seg[0], seg[1])
             else: self.update_labels_mask(seg[0])
             # reload the seg layers after update
@@ -731,7 +733,7 @@ class NapariWindow(MyWidget):
                 + " more than one connected component was found. Would you like us to clean this up and keep only the largest connect component?"
             )
             usr_response = self.create_selection_box(message_text, "Clean up")
-            print('User response to connected components check:', usr_response)
+            logger.info('User response to connected components check:', usr_response)
             if usr_response=='action' and self.fix_small_objs: 
                 seg = Compute4Mask.keep_largest_components_pair(seg, faulty_ids_annot)
                 self.viewer.layers[seg_name_to_save].data = seg
@@ -739,10 +741,10 @@ class NapariWindow(MyWidget):
             else: 
                 self.fix_small_objs = False
                 
-        print('Connected component checks passed.')
+        logger.info('Connected component checks passed.')
 
         annot_error, holes = Compute4Mask.assert_filled_objects(seg)
-        print('Holes found in objects:', annot_error)
+        logger.info('Holes found in objects:', annot_error)
         if annot_error:
             message_text = (
                 "For object(s) with ID(s): "+ ", ".join(str(id) for id in list(holes.keys())[:-1])
@@ -751,7 +753,7 @@ class NapariWindow(MyWidget):
                 + " holes where found. Would you like us to clean this up and fill the holes in the segmentation?"
             )
             usr_response = self.create_selection_box(message_text, "Clean up")
-            print('User response to holes check:', usr_response)
+            logger.info('User response to holes check:', usr_response)
             if usr_response=='action' and self.fix_small_holes: 
                 seg = Compute4Mask.fill_holes(seg, holes)
                 self.viewer.layers[seg_name_to_save].data = seg
@@ -759,7 +761,7 @@ class NapariWindow(MyWidget):
             else:
                 self.fix_small_holes = False 
                 
-        print('Objects with holes checks passed.')
+        logger.info('Objects with holes checks passed.')
 
         if self.app.num_classes>1:
 
@@ -787,7 +789,7 @@ class NapariWindow(MyWidget):
                 )
                 usr_response = self.create_selection_box(message_text, "Annotation incomplete!")
                 return
-        print('Annotation checks passed.')
+        logger.info('Annotation checks passed.')
 
         # Move original image
         self.app.move_images(save_folder, move_segs)
