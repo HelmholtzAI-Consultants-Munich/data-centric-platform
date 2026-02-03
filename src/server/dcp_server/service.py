@@ -1,12 +1,50 @@
 from __future__ import annotations
 import os
+import sys
 import numpy as np
 import bentoml
+import logging
+import logging.handlers
 
 from dcp_server.serviceclasses import CustomRunnable
 from dcp_server.utils.fsimagestorage import FilesystemImageStorage
 from dcp_server.utils.helpers import read_config
 from dcp_server.utils.logger import get_logger
+
+# Configure root logger IMMEDIATELY when service.py is loaded (in BentoML subprocess)
+log_file = os.path.join(os.path.expanduser("~"), ".dcp_server", "dcp_server.log")
+log_path = os.path.dirname(log_file)
+os.makedirs(log_path, exist_ok=True)
+
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.DEBUG)
+
+# File handler
+file_handler = logging.handlers.RotatingFileHandler(
+    log_file,
+    maxBytes=10485760,  # 10MB
+    backupCount=5
+)
+file_handler.setLevel(logging.DEBUG)
+file_formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+file_handler.setFormatter(file_formatter)
+
+# Console handler
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.INFO)
+console_formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+console_handler.setFormatter(console_formatter)
+
+# Add handlers only if not already present
+if not root_logger.handlers:
+    root_logger.addHandler(file_handler)
+    root_logger.addHandler(console_handler)
 
 logger = get_logger(__name__)
 
