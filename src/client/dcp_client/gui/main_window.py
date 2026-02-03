@@ -43,6 +43,7 @@ class WorkerThread(QThread):
         app: Application,
         task: str = None,
         parent=None,
+        skip_images=None,
     ):
         """
         Initialize the WorkerThread.
@@ -52,10 +53,13 @@ class WorkerThread(QThread):
         :param task: The task performed by the worker thread. Can be 'inference' or 'train'.
         :type task: str, optional
         :param parent: The parent QObject (default is None).
+        :param skip_images: Optional set/list of image names to skip during segmentation.
+        :type skip_images: set or list, optional
         """
         super().__init__(parent)
         self.app = app
         self.task = task
+        self.skip_images = skip_images
 
     def run(self) -> None:
         """
@@ -64,7 +68,7 @@ class WorkerThread(QThread):
         """
         try:
             if self.task == "inference":
-                message_text, message_title = self.app.run_inference(progress_callback=self.on_progress)
+                message_text, message_title = self.app.run_inference(progress_callback=self.on_progress, skip_images=self.skip_images)
             elif self.task == "train":
                 message_text, message_title = self.app.run_train()
             else:
@@ -439,11 +443,27 @@ class MainWindow(MyWidget):
         """
         Is called once user clicks the "Generate Labels" button.
         """
+        # Check for existing segmentations
+        existing_segs = self.app.check_existing_segmentations()
+        
+        skip_images = set()
+        if existing_segs:
+            # Existing segmentations found - ask user what to do
+            user_choice = self.create_segmentation_option_dialog(num_images_with_segs=len(existing_segs))
+            
+            if user_choice == "skip":
+                # Skip images with existing segmentations
+                skip_images = set(existing_segs.keys())
+            elif user_choice == "cancel":
+                # User cancelled the operation
+                return
+            # If "regenerate", skip_images remains empty and all images will be processed
+        
         self.inference_button.setEnabled(False)
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 1)  # Default range; will be updated by progress
         # initialise the worker thread
-        self.worker_thread = WorkerThread(app=self.app, task="inference")
+        self.worker_thread = WorkerThread(app=self.app, task="inference", skip_images=skip_images)
         self.worker_thread.task_finished.connect(self.on_finished)
         self.worker_thread.progress_updated.connect(self.on_progress_updated)
         # start the worker thread to run inference

@@ -134,11 +134,13 @@ class Application:
         
         return unsupported_files
 
-    def run_inference(self, progress_callback=None):
+    def run_inference(self, progress_callback=None, skip_images=None):
         """Checks if the ml model is connected to the server, connects if not (and if possible), and runs inference on all images in uncur_data_path
         
         :param progress_callback: Optional callback function to report progress. Called with (current, total) arguments.
         :type progress_callback: callable, optional
+        :param skip_images: Optional set/list of image names to skip during segmentation.
+        :type skip_images: set or list, optional
         """
         if not self.ml_model.is_connected and not self.try_server_connection():
             message_title = "Warning"
@@ -154,6 +156,10 @@ class Application:
                 message_text = "No images found in evaluation directory"
                 message_title = "Warning"
                 return message_text, message_title
+            
+            # Filter out images to skip if specified
+            if skip_images:
+                image_list = [img for img in image_list if img not in skip_images]
             
             # Process images recursively
             import asyncio
@@ -202,6 +208,23 @@ class Application:
         self.seg_filepaths = self.fs_image_storage.search_segs(
             self.cur_selected_path, self.cur_selected_img
         )
+
+    def check_existing_segmentations(self):
+        """Checks if any images in uncur_data_path already have segmentation files.
+        
+        :return: Dictionary with image names as keys and list of existing segmentation files as values.
+                 Returns empty dict if no segmentations exist.
+        :rtype: dict
+        """
+        existing_segs = {}
+        image_list = self.fs_image_storage.search_images(self.uncur_data_path)
+        
+        for image_name in image_list:
+            seg_files = self.fs_image_storage.search_segs(self.uncur_data_path, image_name)
+            if seg_files:
+                existing_segs[image_name] = seg_files
+        
+        return existing_segs
 
     def save_image(self, dst_directory, image_name, img):
         """Saves img array image in the dst_directory with filename cur_selected_img
