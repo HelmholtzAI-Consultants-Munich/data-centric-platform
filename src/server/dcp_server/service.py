@@ -141,12 +141,20 @@ class SegmentationService:
             model_on_cuda = False
             try:
                 model_obj = getattr(seg, "model", None)
-                params = getattr(model_obj, "parameters", None)
-                if callable(params):
-                    for p in params():
-                        if getattr(p, "is_cuda", False):
-                            model_on_cuda = True
-                            break
+                
+                # First check if model has device attribute (e.g., Cellpose models)
+                device_attr = getattr(model_obj, "device", None)
+                if device_attr and "cuda" in str(device_attr).lower():
+                    model_on_cuda = True
+                
+                # Otherwise check parameters
+                if not model_on_cuda:
+                    params = getattr(model_obj, "parameters", None)
+                    if callable(params):
+                        for p in params():
+                            if getattr(p, "is_cuda", False):
+                                model_on_cuda = True
+                                break
             except Exception:
                 model_on_cuda = False
 

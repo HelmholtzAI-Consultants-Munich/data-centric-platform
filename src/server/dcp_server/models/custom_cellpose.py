@@ -39,6 +39,9 @@ class CustomCellpose(models.CellposeModel, Model):
         :type eval_config: dict
         """
 
+        # Disable MKLDNN first to avoid CUDA conflicts
+        torch.backends.mkldnn.enabled = False
+        
         # Initialize the cellpose model
         # super().__init__(**model_config["segmentor"])
         Model.__init__(
@@ -53,17 +56,17 @@ class CustomCellpose(models.CellposeModel, Model):
         self.loss = 1e6
         self.metric = 0
         
-        # Log GPU status (GPU is handled by cellpose via gpu parameter in config)
+        # Auto-detect GPU and move model if available
         logger = logging.getLogger(__name__)
         if torch.cuda.is_available():
             self.device = torch.device("cuda")
-            self.gpu = True
+            # Move the underlying network to GPU
             if hasattr(self, 'net') and self.net is not None:
-                self.net = self.net.cuda()
+                self.net.cuda()
             logger.info(f"Model moved to GPU: {torch.cuda.get_device_name(0)}")
         else:
             self.device = torch.device("cpu")
-            logger.info("GPU not available, using CPU")
+            logger.info("Using CPU for inference")
 
     def eval(self, img: np.ndarray) -> np.ndarray:
         """Evaluate the model - find mask of the given image
