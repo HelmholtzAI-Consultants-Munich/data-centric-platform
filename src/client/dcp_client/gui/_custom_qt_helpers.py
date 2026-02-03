@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import  QFileIconProvider, QStyledItemDelegate
 from PyQt5.QtCore import QSize
-from PyQt5.QtGui import QPixmap, QIcon
+from PyQt5.QtGui import QPixmap, QIcon, QImage
+import numpy as np
+from PIL import Image
 
 from dcp_client.utils import settings
 
@@ -24,10 +26,57 @@ class IconProvider(QFileIconProvider):
             return super().icon(type)  # TODO handle exception differently?
 
         if fn.endswith(settings.accepted_types):
-            a = QPixmap(self.ICON_SIZE)
-            # a = a.scaled(QSize(1024, 1024))
-            a.load(fn)
-            return QIcon(a)
+            try:
+                # Load image using PIL to handle 64-bit images properly
+                img = Image.open(fn)
+                img_array = np.array(img)
+                
+                # Convert 64-bit types to 32-bit or 8-bit (Qt doesn't support 64-bit)
+                if img_array.dtype == np.float64:
+                    # Assume normalized (0-1) or raw values, scale to 0-255
+                    if img_array.max() <= 1.0:
+                        img_array = (img_array * 255).astype(np.uint8)
+                    else:
+                        img_array = np.clip(img_array / img_array.max() * 255, 0, 255).astype(np.uint8)
+                elif img_array.dtype == np.int64:
+                    # Convert int64 to uint8
+                    img_array = np.clip(img_array, 0, 255).astype(np.uint8)
+                elif img_array.dtype == np.uint16:
+                    # Convert uint16 to uint8
+                    img_array = (img_array / 65535.0 * 255).astype(np.uint8)
+                elif img_array.dtype not in [np.uint8]:
+                    # Handle any other dtype - convert to uint8
+                    img_array = img_array.astype(np.uint8)
+                
+                # Convert to PIL Image in RGB mode
+                if len(img_array.shape) == 2:
+                    # Grayscale
+                    pil_img = Image.fromarray(img_array, mode='L').convert('RGB')
+                elif img_array.shape[2] == 1:
+                    # Single channel
+                    pil_img = Image.fromarray(img_array[:, :, 0], mode='L').convert('RGB')
+                elif img_array.shape[2] == 3:
+                    # RGB
+                    pil_img = Image.fromarray(img_array, mode='RGB')
+                elif img_array.shape[2] == 4:
+                    # RGBA - convert to RGB
+                    pil_img = Image.fromarray(img_array[:, :, :3], mode='RGB')
+                else:
+                    # Fallback
+                    pil_img = Image.fromarray(img_array).convert('RGB')
+                
+                # Resize to icon size
+                pil_img.thumbnail((self.ICON_SIZE.width(), self.ICON_SIZE.height()), Image.Resampling.LANCZOS)
+                
+                # Convert PIL image to QImage then QPixmap
+                data = pil_img.tobytes("raw", "RGB")
+                qimage = QImage(data, pil_img.width, pil_img.height, QImage.Format_RGB888)
+                pixmap = QPixmap.fromImage(qimage)
+                
+                return QIcon(pixmap)
+            except Exception as e:
+                # Fallback to default behavior if image loading fails
+                return super().icon(type)
         else:
             return super().icon(type)
 
