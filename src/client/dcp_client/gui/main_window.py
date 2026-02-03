@@ -312,12 +312,15 @@ class MainWindow(MyWidget):
         self.progress_bar.setMinimumWidth(700)
         self.progress_bar.setAlignment(Qt.AlignCenter)
         self.progress_bar.setRange(0, 1)
+        self.progress_bar.setVisible(False)
         progress_layout.addWidget(self.progress_bar)
-        
-        hint_label = QLabel("Double click on an image to launch the viewer!")
-        hint_label.setStyleSheet("color: #666666; font-size: 11px; font-style: italic;")
-        hint_label.setContentsMargins(15, 0, 10, 0)
-        progress_layout.addWidget(hint_label)
+        progress_layout.addStretch(1)
+
+        self.hint_label = QLabel("Double click on an image to launch the viewer!")
+        self.hint_label.setStyleSheet("color: #666666; font-size: 11px; font-style: italic;")
+        self.hint_label.setContentsMargins(15, 0, 10, 0)
+        self.hint_label.setVisible(True)
+        progress_layout.addWidget(self.hint_label)
         
         main_layout.addLayout(progress_layout)
 
@@ -408,6 +411,7 @@ class MainWindow(MyWidget):
         Is called once user clicks the "Generate Labels" button.
         """
         self.inference_button.setEnabled(False)
+        self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 1)  # Default range; will be updated by progress
         # initialise the worker thread
         self.worker_thread = WorkerThread(app=self.app, task="inference")
