@@ -57,8 +57,8 @@ class Application:
         image_storage: ImageStorage,
         server_ip: str,
         server_port: int,
-        eval_data_path: str = "",
-        train_data_path: str = "",
+        uncur_data_path: str = "",
+        cur_data_path: str = "",
         inprogr_data_path: str = "",
     ):
         self.ml_model = ml_model
@@ -66,8 +66,8 @@ class Application:
         self.fs_image_storage = image_storage
         self.server_ip = server_ip
         self.server_port = server_port
-        self.eval_data_path = eval_data_path
-        self.train_data_path = train_data_path
+        self.uncur_data_path = uncur_data_path
+        self.cur_data_path = cur_data_path
         self.inprogr_data_path = inprogr_data_path
         self.cur_selected_img = ""
         self.cur_selected_path = ""
@@ -83,13 +83,13 @@ class Application:
         return connection_success
 
     def run_train(self):
-        """Checks if the ml model is connected to the server, connects if not (and if possible), and trains the model with all data available in train_data_path"""
+        """Checks if the ml model is connected to the server, connects if not (and if possible), and trains the model with all data available in cur_data_path"""
         if not self.ml_model.is_connected and not self.try_server_connection():
             message_title = "Warning"
             message_text = "Connection could not be established. Please check if the server is running and try again."
             return message_text, message_title
         message_title = "Information"
-        message_text = self.ml_model.run_train(self.train_data_path)
+        message_text = self.ml_model.run_train(self.cur_data_path)
         if message_text is None:
             message_text = "An error has occured on the server. Please check your image data and configurations. If the problem persists contact your software provider."
             message_title = "Error"
@@ -98,7 +98,7 @@ class Application:
     async def _segment_images_recursively(self, image_list, output_directory, progress_callback=None):
         """Recursively segments each image in the list.
         
-        :param image_list: List of image file paths in eval_data_path
+        :param image_list: List of image file paths in uncur_data_path
         :type image_list: list
         :param output_directory: Directory where segmentation masks will be saved
         :type output_directory: str
@@ -112,7 +112,7 @@ class Application:
         for idx, img_path in enumerate(image_list):
             try:
                 # Load the image
-                img = self.fs_image_storage.load_image(self.eval_data_path, os.path.basename(img_path))
+                img = self.fs_image_storage.load_image(self.uncur_data_path, os.path.basename(img_path))
                 
                 # Segment the image
                 mask = await self.ml_model.segment_image(img)
@@ -135,7 +135,7 @@ class Application:
         return unsupported_files
 
     def run_inference(self, progress_callback=None):
-        """Checks if the ml model is connected to the server, connects if not (and if possible), and runs inference on all images in eval_data_path
+        """Checks if the ml model is connected to the server, connects if not (and if possible), and runs inference on all images in uncur_data_path
         
         :param progress_callback: Optional callback function to report progress. Called with (current, total) arguments.
         :type progress_callback: callable, optional
@@ -146,9 +146,9 @@ class Application:
             return message_text, message_title
 
         try:
-            # Get all images from eval_data_path
-            image_list = self.fs_image_storage.search_images(self.eval_data_path)
-            unsupported_files = self.fs_image_storage.get_unsupported_files(self.eval_data_path)
+            # Get all images from uncur_data_path
+            image_list = self.fs_image_storage.search_images(self.uncur_data_path)
+            unsupported_files = self.fs_image_storage.get_unsupported_files(self.uncur_data_path)
             
             if not image_list:
                 message_text = "No images found in evaluation directory"
@@ -157,7 +157,7 @@ class Application:
             
             # Process images recursively
             import asyncio
-            unsupported_files.extend(asyncio.run(self._segment_images_recursively(image_list, self.eval_data_path, progress_callback=progress_callback)))
+            unsupported_files.extend(asyncio.run(self._segment_images_recursively(image_list, self.uncur_data_path, progress_callback=progress_callback)))
             
             # Prepare response message
             if len(unsupported_files) > 0:

@@ -201,8 +201,8 @@ class WelcomeWindow(MyWidget):
         try:
             self.fd.setFileMode(QFileDialog.Directory)
             if self.fd.exec_():
-                self.app.eval_data_path = self.fd.selectedFiles()[0]
-            self.val_textbox.setText(self.app.eval_data_path)
+                self.app.uncur_data_path = self.fd.selectedFiles()[0]
+            self.val_textbox.setText(self.app.uncur_data_path)
         finally:
             self.fd = None
 
@@ -214,8 +214,8 @@ class WelcomeWindow(MyWidget):
         fd = QFileDialog()
         fd.setFileMode(QFileDialog.Directory)
         if fd.exec_():
-            self.app.train_data_path = fd.selectedFiles()[0]
-        self.train_textbox.setText(self.app.train_data_path)
+            self.app.cur_data_path = fd.selectedFiles()[0]
+        self.train_textbox.setText(self.app.cur_data_path)
 
     def on_text_changed(self, field_obj: QLineEdit, field_name: str, text: str) -> None:
         """
@@ -231,9 +231,9 @@ class WelcomeWindow(MyWidget):
         """
 
         if field_name == "train":
-            self.app.train_data_path = text
+            self.app.cur_data_path = text
         elif field_name == "eval":
-            self.app.eval_data_path = text
+            self.app.uncur_data_path = text
         elif field_name == "inprogress":
             self.app.inprogr_data_path = text
         field_obj.setText(text)
@@ -270,8 +270,8 @@ class WelcomeWindow(MyWidget):
             len(
                 {
                     self.app.inprogr_data_path,
-                    self.app.train_data_path,
-                    self.app.eval_data_path,
+                    self.app.cur_data_path,
+                    self.app.uncur_data_path,
                 }
             )
             < 3
@@ -279,7 +279,7 @@ class WelcomeWindow(MyWidget):
             self.message_text = "All directory names must be distinct."
             _ = self.create_warning_box(self.message_text, message_title="Warning")
 
-        elif self.app.train_data_path and self.app.eval_data_path:
+        elif self.app.cur_data_path and self.app.uncur_data_path:
             self.hide()
             self.mw = MainWindow(self.app)
         else:

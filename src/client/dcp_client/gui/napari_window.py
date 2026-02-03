@@ -698,7 +698,7 @@ class NapariWindow(MyWidget):
         """
          # TODO: Do we allow this? What if they moved it by mistake? User can always manually move from their folders?)
         # check if user is trying to save image which is already in curated folder - not allowed to change!
-        if self.app.cur_selected_path == str(self.app.train_data_path):
+        if self.app.cur_selected_path == str(self.app.cur_data_path):
             message_text = "Image is already in the 'Curated data' folder and should not be changed again"
             _ = self.create_warning_box(message_text, message_title="Warning")
             return
@@ -806,7 +806,7 @@ class NapariWindow(MyWidget):
 
     def on_add_to_curated_button_clicked(self) -> None:
         """Defines what happens when the "Move to curated dataset folder" button is clicked."""
-        self.on_save_to_folder_clicked(self.app.train_data_path)
+        self.on_save_to_folder_clicked(self.app.cur_data_path)
     
     def on_add_to_inprogress_button_clicked(self) -> None:
         """Defines what happens when the "Move to curation in progress folder" button is clicked."""

@@ -24,18 +24,18 @@ def app():
         os.mkdir("in_prog")
     imsave("in_prog/coffee.png", img2)
 
-    if not os.path.exists("eval_data_path"):
-        os.mkdir("eval_data_path")
-    imsave("eval_data_path/cat.png", img3)
+    if not os.path.exists("uncur_data_path"):
+        os.mkdir("uncur_data_path")
+    imsave("uncur_data_path/cat.png", img3)
 
-    # Note: Application signature is (ml_model, num_classes, image_storage, server_ip, server_port, eval_data_path, ...)
+    # Note: Application signature is (ml_model, num_classes, image_storage, server_ip, server_port, uncur_data_path, ...)
     app = Application(
         BentomlModel(),
         1,
         FilesystemImageStorage(),
         "0.0.0.0",
         7010,
-        os.path.join(os.getcwd(), "eval_data_path"),
+        os.path.join(os.getcwd(), "uncur_data_path"),
     )
 
     return app, img1, img2, img3
@@ -50,7 +50,7 @@ def test_load_image(app):
     img_test = app.load_image()  # if image_name is None
     assert img.all() == img_test.all()
 
-    app.cur_selected_path = "eval_data_path"
+    app.cur_selected_path = "uncur_data_path"
     img_test2 = app.load_image("cat.png")  # if a filename is given
     assert img2.all() == img_test2.all()
 
@@ -98,13 +98,13 @@ def test_run_inference_run(app):
 def test_search_segs(app):
     app, _, _, _ = app
     app.cur_selected_img = "cat.png"
-    app.cur_selected_path = "eval_data_path"
+    app.cur_selected_path = "uncur_data_path"
     app.search_segs()
     res = app.seg_filepaths
     assert len(res) == 1
     assert res[0] == "cat_seg.tiff"
     # also remove the seg as it is not needed for other scripts
-    os.remove("eval_data_path/cat_seg.tiff")
+    os.remove("uncur_data_path/cat_seg.tiff")
 
 
 """
