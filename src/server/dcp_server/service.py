@@ -142,10 +142,16 @@ class SegmentationService:
             try:
                 model_obj = getattr(seg, "model", None)
                 
-                # First check if model has device attribute (e.g., Cellpose models)
-                device_attr = getattr(model_obj, "device", None)
-                if device_attr and "cuda" in str(device_attr).lower():
+                # Check for gpu attribute (Cellpose 3.x models)
+                gpu_attr = getattr(model_obj, "gpu", None)
+                if gpu_attr:
                     model_on_cuda = True
+                
+                # Check for device attribute (Cellpose models)
+                if not model_on_cuda:
+                    device_attr = getattr(model_obj, "device", None)
+                    if device_attr and "cuda" in str(device_attr).lower():
+                        model_on_cuda = True
                 
                 # Otherwise check parameters
                 if not model_on_cuda:
