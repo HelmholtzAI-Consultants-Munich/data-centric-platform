@@ -19,7 +19,7 @@ from PyQt5.QtGui import QKeySequence
 from dcp_client.gui._custom_qt_helpers import IconProvider, CustomItemDelegate
 from dcp_client.gui.napari_window import NapariWindow
 from dcp_client.gui._my_widget import MyWidget
-from dcp_client.gui._filesystem_wig import MyQFileSystemModel
+from dcp_client.gui._filesystem_wig import MyQFileSystemModel, SegmentationFilterProxyModel
 
 from dcp_client.utils import settings
 
@@ -102,10 +102,10 @@ class MainWindow(MyWidget):
 
         :param app: The Application instance. See dcp_client.app for more information.
         :type app: dcp_client.app.Application
-        :param app.eval_data_path: Chosen path to images without labels, selected by the user in the WelcomeWindow.
-        :type app.eval_data_path: str
-        :param app.train_data_path: Chosen path to images with labels, selected by the user in the WelcomeWindow.
-        :type app.train_data_path: str
+        :param app.uncur_data_path: Chosen path to images without labels, selected by the user in the WelcomeWindow.
+        :type app.uncur_data_path: str
+        :param app.cur_data_path: Chosen path to images with labels, selected by the user in the WelcomeWindow.
+        :type app.cur_data_path: str
         """
 
         super().__init__()
@@ -150,26 +150,32 @@ class MainWindow(MyWidget):
         self.eval_dir_layout.addWidget(self.label_eval)
         # add eval dir list
         model_eval = MyQFileSystemModel(app=self.app)
+        model_eval.setRootPath("/")
         model_eval.setNameFilters(self.accepted_types)
         model_eval.setNameFilterDisables(False)  # Enable the filters
         model_eval.setIconProvider(IconProvider())
         model_eval.sort(0, Qt.AscendingOrder)
+        
+        # Wrap with proxy model to filter out _seg files
+        proxy_eval = SegmentationFilterProxyModel()
+        proxy_eval.setSourceModel(model_eval)
+        proxy_eval.setFilterCaseSensitivity(Qt.CaseInsensitive)
 
         self.list_view_eval = QTreeView(self)
         self.list_view_eval.setToolTip("To visualize an image double click on it, or select it and then hit Enter")
         self.list_view_eval.setIconSize(QSize(128, 128))
         self.list_view_eval.setStyleSheet("background-color: #ffffff")
-        self.list_view_eval.setModel(model_eval)
-        
-        model_eval.setRootPath("/")
+        self.list_view_eval.setModel(proxy_eval)
         self.list_view_eval.setItemDelegate(CustomItemDelegate())
 
         for i in range(1, 4):
             self.list_view_eval.hideColumn(i)
-        # self.list_view_eval.setFixedSize(600, 600)
-        self.list_view_eval.setRootIndex(
-            model_eval.setRootPath(self.app.eval_data_path)
-        )
+        
+        # Set root index for the proxy model
+        source_root_index = model_eval.setRootPath(self.app.uncur_data_path)
+        proxy_root_index = proxy_eval.mapFromSource(source_root_index)
+        self.list_view_eval.setRootIndex(proxy_root_index)
+        
         self.list_view_eval.clicked.connect(self.on_item_eval_selected)
         self.list_view_eval.doubleClicked.connect(self.on_item_eval_double_clicked)
 
@@ -211,25 +217,31 @@ class MainWindow(MyWidget):
         self.inprogr_dir_layout.addWidget(self.label_inprogr)
         # add in progress dir list
         model_inprogr = MyQFileSystemModel(app=self.app)
+        model_inprogr.setRootPath("/")
         model_inprogr.setNameFilters(self.accepted_types)
         model_inprogr.setNameFilterDisables(False)  # Enable the filters
-        # self.list_view = QListView(self)
+        model_inprogr.setIconProvider(IconProvider())
+        
+        # Wrap with proxy model to filter out _seg files
+        proxy_inprogr = SegmentationFilterProxyModel()
+        proxy_inprogr.setSourceModel(model_inprogr)
+        proxy_inprogr.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        
         self.list_view_inprogr = QTreeView(self)
         self.list_view_inprogr.setToolTip("Select an image, click it, then press Enter")
         self.list_view_inprogr.setIconSize(QSize(128, 128))
         self.list_view_inprogr.setStyleSheet("background-color: #ffffff")
-        model_inprogr.setIconProvider(IconProvider())
-        self.list_view_inprogr.setModel(model_inprogr)
-
-        model_inprogr.setRootPath("/")
+        self.list_view_inprogr.setModel(proxy_inprogr)
         self.list_view_inprogr.setItemDelegate(CustomItemDelegate())
 
         for i in range(1, 4):
             self.list_view_inprogr.hideColumn(i)
-        # self.list_view_inprogr.setFixedSize(600, 600)
-        self.list_view_inprogr.setRootIndex(
-            model_inprogr.setRootPath(self.app.inprogr_data_path)
-        )
+        
+        # Set root index for the proxy model
+        source_root_index_inprogr = model_inprogr.setRootPath(self.app.inprogr_data_path)
+        proxy_root_index_inprogr = proxy_inprogr.mapFromSource(source_root_index_inprogr)
+        self.list_view_inprogr.setRootIndex(proxy_root_index_inprogr)
+        
         self.list_view_inprogr.clicked.connect(self.on_item_inprogr_selected)
         self.list_view_inprogr.doubleClicked.connect(self.on_item_inprogr_double_clicked)
         self.inprogr_dir_layout.addWidget(self.list_view_inprogr)
@@ -263,23 +275,31 @@ class MainWindow(MyWidget):
         self.train_dir_layout.addWidget(self.label_train)
         # add train dir list
         model_train = MyQFileSystemModel(app=self.app)
+        model_train.setRootPath("/")
         model_train.setNameFilters(self.accepted_types)
         model_train.setNameFilterDisables(False)  # Enable the filters
-        # self.list_view = QListView(self)
+        model_train.setIconProvider(IconProvider())
+        
+        # Wrap with proxy model to filter out _seg files
+        proxy_train = SegmentationFilterProxyModel()
+        proxy_train.setSourceModel(model_train)
+        proxy_train.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        
         self.list_view_train = QTreeView(self)
         self.list_view_train.setToolTip("Select an image, click it, then press Enter")
         self.list_view_train.setIconSize(QSize(128, 128))
         self.list_view_train.setStyleSheet("background-color: #ffffff")
-        model_train.setIconProvider(IconProvider())
-        self.list_view_train.setModel(model_train)
-        model_train.setRootPath("/")
+        self.list_view_train.setModel(proxy_train)
         self.list_view_train.setItemDelegate(CustomItemDelegate())
 
         for i in range(1, 4):
             self.list_view_train.hideColumn(i)
-        self.list_view_train.setRootIndex(
-            model_train.setRootPath(self.app.train_data_path)
-        )
+        
+        # Set root index for the proxy model
+        source_root_index_train = model_train.setRootPath(self.app.cur_data_path)
+        proxy_root_index_train = proxy_train.mapFromSource(source_root_index_train)
+        self.list_view_train.setRootIndex(proxy_root_index_train)
+        
         self.list_view_train.clicked.connect(self.on_item_train_selected)
         self.list_view_train.doubleClicked.connect(self.on_item_train_double_clicked)
         self.train_dir_layout.addWidget(self.list_view_train)
@@ -336,7 +356,7 @@ class MainWindow(MyWidget):
         :type item: QModelIndex
         """
         self.app.cur_selected_img = item.data()
-        self.app.cur_selected_path = self.app.train_data_path
+        self.app.cur_selected_path = self.app.cur_data_path
 
     def on_item_eval_selected(self, item: QModelIndex) -> None:
         """
@@ -346,7 +366,7 @@ class MainWindow(MyWidget):
         :type item: QModelIndex
         """
         self.app.cur_selected_img = item.data()
-        self.app.cur_selected_path = self.app.eval_data_path
+        self.app.cur_selected_path = self.app.uncur_data_path
 
     def on_item_inprogr_selected(self, item: QModelIndex) -> None:
         """
@@ -367,7 +387,7 @@ class MainWindow(MyWidget):
         :type item: QModelIndex
         """
         self.app.cur_selected_img = item.data()
-        self.app.cur_selected_path = self.app.eval_data_path
+        self.app.cur_selected_path = self.app.uncur_data_path
         self.on_launch_napari_button_clicked()
 
     def on_item_inprogr_double_clicked(self, item: QModelIndex) -> None:
@@ -391,7 +411,7 @@ class MainWindow(MyWidget):
         :type item: QModelIndex
         """
         self.app.cur_selected_img = item.data()
-        self.app.cur_selected_path = self.app.train_data_path
+        self.app.cur_selected_path = self.app.cur_data_path
         self.on_launch_napari_button_clicked()
     '''
     def on_train_button_clicked(self) -> None:
@@ -526,8 +546,8 @@ if __name__ == "__main__":
         image_storage=image_storage,
         server_ip="0.0.0.0",
         server_port=7010,
-        eval_data_path="data",
-        train_data_path="",  # set path
+        uncur_data_path="data",
+        cur_data_path="",  # set path
         inprogr_data_path="",
     )  # set path
     window = MainWindow(app=app_)
