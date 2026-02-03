@@ -181,6 +181,9 @@ class MainWindow(MyWidget):
 
         self.eval_dir_layout.addWidget(self.list_view_eval)
         self.uncurated_layout.addLayout(self.eval_dir_layout)
+        
+        # Store reference to the model for cache clearing
+        self.model_eval = model_eval
 
         # add run inference button
         self.inference_button = QPushButton("Generate Labels", self)
@@ -247,6 +250,9 @@ class MainWindow(MyWidget):
         self.inprogr_dir_layout.addWidget(self.list_view_inprogr)
         self.inprogress_layout.addLayout(self.inprogr_dir_layout)
         self.inprogress_layout.addWidget(self.inference_button, alignment=Qt.AlignCenter)
+        
+        # Store reference to the model for cache clearing
+        self.model_inprogr = model_inprogr
 
         # the launch napari viewer button is currently hidden!
         launch_nap_button = QPushButton()
@@ -305,6 +311,9 @@ class MainWindow(MyWidget):
         self.train_dir_layout.addWidget(self.list_view_train)
         self.curated_layout.addLayout(self.train_dir_layout)
         self.curated_layout.addSpacing(40)
+        
+        # Store reference to the model for cache clearing
+        self.model_train = model_train
         '''
         # add train button
         self.train_button = QPushButton("Train Model", self)
@@ -452,6 +461,19 @@ class MainWindow(MyWidget):
         self.progress_bar.setRange(0, total)
         self.progress_bar.setValue(current)
 
+    def clear_image_caches(self) -> None:
+        """
+        Clears the image caches from all file system models.
+        This should be called after new segmentations are created to force
+        the views to reload and overlay the new segmentations.
+        """
+        if hasattr(self, 'model_eval'):
+            self.model_eval.clear_cache()
+        if hasattr(self, 'model_inprogr'):
+            self.model_inprogr.clear_cache()
+        if hasattr(self, 'model_train'):
+            self.model_train.clear_cache()
+
     def on_launch_napari_button_clicked(self):
         ''' 
         Launches the napari window after the image is selected.
@@ -518,6 +540,10 @@ class MainWindow(MyWidget):
             logger.debug("Creating warning box")
             _ = self.create_warning_box(message_text, message_title)
             logger.debug("Warning box closed")
+
+            # Clear image caches to reload images with new segmentations
+            logger.debug("Clearing image caches")
+            self.clear_image_caches()
 
             # Re-enable buttons
             logger.debug("Re-enabling inference button")
