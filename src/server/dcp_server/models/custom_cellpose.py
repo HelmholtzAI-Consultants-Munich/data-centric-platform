@@ -53,12 +53,16 @@ class CustomCellpose(models.CellposeModel, Model):
         self.loss = 1e6
         self.metric = 0
         
-        # Move model to GPU if available
+        # Log GPU status (GPU is handled by cellpose via gpu parameter in config)
         logger = logging.getLogger(__name__)
         if torch.cuda.is_available():
-            self.cuda()
+            self.device = torch.device("cuda")
+            self.gpu = True
+            if hasattr(self, 'net') and self.net is not None:
+                self.net = self.net.cuda()
             logger.info(f"Model moved to GPU: {torch.cuda.get_device_name(0)}")
         else:
+            self.device = torch.device("cpu")
             logger.info("GPU not available, using CPU")
 
     def eval(self, img: np.ndarray) -> np.ndarray:
