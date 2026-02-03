@@ -4,6 +4,10 @@ import logging
 import numpy as np
 
 import torch
+
+# Disable MKLDNN globally before importing cellpose to prevent CUDA conflicts
+#torch.backends.mkldnn.enabled = False
+
 from torch import nn
 
 from cellpose import models, utils
@@ -39,32 +43,31 @@ class CustomCellpose(models.CellposeModel, Model):
         :type eval_config: dict
         """
 
-        # Disable MKLDNN first to avoid CUDA conflicts
-        torch.backends.mkldnn.enabled = False
-        
         # Initialize the cellpose model
         # super().__init__(**model_config["segmentor"])
         Model.__init__(
             self, model_name, model_config, data_config, eval_config
         )
-        models.CellposeModel.__init__(self, **model_config["segmentor"])
+        
+        # Add gpu=True to segmentor config if CUDA is available
+        segmentor_config = model_config["segmentor"].copy()
+        if torch.cuda.is_available():
+            segmentor_config["gpu"] = True
+        
+        models.CellposeModel.__init__(self, **segmentor_config)
         self.model_config = model_config
         self.data_config = data_config
         self.eval_config = eval_config
         self.model_name = model_name
-        self.mkldnn = False  # otherwise we get error with saving model
+        #self.mkldnn = False  # otherwise we get error with saving model
         self.loss = 1e6
         self.metric = 0
         
-        # Auto-detect GPU and move model if available (Cellpose 3.1.1 has better GPU support)
+        # Log GPU status
         logger = logging.getLogger(__name__)
         if torch.cuda.is_available():
-            self.gpu = True
-            if hasattr(self, 'net') and self.net is not None:
-                self.net.cuda()
             logger.info(f"GPU enabled: {torch.cuda.get_device_name(0)}")
         else:
-            self.gpu = False
             logger.info("Using CPU for inference")
 
     def eval(self, img: np.ndarray) -> np.ndarray:
