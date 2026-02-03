@@ -733,7 +733,7 @@ class NapariWindow(MyWidget):
                 + " more than one connected component was found. Would you like us to clean this up and keep only the largest connect component?"
             )
             usr_response = self.create_selection_box(message_text, "Clean up")
-            logger.info('User response to connected components check:', usr_response)
+            logger.info('User response to connected components check: %s', usr_response)
             if usr_response=='action' and self.fix_small_objs: 
                 seg = Compute4Mask.keep_largest_components_pair(seg, faulty_ids_annot)
                 self.viewer.layers[seg_name_to_save].data = seg
@@ -744,7 +744,7 @@ class NapariWindow(MyWidget):
         logger.info('Connected component checks passed.')
 
         annot_error, holes = Compute4Mask.assert_filled_objects(seg)
-        logger.info('Holes found in objects:', annot_error)
+        logger.info('Holes found in objects: %s', annot_error)
         if annot_error:
             message_text = (
                 "For object(s) with ID(s): "+ ", ".join(str(id) for id in list(holes.keys())[:-1])
@@ -753,7 +753,7 @@ class NapariWindow(MyWidget):
                 + " holes where found. Would you like us to clean this up and fill the holes in the segmentation?"
             )
             usr_response = self.create_selection_box(message_text, "Clean up")
-            logger.info('User response to holes check:', usr_response)
+            logger.info('User response to holes check: %s', usr_response)
             if usr_response=='action' and self.fix_small_holes: 
                 seg = Compute4Mask.fill_holes(seg, holes)
                 self.viewer.layers[seg_name_to_save].data = seg
