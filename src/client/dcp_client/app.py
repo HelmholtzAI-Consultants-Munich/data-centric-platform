@@ -95,18 +95,21 @@ class Application:
             message_title = "Error"
         return message_text, message_title
 
-    async def _segment_images_recursively(self, image_list, output_directory):
+    async def _segment_images_recursively(self, image_list, output_directory, progress_callback=None):
         """Recursively segments each image in the list.
         
         :param image_list: List of image file paths in eval_data_path
         :type image_list: list
         :param output_directory: Directory where segmentation masks will be saved
         :type output_directory: str
+        :param progress_callback: Optional callback function to report progress. Called with (current, total) arguments.
+        :type progress_callback: callable, optional
         :return: List of unsupported files
         :rtype: list
         """
         unsupported_files = []
-        for img_path in image_list:
+        total_images = len(image_list)
+        for idx, img_path in enumerate(image_list):
             try:
                 # Load the image
                 img = self.fs_image_storage.load_image(self.eval_data_path, os.path.basename(img_path))
@@ -122,13 +125,21 @@ class Application:
                 )
                 seg_path = os.path.join(output_directory, seg_name)
                 self.fs_image_storage.save_image(output_directory, seg_name, mask)
+                
+                # Report progress
+                if progress_callback:
+                    progress_callback(idx + 1, total_images)
             except Exception as e:
                 unsupported_files.append(os.path.basename(img_path))
         
         return unsupported_files
 
-    def run_inference(self):
-        """Checks if the ml model is connected to the server, connects if not (and if possible), and runs inference on all images in eval_data_path"""
+    def run_inference(self, progress_callback=None):
+        """Checks if the ml model is connected to the server, connects if not (and if possible), and runs inference on all images in eval_data_path
+        
+        :param progress_callback: Optional callback function to report progress. Called with (current, total) arguments.
+        :type progress_callback: callable, optional
+        """
         if not self.ml_model.is_connected and not self.try_server_connection():
             message_title = "Warning"
             message_text = "Connection could not be established. Please check if the server is running and try again."
@@ -146,7 +157,7 @@ class Application:
             
             # Process images recursively
             import asyncio
-            unsupported_files.extend(asyncio.run(self._segment_images_recursively(image_list, self.eval_data_path)))
+            unsupported_files.extend(asyncio.run(self._segment_images_recursively(image_list, self.eval_data_path, progress_callback=progress_callback)))
             
             # Prepare response message
             if len(unsupported_files) > 0:

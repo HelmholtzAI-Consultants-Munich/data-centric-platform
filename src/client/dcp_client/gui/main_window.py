@@ -36,6 +36,7 @@ class WorkerThread(QThread):
     """
 
     task_finished = pyqtSignal(tuple)
+    progress_updated = pyqtSignal(int, int)  # current, total
 
     def __init__(
         self,
@@ -63,7 +64,7 @@ class WorkerThread(QThread):
         """
         try:
             if self.task == "inference":
-                message_text, message_title = self.app.run_inference()
+                message_text, message_title = self.app.run_inference(progress_callback=self.on_progress)
             elif self.task == "train":
                 message_text, message_title = self.app.run_train()
             else:
@@ -74,6 +75,17 @@ class WorkerThread(QThread):
             message_text, message_title = f"Exception in WorkerThread: {e}", "Error"
 
         self.task_finished.emit((message_text, message_title))
+
+    def on_progress(self, current: int, total: int) -> None:
+        """
+        Callback to emit progress updates.
+
+        :param current: Number of images processed so far.
+        :type current: int
+        :param total: Total number of images to process.
+        :type total: int
+        """
+        self.progress_updated.emit(current, total)
 
 
 class MainWindow(MyWidget):
@@ -350,12 +362,25 @@ class MainWindow(MyWidget):
         Is called once user clicks the "Generate Labels" button.
         """
         self.inference_button.setEnabled(False)
-        self.progress_bar.setRange(0, 0)
+        self.progress_bar.setRange(0, 1)  # Default range; will be updated by progress
         # initialise the worker thread
         self.worker_thread = WorkerThread(app=self.app, task="inference")
         self.worker_thread.task_finished.connect(self.on_finished)
+        self.worker_thread.progress_updated.connect(self.on_progress_updated)
         # start the worker thread to run inference
         self.worker_thread.start()
+
+    def on_progress_updated(self, current: int, total: int) -> None:
+        """
+        Updates the progress bar based on the number of images segmented.
+        
+        :param current: Number of images processed so far.
+        :type current: int
+        :param total: Total number of images to process.
+        :type total: int
+        """
+        self.progress_bar.setRange(0, total)
+        self.progress_bar.setValue(current)
 
     def on_launch_napari_button_clicked(self):
         ''' 
