@@ -157,7 +157,7 @@ class MainWindow(MyWidget):
 
         self.list_view_eval = QTreeView(self)
         self.list_view_eval.setToolTip("Select an image, click it, then press Enter")
-        self.list_view_eval.setIconSize(QSize(300, 300))
+        self.list_view_eval.setIconSize(QSize(128, 128))
         self.list_view_eval.setStyleSheet("background-color: #ffffff")
         self.list_view_eval.setModel(model_eval)
         
@@ -215,6 +215,7 @@ class MainWindow(MyWidget):
         # self.list_view = QListView(self)
         self.list_view_inprogr = QTreeView(self)
         self.list_view_inprogr.setToolTip("Select an image, click it, then press Enter")
+        self.list_view_inprogr.setIconSize(QSize(128, 128))
         self.list_view_inprogr.setStyleSheet("background-color: #ffffff")
         model_inprogr.setIconProvider(IconProvider())
         self.list_view_inprogr.setModel(model_inprogr)
@@ -265,6 +266,7 @@ class MainWindow(MyWidget):
         # self.list_view = QListView(self)
         self.list_view_train = QTreeView(self)
         self.list_view_train.setToolTip("Select an image, click it, then press Enter")
+        self.list_view_train.setIconSize(QSize(128, 128))
         self.list_view_train.setStyleSheet("background-color: #ffffff")
         model_train.setIconProvider(IconProvider())
         self.list_view_train.setModel(model_train)
