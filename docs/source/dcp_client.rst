@@ -18,7 +18,7 @@ dcp_client.gui
 
 dcp_client.utils
    Contains utility modules for various tasks.
-    - ``dcp_client.utils.bentoml_model``: Handles interactions with BentoML for model inference and training.
+    - ``dcp_client.utils.bentoml_model``: Handles interactions with BentoML for model inference.
     - ``dcp_client.utils.fsimagestorage``: Provides functions for managing images stored in the filesystem.
     - ``dcp_client.utils.settings``: Defines initialization functions and settings.
     - ``dcp_client.utils.sync_src_dst``: Implements data synchronization between source and destination.
