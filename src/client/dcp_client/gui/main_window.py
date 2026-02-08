@@ -7,6 +7,8 @@ from qtpy.QtWidgets import (
                             QPushButton,
                             QVBoxLayout,
                             QHBoxLayout,
+                            QSizePolicy,
+                           QWidget,
                             QLabel,
                             QTreeView,
                             QProgressBar,
@@ -22,6 +24,7 @@ from dcp_client.gui._my_widget import MyWidget
 from dcp_client.gui._filesystem_wig import MyQFileSystemModel, SegmentationFilterProxyModel
 
 from dcp_client.utils import settings
+from dcp_client.gui.feature_extraction_window import ExtractFeaturesDialog
 
 logger = logging.getLogger(__name__)
 
@@ -183,7 +186,8 @@ class MainWindow(MyWidget):
         self.list_view_eval.clicked.connect(self.on_item_eval_selected)
         self.list_view_eval.doubleClicked.connect(self.on_item_eval_double_clicked)
 
-        self.eval_dir_layout.addWidget(self.list_view_eval)
+        self.list_view_eval.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.eval_dir_layout.addWidget(self.list_view_eval, 1)
         self.uncurated_layout.addLayout(self.eval_dir_layout)
         
         # Store reference to the model for cache clearing
@@ -204,8 +208,7 @@ class MainWindow(MyWidget):
             "QPushButton:pressed { background-color: #7bc432; }"
         )
         self.inference_button.clicked.connect(self.on_run_inference_button_clicked)
-        #self.uncurated_layout.addWidget(self.inference_button, alignment=Qt.AlignCenter)
-        self.uncurated_layout.addSpacing(40)
+        # buttons will be placed in a full-width widget below the file lists
 
         dir_layout.addLayout(self.uncurated_layout)
 
@@ -240,6 +243,7 @@ class MainWindow(MyWidget):
         self.list_view_inprogr.setStyleSheet("background-color: #ffffff")
         self.list_view_inprogr.setModel(proxy_inprogr)
         self.list_view_inprogr.setItemDelegate(CustomItemDelegate())
+        self.list_view_inprogr.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         for i in range(1, 4):
             self.list_view_inprogr.hideColumn(i)
@@ -251,9 +255,8 @@ class MainWindow(MyWidget):
         
         self.list_view_inprogr.clicked.connect(self.on_item_inprogr_selected)
         self.list_view_inprogr.doubleClicked.connect(self.on_item_inprogr_double_clicked)
-        self.inprogr_dir_layout.addWidget(self.list_view_inprogr)
+        self.inprogr_dir_layout.addWidget(self.list_view_inprogr, 1)
         self.inprogress_layout.addLayout(self.inprogr_dir_layout)
-        self.inprogress_layout.addWidget(self.inference_button, alignment=Qt.AlignCenter)
         
         # Store reference to the model for cache clearing
         self.model_inprogr = model_inprogr
@@ -312,9 +315,26 @@ class MainWindow(MyWidget):
         
         self.list_view_train.clicked.connect(self.on_item_train_selected)
         self.list_view_train.doubleClicked.connect(self.on_item_train_double_clicked)
-        self.train_dir_layout.addWidget(self.list_view_train)
+        self.list_view_train.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.train_dir_layout.addWidget(self.list_view_train, 1)
         self.curated_layout.addLayout(self.train_dir_layout)
-        self.curated_layout.addSpacing(40)
+
+        # add extract features button under curated dataset
+        self.extract_button = QPushButton("Extract features", self)
+        self.extract_button.setStyleSheet(
+            """QPushButton 
+            { 
+                  background-color: #3d81d1;
+                  font-size: 12px; 
+                  font-weight: bold;
+                  color: #ffffff; 
+                  border-radius: 5px;
+                  padding: 8px 16px; }"""
+            "QPushButton:hover { background-color: #7bc432; }"
+            "QPushButton:pressed { background-color: #7bc432; }"
+        )
+        self.extract_button.clicked.connect(self.on_extract_features_clicked)
+        # extract button moved to bottom button bar
         
         # Store reference to the model for cache clearing
         self.model_train = model_train
@@ -337,7 +357,50 @@ class MainWindow(MyWidget):
         self.curated_layout.addWidget(self.train_button, alignment=Qt.AlignCenter)
         '''
         dir_layout.addLayout(self.curated_layout)
+
+
         main_layout.addLayout(dir_layout)
+
+        # Full-width button bar below the file-list columns with three containers
+        buttons_widget = QWidget()
+        btn_layout = QHBoxLayout()
+        btn_layout.setContentsMargins(0, 8, 0, 8)
+
+        # Left container - holds Generate Labels under Uncurated column
+        left_container = QWidget()
+        left_layout = QHBoxLayout()
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.addStretch(1)
+        left_layout.addWidget(self.inference_button, 0, Qt.AlignHCenter)
+        left_layout.addStretch(1)
+        left_container.setLayout(left_layout)
+        left_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        # Middle container - empty (keeps spacing)
+        mid_container = QWidget()
+        mid_layout = QHBoxLayout()
+        mid_layout.setContentsMargins(0, 0, 0, 0)
+        mid_layout.addStretch(1)
+        mid_container.setLayout(mid_layout)
+        mid_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        # Right container - holds Extract features under Curated column
+        right_container = QWidget()
+        right_layout = QHBoxLayout()
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.addStretch(1)
+        right_layout.addWidget(self.extract_button, 0, Qt.AlignHCenter)
+        right_layout.addStretch(1)
+        right_container.setLayout(right_layout)
+        right_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        btn_layout.addWidget(left_container)
+        btn_layout.addWidget(mid_container)
+        btn_layout.addWidget(right_container)
+
+        buttons_widget.setLayout(btn_layout)
+        buttons_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        main_layout.addWidget(buttons_widget)
 
         # add progress bar with hint text
         progress_layout = QHBoxLayout()
@@ -480,6 +543,11 @@ class MainWindow(MyWidget):
         """
         self.progress_bar.setRange(0, total)
         self.progress_bar.setValue(current)
+
+    def on_extract_features_clicked(self) -> None:
+        """Opens the extract features dialog."""
+        dlg = ExtractFeaturesDialog(parent=self, default_filename="extracted_features.csv")
+        dlg.exec_()
 
     def clear_image_caches(self) -> None:
         """

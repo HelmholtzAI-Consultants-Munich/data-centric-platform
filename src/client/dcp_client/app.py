@@ -6,6 +6,12 @@ import numpy as np
 
 from dcp_client.utils import utils
 from dcp_client.utils import settings
+import logging
+import numpy as np
+import pandas as pd
+from skimage.measure import label as sklabel, regionprops
+
+logger = logging.getLogger(__name__)
 
 
 class Model(ABC):
@@ -268,3 +274,99 @@ class Application:
         for image_name in image_names:
             if os.path.exists(os.path.join(self.cur_selected_path, image_name)):
                 self.fs_image_storage.delete_image(self.cur_selected_path, image_name)
+
+    def extract_features(self, save_path: str, selected_features: dict):
+        """Compute selected features for all images in curated dataset and save as CSV.
+
+        Returns (success: bool, message: str)
+        """
+        if not self.cur_data_path:
+            return False, "Curated data path not set"
+
+        img_list = self.fs_image_storage.search_images(self.cur_data_path)
+        if not img_list:
+            return False, "No images found in curated dataset"
+
+        rows = []
+        for img_name in img_list:
+            seg_files = self.fs_image_storage.search_segs(self.cur_data_path, img_name)
+            if not seg_files:
+                continue
+            seg_name = seg_files[0]
+            try:
+                seg = self.fs_image_storage.load_image(self.cur_data_path, seg_name)
+                img = self.fs_image_storage.load_image(self.cur_data_path, img_name)
+            except Exception as e:
+                logger.warning(f"Skipping {img_name} due to load error: {e}")
+                continue
+
+            if getattr(seg, 'ndim', 0) > 2 and seg.shape[0] > 1:
+                instance_mask = seg[0]
+                class_mask = seg[1]
+            else:
+                instance_mask = seg
+                class_mask = None
+
+            try:
+                instance_mask = instance_mask.astype(int)
+            except Exception:
+                instance_mask = np.asarray(instance_mask, dtype=int)
+
+            if getattr(img, 'ndim', 0) > 2:
+                intensity_img = img.mean(axis=2) # for RGB
+            else:
+                intensity_img = img
+
+            props = regionprops(instance_mask, intensity_image=intensity_img)
+            for p in props:
+                inst_id = int(p.label)
+                row = {"image_id": img_name, "instance_id": inst_id}
+                if class_mask is not None:
+                    cmap_crop = class_mask[p.slice]
+                    mask = p.image
+                    vals = cmap_crop[mask]
+                    if vals.size:
+                        cls = int(np.bincount(vals).argmax())
+                    else:
+                        cls = None
+                    row["class_label"] = cls
+
+                if selected_features.get("Area [pix^2]"):
+                    row["Area [pix^2]"] = int(p.area)
+                if selected_features.get("Perimeter [pix]"):
+                    try:
+                        row["Perimeter [pix]"] = float(p.perimeter)
+                    except Exception:
+                        row["Perimeter [pix]"] = float('nan')
+                if selected_features.get("Intensity Mean"):
+                    try:
+                        row["Intensity Mean"] = float(p.mean_intensity)
+                    except Exception:
+                        row["Intensity Mean"] = float('nan')
+                if selected_features.get("Intensity std"):
+                    try:
+                        arr = p.intensity_image[p.image]
+                        row["Intensity std"] = float(np.std(arr)) if arr.size else float('nan')
+                    except Exception:
+                        row["Intensity std"] = float('nan')
+
+                rows.append(row)
+
+        if not rows:
+            return False, "No segmented instances found in curated dataset."
+
+        df = pd.DataFrame(rows)
+        cols = ["image_id", "instance_id"]
+        if "class_label" in df.columns:
+            cols.append("class_label")
+        for feat in ["Area [pix^2]", "Perimeter [pix]", "Intensity Mean", "Intensity std"]:
+            if feat in df.columns:
+                cols.append(feat)
+        df = df[cols]
+
+        try:
+            df.to_csv(save_path, index=False)
+            logger.info(f"Features saved to {save_path}")
+            return True, f"Features saved to {save_path}"
+        except Exception as e:
+            return False, f"Could not save features: {e}"
