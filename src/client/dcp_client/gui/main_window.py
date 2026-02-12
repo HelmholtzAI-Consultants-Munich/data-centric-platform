@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 from qtpy.QtWidgets import (
@@ -21,6 +22,8 @@ from dcp_client.gui._my_widget import MyWidget
 from dcp_client.gui._filesystem_wig import MyQFileSystemModel
 
 from dcp_client.utils import settings
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from dcp_client.app import Application
@@ -376,19 +379,54 @@ class MainWindow(MyWidget):
         :param result: The result emitted by the worker thread. See return type of WorkerThread.run
         :type result: tuple
         """
-        # Stop the pulsation
-        self.progress_bar.setRange(0, 1)
-        # Display message of result
-        message_text, message_title = result
-        _ = self.create_warning_box(message_text, message_title)
-        # Re-enable buttons
-        self.inference_button.setEnabled(True)
-        #self.train_button.setEnabled(True)
-        # Delete the worker thread when it's done
-        self.worker_thread.quit()
-        self.worker_thread.wait()
-        self.worker_thread.deleteLater()
-        self.worker_thread = None  # Set to None to indicate it's no longer in use
+        logger.info("on_finished called")
+        try:
+            # Stop the pulsation
+            logger.debug("Setting progress bar range to 0, 1")
+            self.progress_bar.setRange(0, 1)
+            
+            # Display message of result
+            message_text, message_title = result
+            logger.info(f"Task completed - Title: {message_title}, Message: {message_text[:100]}...")
+            
+            logger.debug("Creating warning box")
+            _ = self.create_warning_box(message_text, message_title)
+            logger.debug("Warning box closed")
+            
+            # Re-enable buttons
+            logger.debug("Re-enabling inference button")
+            self.inference_button.setEnabled(True)
+            #self.train_button.setEnabled(True)
+            
+            # Clean up worker thread safely
+            if self.worker_thread is not None:
+                logger.debug("Disconnecting worker thread signals")
+                try:
+                    self.worker_thread.task_finished.disconnect(self.on_finished)
+                except RuntimeError as e:
+                    logger.warning(f"Signal disconnect failed: {e}")
+                
+                logger.debug("Quitting worker thread")
+                self.worker_thread.quit()
+                
+                logger.debug("Waiting for worker thread to finish (timeout: 5 seconds)")
+                if not self.worker_thread.wait(5000):  # 5 second timeout
+                    logger.warning("Worker thread did not finish within timeout, forcing termination")
+                    self.worker_thread.terminate()
+                    self.worker_thread.wait()
+                else:
+                    logger.debug("Worker thread finished successfully")
+                
+                logger.debug("Scheduling worker thread deletion")
+                self.worker_thread.deleteLater()
+                self.worker_thread = None  # Set to None to indicate it's no longer in use
+                logger.info("Worker thread cleanup completed")
+            else:
+                logger.warning("Worker thread was already None")
+                
+        except Exception as e:
+            logger.error(f"Error in on_finished: {e}", exc_info=True)
+            self.inference_button.setEnabled(True)
 
 
 if __name__ == "__main__":
