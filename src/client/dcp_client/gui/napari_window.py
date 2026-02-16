@@ -698,7 +698,7 @@ class NapariWindow(MyWidget):
         """
          # TODO: Do we allow this? What if they moved it by mistake? User can always manually move from their folders?)
         # check if user is trying to save image which is already in curated folder - not allowed to change!
-        if self.app.cur_selected_path == str(self.app.train_data_path):
+        if self.app.cur_selected_path == str(self.app.cur_data_path):
             message_text = "Image is already in the 'Curated data' folder and should not be changed again"
             _ = self.create_warning_box(message_text, message_title="Warning")
             return
@@ -733,7 +733,7 @@ class NapariWindow(MyWidget):
                 + " more than one connected component was found. Would you like us to clean this up and keep only the largest connect component?"
             )
             usr_response = self.create_selection_box(message_text, "Clean up")
-            logger.info('User response to connected components check:', usr_response)
+            logger.info('User response to connected components check: %s', usr_response)
             if usr_response=='action' and self.fix_small_objs: 
                 seg = Compute4Mask.keep_largest_components_pair(seg, faulty_ids_annot)
                 self.viewer.layers[seg_name_to_save].data = seg
@@ -744,7 +744,7 @@ class NapariWindow(MyWidget):
         logger.info('Connected component checks passed.')
 
         annot_error, holes = Compute4Mask.assert_filled_objects(seg)
-        logger.info('Holes found in objects:', annot_error)
+        logger.info('Holes found in objects: %s', annot_error)
         if annot_error:
             message_text = (
                 "For object(s) with ID(s): "+ ", ".join(str(id) for id in list(holes.keys())[:-1])
@@ -753,7 +753,7 @@ class NapariWindow(MyWidget):
                 + " holes where found. Would you like us to clean this up and fill the holes in the segmentation?"
             )
             usr_response = self.create_selection_box(message_text, "Clean up")
-            logger.info('User response to holes check:', usr_response)
+            logger.info('User response to holes check: %s', usr_response)
             if usr_response=='action' and self.fix_small_holes: 
                 seg = Compute4Mask.fill_holes(seg, holes)
                 self.viewer.layers[seg_name_to_save].data = seg
@@ -806,7 +806,7 @@ class NapariWindow(MyWidget):
 
     def on_add_to_curated_button_clicked(self) -> None:
         """Defines what happens when the "Move to curated dataset folder" button is clicked."""
-        self.on_save_to_folder_clicked(self.app.train_data_path)
+        self.on_save_to_folder_clicked(self.app.cur_data_path)
     
     def on_add_to_inprogress_button_clicked(self) -> None:
         """Defines what happens when the "Move to curation in progress folder" button is clicked."""

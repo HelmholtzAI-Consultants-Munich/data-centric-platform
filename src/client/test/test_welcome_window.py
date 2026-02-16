@@ -53,8 +53,8 @@ def test_welcome_window_initialization(app):
 
 
 def test_warning_for_same_paths(qtbot, app, monkeypatch):
-    app.app.eval_data_path = "/same/path"
-    app.app.train_data_path = "/same/path"
+    app.app.uncur_data_path = "/same/path"
+    app.app.cur_data_path = "/same/path"
     app.app.inprogr_data_path = "/same/path"
 
     # Define a custom exec method that always returns QMessageBox.Ok
@@ -69,19 +69,19 @@ def test_warning_for_same_paths(qtbot, app, monkeypatch):
 
 
 def test_on_text_changed(qtbot, app):
-    app.app.train_data_path = "/initial/train/path"
-    app.app.eval_data_path = "/initial/eval/path"
+    app.app.cur_data_path = "/initial/train/path"
+    app.app.uncur_data_path = "/initial/eval/path"
     app.app.inprogr_data_path = "/initial/inprogress/path"
 
     app.on_text_changed(
         field_obj=app.train_textbox, field_name="train", text="/new/train/path"
     )
-    assert app.app.train_data_path == "/new/train/path"
+    assert app.app.cur_data_path == "/new/train/path"
 
     app.on_text_changed(
         field_obj=app.val_textbox, field_name="eval", text="/new/eval/path"
     )
-    assert app.app.eval_data_path == "/new/eval/path"
+    assert app.app.uncur_data_path == "/new/eval/path"
 
     app.on_text_changed(
         field_obj=app.inprogr_textbox,
@@ -92,8 +92,8 @@ def test_on_text_changed(qtbot, app):
 
 
 def test_start_main_not_selected(qtbot, app):
-    app.app.train_data_path = None
-    app.app.eval_data_path = None
+    app.app.cur_data_path = None
+    app.app.uncur_data_path = None
     app.sim = True
     qtbot.mouseClick(app.start_button, Qt.LeftButton)
     assert not hasattr(app, "mw")
@@ -102,12 +102,12 @@ def test_start_main_not_selected(qtbot, app):
 def test_start_main(qtbot, app, setup_global_variable):
     settings.accepted_types = setup_global_variable
 
-    # app.app.cur_selected_path = app.app.eval_data_path
+    # app.app.cur_selected_path = app.app.uncur_data_path
     # app.app.cur_selected_img = 'cat.png'
 
     # Set some paths for testing
-    app.app.eval_data_path = "/path/to/eval"
-    app.app.train_data_path = "/path/to/train"
+    app.app.uncur_data_path = "/path/to/eval"
+    app.app.cur_data_path = "/path/to/train"
     # Simulate clicking the start button
     qtbot.mouseClick(app.start_button, Qt.LeftButton)
     # Check if the main window is created
@@ -119,8 +119,8 @@ def test_start_main(qtbot, app, setup_global_variable):
 
 def test_start_upload_and_main(qtbot, app_remote, setup_global_variable, monkeypatch):
     settings.accepted_types = setup_global_variable
-    app_remote.app.eval_data_path = "/path/to/eval"
-    app_remote.app.train_data_path = "/path/to/train"
+    app_remote.app.uncur_data_path = "/path/to/eval"
+    app_remote.app.cur_data_path = "/path/to/train"
 
     # Define a custom exec method that always returns QMessageBox.Ok
     def custom_exec(self):
@@ -141,7 +141,7 @@ def test_browse_eval_clicked(qtbot, app, monkeypatch):
     def handle_dialog(*args, **kwargs):
         #if app.fd.isVisible(): 
         QCoreApplication.processEvents()
-        app.app.eval_data_path = '/path/to/selected/directory'
+        app.app.uncur_data_path = '/path/to/selected/directory'
 
     #def mock_file_dialog(*args, **kwargs):
     #       return ['/path/to/selected/directory']
@@ -160,18 +160,18 @@ def test_browse_eval_clicked(qtbot, app):
     # Simulate clicking the browse button for evaluation directory
     qtbot.mouseClick(app.file_open_button_val, Qt.LeftButton)
     # Check if the QFileDialog is shown
-    assert qtbot.waitUntil(lambda: hasattr(app, 'app.eval_data_path'), timeout=1000)
+    assert qtbot.waitUntil(lambda: hasattr(app, 'app.uncur_data_path'), timeout=1000)
     # Check if the textbox is updated with the selected path
-    assert app.val_textbox.text() == app.app.eval_data_path
+    assert app.val_textbox.text() == app.app.uncur_data_path
 
 
 def test_browse_train_clicked(qtbot, app):
     # Simulate clicking the browse button for train directory
     qtbot.mouseClick(app.file_open_button_train, Qt.LeftButton)
     # Check if the QFileDialog is shown
-    assert qtbot.waitUntil(lambda: hasattr(app, 'app.train_data_path'), timeout=1000)
+    assert qtbot.waitUntil(lambda: hasattr(app, 'app.cur_data_path'), timeout=1000)
     # Check if the textbox is updated with the selected path
-    assert app.train_textbox.text() == app.app.train_data_path
+    assert app.train_textbox.text() == app.app.cur_data_path
 
 def test_browse_inprogr_clicked(qtbot, app):
     # Simulate clicking the browse button for in-progress directory

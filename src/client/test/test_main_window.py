@@ -33,17 +33,17 @@ def app(qtbot, setup_global_variable):
     img2 = data.coffee()
     img3 = data.cat()
 
-    if not os.path.exists("train_data_path"):
-        os.mkdir("train_data_path")
-        imsave("train_data_path/astronaut.png", img1)
+    if not os.path.exists("cur_data_path"):
+        os.mkdir("cur_data_path")
+        imsave("cur_data_path/astronaut.png", img1)
 
     if not os.path.exists("in_prog"):
         os.mkdir("in_prog")
         imsave("in_prog/coffee.png", img2)
 
-    if not os.path.exists("eval_data_path"):
-        os.mkdir("eval_data_path")
-        imsave("eval_data_path/cat.png", img3)
+    if not os.path.exists("uncur_data_path"):
+        os.mkdir("uncur_data_path")
+        imsave("uncur_data_path/cat.png", img3)
 
     application = Application(
         BentomlModel(),
@@ -51,8 +51,8 @@ def app(qtbot, setup_global_variable):
         FilesystemImageStorage(),
         "0.0.0.0",
         7010,
-        "eval_data_path",
-        "train_data_path",
+        "uncur_data_path",
+        "cur_data_path",
         "in_prog",
     )
     # Create an instance of MainWindow
@@ -80,7 +80,7 @@ def test_item_train_selected(qtbot, app, setup_global_variable):
     # Assert that the selected item matches the expected item
     assert app.list_view_train.selectionModel().currentIndex() == index
     assert app.app.cur_selected_img == "astronaut.png"
-    assert app.app.cur_selected_path == app.app.train_data_path
+    assert app.app.cur_selected_path == app.app.cur_data_path
 
 
 def test_item_inprog_selected(qtbot, app, setup_global_variable):
@@ -110,7 +110,7 @@ def test_item_eval_selected(qtbot, app, setup_global_variable):
     # Assert that the selected item matches the expected item
     assert app.list_view_eval.selectionModel().currentIndex() == index
     assert app.app.cur_selected_img == "cat.png"
-    assert app.app.cur_selected_path == app.app.eval_data_path
+    assert app.app.cur_selected_path == app.app.uncur_data_path
 
 
 def test_train_button_click(qtbot, app):
@@ -185,7 +185,7 @@ def cleanup_files(request):
     # This code runs after all tests from all files have completed
     yield
     # Clean up
-    paths_to_clean = ["train_data_path", "in_prog", "eval_data_path"]
+    paths_to_clean = ["cur_data_path", "in_prog", "uncur_data_path"]
     for path in paths_to_clean:
         try:
             for fname in os.listdir(path):

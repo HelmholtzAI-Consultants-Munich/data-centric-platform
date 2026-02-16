@@ -83,15 +83,18 @@ Set the ``--mode`` argument to ``local`` or ``remote`` depending on which setup 
 
    - **Curated Dataset Path:**
 
-   This folder is intended to contain images along with their final segmentations. **Only** move images here when the segmentation is complete and finalised, you won't be able to change them after they have been moved here. These are then used for training your model.
+   This folder is intended to contain images along with their final segmentations. **Only** move images here when the segmentation is complete and finalised, you won't be able to change them after they have been moved here. These can then used for training a ML model, or other downstream tasks.
 
    After setting the paths for these three folders, you can click the **Start** button. If you have set the server configuration to the cloud, you will receive a message notifying you that your data will be uploaded to the cloud. Click **Ok** to continue.
 
 3. **Data Overview**
 ~~~~~~~~~~~~~~~~~~~~
 
-   The main working window will appear next. This gives you an overview of the directories selected in the previous step. You can select an image to view and hit 'Enter' to launch the viewer. The **Generate Labels:** button will run the segmentation model to generate labels for all images in the "Uncurated dataset" directory (this will call the ``segment_image`` service from the server). The resulting masks will have the same naming as their corresponding image, followed by '_seg'.
-   
+   The main working window will appear next. This gives you an overview of the directories selected in the previous step. The following options are available:
+   - You can double click on an image to view it or select it and then hit 'Enter' to launch the viewer. This will launch the viewer (see next step)
+   - **Generate Labels:** button will run the segmentation model to generate labels for all images in the "Uncurated dataset" directory (this will call the ``segment_image`` service from the server). The resulting masks will have the same naming as their corresponding image, followed by '_seg' in your data directory.
+   - **Extract features:** button will extract selected features for all data found in the "Curated dataset" and save them to an excel spreadsheet
+
    .. image:: https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/client_data_overview_window.png
       :width: 500
       :height: 200
@@ -147,7 +150,7 @@ Saving/removing data
 After adding or removing any objects and editing existing objects wherever necessary, there are three options available:
   
    - Click the **Move to Curation in progress folder** if you are not 100% certain about the labels you have created. You can also click on the label in the labels layer and change the name. This will result in several label files being created in the *In progress folder*, which can be examined later on.  **Note:** When changing the layer name in Napari, the user should rename it such that they add their initials or any other new info after _seg. E.g., if the labels of 1_seg.tiff have been changed in the Napari viewer, then the appropriate naming would for example be: 1_seg_CB.tiff and not 1_CB_seg.tiff.
-   - Click the **Move to Curated dataset folder** if you are certain that the labels you are now viewing are final and require no more curation. These images and labels will later be used for training the machine learning model, so make sure that you select this option only if you are certain about the labels. If several labels are displayed (opened from the 'Curation in progress' step), make sure to **click** on the single label in the labels layer list you wish to be moved to the *Curated data folder*. The other images will then be automatically deleted from this folder.
+   - Click the **Move to Curated dataset folder** if you are certain that the labels you are now viewing are final and require no more curation. These images and labels can later be used for training a machine learning model, so make sure that you select this option only if you are certain about the labels. If several labels are displayed (opened from the 'Curation in progress' step), make sure to **click** on the single label in the labels layer list you wish to be moved to the *Curated data folder*. The other images will then be automatically deleted from this folder.
    - Click the **Remove image from dataset** if you think that this image is an outlier and should not be included into your curated data.
 
 Auto clean up

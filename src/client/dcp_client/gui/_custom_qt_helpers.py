@@ -1,17 +1,95 @@
 from PyQt5.QtWidgets import  QFileIconProvider, QStyledItemDelegate
 from PyQt5.QtCore import QSize
-from PyQt5.QtGui import QPixmap, QIcon
+from PyQt5.QtGui import QPixmap, QIcon, QImage
+import numpy as np
+from PIL import Image
+from functools import lru_cache
 
 from dcp_client.utils import settings
 
-class IconProvider(QFileIconProvider):
-    def __init__(self) -> None:
-        """Initializes the IconProvider with the default icon size."""
+class LazyIconProvider(QFileIconProvider):
+    """
+    A lazy-loading icon provider that caches icons to avoid loading all images at once.
+    This prevents UI freezing when there are many images in a folder.
+    """
+    def __init__(self, icon_size: QSize = None) -> None:
+        """
+        Initializes the LazyIconProvider with caching.
+        
+        :param icon_size: The size for icons. Defaults to QSize(128, 128) for faster loading.
+        :type icon_size: QSize
+        """
         super().__init__()
-        self.ICON_SIZE = QSize(512, 512)
+        # Reduced from 512x512 to 128x128 for better performance
+        self.ICON_SIZE = icon_size or QSize(128, 128)
+        # Dictionary to cache loaded icons by filepath
+        self._icon_cache = {}
+
+    def _load_image_from_file(self, filepath: str) -> QIcon:
+        """
+        Load and process image from file path.
+        
+        :param filepath: Path to the image file.
+        :type filepath: str
+        :return: QIcon object or empty icon if loading fails.
+        :rtype: QIcon
+        """
+        try:
+            # Load image using PIL to handle 64-bit images properly
+            img = Image.open(filepath)
+            img_array = np.array(img)
+            
+            # Convert 64-bit types to 32-bit or 8-bit (Qt doesn't support 64-bit)
+            if img_array.dtype == np.float64:
+                # Assume normalized (0-1) or raw values, scale to 0-255
+                if img_array.max() <= 1.0:
+                    img_array = (img_array * 255).astype(np.uint8)
+                else:
+                    img_array = np.clip(img_array / img_array.max() * 255, 0, 255).astype(np.uint8)
+            elif img_array.dtype == np.int64:
+                # Convert int64 to uint8
+                img_array = np.clip(img_array, 0, 255).astype(np.uint8)
+            elif img_array.dtype == np.uint16:
+                # Convert uint16 to uint8
+                img_array = (img_array / 65535.0 * 255).astype(np.uint8)
+            elif img_array.dtype not in [np.uint8]:
+                # Handle any other dtype - convert to uint8
+                img_array = img_array.astype(np.uint8)
+            
+            # Convert to PIL Image in RGB mode
+            if len(img_array.shape) == 2:
+                # Grayscale
+                pil_img = Image.fromarray(img_array, mode='L').convert('RGB')
+            elif img_array.shape[2] == 1:
+                # Single channel
+                pil_img = Image.fromarray(img_array[:, :, 0], mode='L').convert('RGB')
+            elif img_array.shape[2] == 3:
+                # RGB
+                pil_img = Image.fromarray(img_array, mode='RGB')
+            elif img_array.shape[2] == 4:
+                # RGBA - convert to RGB
+                pil_img = Image.fromarray(img_array[:, :, :3], mode='RGB')
+            else:
+                # Fallback
+                pil_img = Image.fromarray(img_array).convert('RGB')
+            
+            # Resize to icon size
+            pil_img.thumbnail((self.ICON_SIZE.width(), self.ICON_SIZE.height()), Image.Resampling.LANCZOS)
+            
+            # Convert PIL image to QImage then QPixmap
+            data = pil_img.tobytes("raw", "RGB")
+            qimage = QImage(data, pil_img.width, pil_img.height, QImage.Format_RGB888)
+            pixmap = QPixmap.fromImage(qimage)
+            
+            return QIcon(pixmap)
+        except Exception as e:
+            # Return empty icon on failure instead of attempting fallback
+            return QIcon()
 
     def icon(self, type: QFileIconProvider.IconType) -> QIcon:
-        """Returns the icon for the specified file type.
+        """
+        Returns the icon for the specified file type with caching.
+        Icons are loaded on-demand and cached for performance.
 
         :param type: The type of the file for which the icon is requested.
         :type type: QFileIconProvider.IconType
@@ -21,15 +99,27 @@ class IconProvider(QFileIconProvider):
         try:
             fn = type.filePath()
         except AttributeError:
-            return super().icon(type)  # TODO handle exception differently?
+            return super().icon(type)
 
         if fn.endswith(settings.accepted_types):
-            a = QPixmap(self.ICON_SIZE)
-            # a = a.scaled(QSize(1024, 1024))
-            a.load(fn)
-            return QIcon(a)
+            # Check cache first
+            if fn in self._icon_cache:
+                return self._icon_cache[fn]
+            
+            # Load and cache the icon
+            icon = self._load_image_from_file(fn)
+            self._icon_cache[fn] = icon
+            return icon
         else:
             return super().icon(type)
+
+    def clear_cache(self) -> None:
+        """Clear the icon cache to free memory."""
+        self._icon_cache.clear()
+
+
+# Keep the old name for backward compatibility
+IconProvider = LazyIconProvider
 
 
 class CustomItemDelegate(QStyledItemDelegate):
