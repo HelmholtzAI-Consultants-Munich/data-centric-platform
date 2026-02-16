@@ -90,8 +90,11 @@ Set the ``--mode`` argument to ``local`` or ``remote`` depending on which setup 
 3. **Data Overview**
 ~~~~~~~~~~~~~~~~~~~~
 
-   The main working window will appear next. This gives you an overview of the directories selected in the previous step. You can select an image to view and hit 'Enter' to launch the viewer. The **Generate Labels:** button will run the segmentation model to generate labels for all images in the "Uncurated dataset" directory (this will call the ``segment_image`` service from the server). The resulting masks will have the same naming as their corresponding image, followed by '_seg'.
-   
+   The main working window will appear next. This gives you an overview of the directories selected in the previous step. The following options are available:
+   - You can double click on an image to view it or select it and then hit 'Enter' to launch the viewer. This will launch the viewer (see next step)
+   - **Generate Labels:** button will run the segmentation model to generate labels for all images in the "Uncurated dataset" directory (this will call the ``segment_image`` service from the server). The resulting masks will have the same naming as their corresponding image, followed by '_seg' in your data directory.
+   - **Extract features:** button will extract selected features for all data found in the "Curated dataset" and save them to an excel spreadsheet
+
    .. image:: https://raw.githubusercontent.com/HelmholtzAI-Consultants-Munich/data-centric-platform/main/src/client/readme_figs/client_data_overview_window.png
       :width: 500
       :height: 200

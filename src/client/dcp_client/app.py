@@ -170,6 +170,7 @@ class Application:
             # Process images recursively
             import asyncio
             unsupported_files.extend(asyncio.run(self._segment_images_recursively(image_list, self.uncur_data_path, progress_callback=progress_callback)))
+            unsupported_files = [file for file in unsupported_files if not file.startswith('.')]
             
             # Prepare response message
             if len(unsupported_files) > 0:

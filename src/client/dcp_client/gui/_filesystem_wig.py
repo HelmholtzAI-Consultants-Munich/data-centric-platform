@@ -7,7 +7,6 @@ from skimage.color import label2rgb
 from PyQt5.QtWidgets import QFileSystemModel
 from PyQt5.QtCore import Qt, QVariant, QDir, QSortFilterProxyModel
 from PyQt5.QtGui import QImage, QPixmap, QIcon
-from functools import lru_cache
 
 from dcp_client.utils import settings
 
@@ -108,25 +107,6 @@ class MyQFileSystemModel(QFileSystemModel):
             return ""
         else:
             return super().headerData(section, orientation, role)
-
-    def _process_mask_image(self, filepath_img: str) -> QImage:
-        """
-        Process a mask image for display.
-        
-        :param filepath_img: Path to the mask image
-        :return: Scaled QImage for display
-        """
-        try:
-            img = imread(filepath_img)
-            if img.ndim > 2:
-                img = img[0]
-            img = label2rgb(img)
-            img = (255 * img.copy()).astype(np.uint8)
-            height, width = img.shape[0], img.shape[1]
-            qimg = QImage(img, width, height, 3 * width, QImage.Format_RGB888)
-            return qimg.scaled(self.img_x, self.img_y, Qt.KeepAspectRatio)
-        except Exception as e:
-            return QImage()
 
     def _get_segmentation_path(self, filepath_img: str) -> str:
         """
