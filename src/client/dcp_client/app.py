@@ -1,11 +1,14 @@
+import os
 from abc import ABC, abstractmethod
 from typing import Tuple
 from numpy.typing import NDArray
-import os
-import numpy as np
 
 from dcp_client.utils import utils
 from dcp_client.utils import settings
+
+from dcp_client.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class Model(ABC):
@@ -14,7 +17,7 @@ class Model(ABC):
         pass
 
     @abstractmethod
-    def segment_image(self, image: NDArray) -> NDArray:
+    async def segment_image(self, image: NDArray) -> NDArray:
         """Segments a single image.
         
         :param image: Pre-loaded image as numpy array
@@ -120,9 +123,9 @@ class Application:
                     + settings.seg_name_string
                     + ".tiff"
                 )
-                seg_path = os.path.join(output_directory, seg_name)
                 self.fs_image_storage.save_image(output_directory, seg_name, mask)
             except Exception as e:
+                logger.warning("Segmentation failed for %s: %s", os.path.basename(img_path), e)  
                 unsupported_files.append(os.path.basename(img_path))
         
         return unsupported_files
