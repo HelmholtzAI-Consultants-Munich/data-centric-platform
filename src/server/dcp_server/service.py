@@ -1,12 +1,51 @@
 from __future__ import annotations
 import os
+import sys
 import numpy as np
 import bentoml
+import logging
+import logging.handlers
+import time
 
 from dcp_server.serviceclasses import CustomRunnable
 from dcp_server.utils.fsimagestorage import FilesystemImageStorage
 from dcp_server.utils.helpers import read_config
 from dcp_server.utils.logger import get_logger
+
+# Configure root logger IMMEDIATELY when service.py is loaded (in BentoML subprocess)
+log_file = os.path.join(os.path.expanduser("~"), ".dcp_server", "dcp_server.log")
+log_path = os.path.dirname(log_file)
+os.makedirs(log_path, exist_ok=True)
+
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.DEBUG)
+
+# File handler
+file_handler = logging.handlers.RotatingFileHandler(
+    log_file,
+    maxBytes=10485760,  # 10MB
+    backupCount=5
+)
+file_handler.setLevel(logging.DEBUG)
+file_formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+file_handler.setFormatter(file_formatter)
+
+# Console handler
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.INFO)
+console_formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+console_handler.setFormatter(console_formatter)
+
+# Add handlers only if not already present
+if not root_logger.handlers:
+    root_logger.addHandler(file_handler)
+    root_logger.addHandler(console_handler)
 
 logger = get_logger(__name__)
 
@@ -71,17 +110,89 @@ class SegmentationService:
         logger.info(f"[SegmentationService] Initialized segmentation with service_name={self.service_name}")
 
     @bentoml.api
-    async def segment_image(self, input_path: str) -> np.ndarray:
-        logger.debug(f"segment_image called with input_path={input_path}")
-        seg = self.segmentation
-        images = seg.imagestorage.search_images(input_path)
-        unsupported = seg.imagestorage.get_unsupported_files(input_path)
-
-        if not images:
-            logger.warning(f"No images found at {input_path}")
-            return np.array(images)
+    async def segment_image(self, image: np.ndarray) -> np.ndarray:
+        """Segments a single pre-loaded image.
         
-        logger.info(f"Found {len(images)} image(s) to segment")
-        await seg.segment_image(input_path, images)
-        logger.debug(f"Segmentation complete for {input_path}")
-        return np.array(unsupported)
+        :param image: Pre-loaded image as numpy array
+        :type image: np.ndarray
+        :return: Segmentation mask
+        :rtype: np.ndarray
+        """
+        logger.debug(f"segment_image called with image shape={image.shape}")
+        seg = self.segmentation
+        
+        try:
+            # Determine GPU usage for this inference
+            try:
+                import torch
+                gpu_available = torch.cuda.is_available()
+            except Exception:
+                gpu_available = False
+
+            runner_supports_gpu = False
+            try:
+                supports = getattr(seg.runner, "SUPPORTED_RESOURCES", None)
+                if supports:
+                    runner_supports_gpu = any(
+                        ("gpu" in str(s).lower() or "cuda" in str(s).lower()) for s in supports
+                    )
+            except Exception:
+                runner_supports_gpu = False
+
+            model_on_cuda = False
+            try:
+                model_obj = getattr(seg, "model", None)
+                
+                # Check for gpu attribute (Cellpose 3.x models)
+                gpu_attr = getattr(model_obj, "gpu", None)
+                if gpu_attr:
+                    model_on_cuda = True
+                
+                # Check for device attribute (Cellpose models)
+                if not model_on_cuda:
+                    device_attr = getattr(model_obj, "device", None)
+                    if device_attr and "cuda" in str(device_attr).lower():
+                        model_on_cuda = True
+                
+                # Otherwise check parameters
+                if not model_on_cuda:
+                    params = getattr(model_obj, "parameters", None)
+                    if callable(params):
+                        for p in params():
+                            if getattr(p, "is_cuda", False):
+                                model_on_cuda = True
+                                break
+            except Exception:
+                model_on_cuda = False
+
+            using_gpu = model_on_cuda or (gpu_available and runner_supports_gpu)
+            logger.info(
+                f"GPU available={gpu_available}; runner_supports_gpu={runner_supports_gpu}; model_on_cuda={model_on_cuda}; using_gpu_for_inference={using_gpu}"
+            )
+
+            # Start timing
+            start_time = time.time()
+            
+            # Prepare the image for segmentation
+            prepared_img = seg.imagestorage.prepare_img_for_eval(image)
+            
+            # Add channel axis into the model's evaluation parameters dictionary
+            seg.model.eval_config["segmentor"][
+                "channel_axis"
+            ] = seg.imagestorage.channel_ax
+            
+            # Evaluate the model
+            mask = await seg.runner.evaluate(img=prepared_img)
+            
+            # Prepare the mask for saving
+            mask = seg.imagestorage.prepare_mask_for_save(
+                mask, seg.model.eval_config["mask_channel_axis"]
+            )
+            
+            # Log elapsed time
+            elapsed_time = time.time() - start_time
+            logger.info(f"Segmentation completed in {elapsed_time:.2f} seconds for image with shape={image.shape}")
+            return mask
+        except Exception as e:
+            logger.error(f"Error during segmentation: {e}")
+            raise

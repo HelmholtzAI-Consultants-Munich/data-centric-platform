@@ -12,7 +12,6 @@ from skimage.io import imsave
 from dcp_client.app import Application
 from dcp_client.utils.bentoml_model import BentomlModel
 from dcp_client.utils.fsimagestorage import FilesystemImageStorage
-from dcp_client.utils.sync_src_dst import DataRSync
 
 
 @pytest.fixture
@@ -29,12 +28,10 @@ def app():
         os.mkdir("eval_data_path")
     imsave("eval_data_path/cat.png", img3)
 
-    rsyncer = DataRSync(user_name="local", host_name="local", server_repo_path=".")
-    # Note: Application signature is (ml_model, num_classes, syncer, image_storage, server_ip, server_port, eval_data_path, ...)
+    # Note: Application signature is (ml_model, num_classes, image_storage, server_ip, server_port, eval_data_path, ...)
     app = Application(
         BentomlModel(),
         1,
-        rsyncer,
         FilesystemImageStorage(),
         "0.0.0.0",
         7010,

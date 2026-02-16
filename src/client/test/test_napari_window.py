@@ -10,7 +10,6 @@ from dcp_client.app import Application
 from dcp_client.gui.napari_window import NapariWindow
 from dcp_client.utils.bentoml_model import BentomlModel
 from dcp_client.utils.fsimagestorage import FilesystemImageStorage
-from dcp_client.utils.sync_src_dst import DataRSync
 from dcp_client.utils import settings
 
 # @pytest.fixture
@@ -45,11 +44,9 @@ def napari_window(qtbot):
     imsave("eval_data_path/cat.png", img)
     imsave("eval_data_path/cat_seg.tiff", img_mask)
 
-    rsyncer = DataRSync(user_name="local", host_name="local", server_repo_path=".")
     application = Application(
         BentomlModel(),
         1,
-        rsyncer,
         FilesystemImageStorage(),
         "0.0.0.0",
         7010,

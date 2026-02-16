@@ -385,30 +385,25 @@ class MainWindow(MyWidget):
             logger.debug("Setting progress bar range to 0, 1")
             self.progress_bar.setRange(0, 1)
             
-            # Display message of result
+            # Display message of result (compute message first)
             message_text, message_title = result
             logger.info(f"Task completed - Title: {message_title}, Message: {message_text[:100]}...")
-            
-            logger.debug("Creating warning box")
-            _ = self.create_warning_box(message_text, message_title)
-            logger.debug("Warning box closed")
-            
-            # Re-enable buttons
-            logger.debug("Re-enabling inference button")
-            self.inference_button.setEnabled(True)
-            #self.train_button.setEnabled(True)
-            
-            # Clean up worker thread safely
+
+            # Clean up worker thread safely before showing a blocking dialog.
+            # Showing a modal dialog (QMessageBox.exec) while background threads
+            # are still shutting down can lead to deadlocks on some systems
+            # when logging streams are written from those threads. Moving cleanup
+            # first avoids that class of issues.
             if self.worker_thread is not None:
                 logger.debug("Disconnecting worker thread signals")
                 try:
                     self.worker_thread.task_finished.disconnect(self.on_finished)
                 except RuntimeError as e:
                     logger.warning(f"Signal disconnect failed: {e}")
-                
+
                 logger.debug("Quitting worker thread")
                 self.worker_thread.quit()
-                
+
                 logger.debug("Waiting for worker thread to finish (timeout: 5 seconds)")
                 if not self.worker_thread.wait(5000):  # 5 second timeout
                     logger.warning("Worker thread did not finish within timeout, forcing termination")
@@ -416,13 +411,22 @@ class MainWindow(MyWidget):
                     self.worker_thread.wait()
                 else:
                     logger.debug("Worker thread finished successfully")
-                
+
                 logger.debug("Scheduling worker thread deletion")
                 self.worker_thread.deleteLater()
                 self.worker_thread = None  # Set to None to indicate it's no longer in use
                 logger.info("Worker thread cleanup completed")
             else:
                 logger.warning("Worker thread was already None")
+
+            # Now show the (blocking) message box to the user and re-enable buttons.
+            logger.debug("Creating warning box")
+            _ = self.create_warning_box(message_text, message_title)
+            logger.debug("Warning box closed")
+
+            # Re-enable buttons
+            logger.debug("Re-enabling inference button")
+            self.inference_button.setEnabled(True)
                 
         except Exception as e:
             logger.error(f"Error in on_finished: {e}", exc_info=True)
@@ -436,16 +440,14 @@ if __name__ == "__main__":
     from dcp_client.utils.bentoml_model import BentomlModel
     from dcp_client.utils.fsimagestorage import FilesystemImageStorage
     from dcp_client.utils import settings
-    from dcp_client.utils.sync_src_dst import DataRSync
 
     settings.init()
     image_storage = FilesystemImageStorage()
     ml_model = BentomlModel()
-    data_sync = DataRSync(user_name="local", host_name="local", server_repo_path=None)
     app = QApplication(sys.argv)
     app_ = Application(
         ml_model=ml_model,
-        syncer=data_sync,
+        num_classes=1,
         image_storage=image_storage,
         server_ip="0.0.0.0",
         server_port=7010,

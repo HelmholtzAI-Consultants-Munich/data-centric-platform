@@ -11,7 +11,6 @@ from dcp_client.gui.welcome_window import WelcomeWindow
 from dcp_client.utils import settings
 from dcp_client.utils.bentoml_model import BentomlModel
 from dcp_client.utils.fsimagestorage import FilesystemImageStorage
-from dcp_client.utils.sync_src_dst import DataRSync
 from dcp_client.utils.utils import read_config
 from dcp_client.utils.logger import setup_logger, get_logger
 from PyQt5.QtWidgets import QApplication
@@ -132,18 +131,10 @@ def main():
         logger.debug("Initializing ML model...")
         ml_model = BentomlModel()
         
-        logger.debug("Initializing data synchronizer...")
-        data_sync = DataRSync(
-            user_name=server_config["user"],
-            host_name=server_config["host"],
-            server_repo_path=server_config["data-path"],
-        )
-        
         logger.debug("Initializing application...")
         welcome_app = Application(
             ml_model=ml_model,
             num_classes=num_classes,
-            syncer=data_sync,
             image_storage=image_storage,
             server_ip=server_config["ip"],
             server_port=server_config["port"],

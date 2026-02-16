@@ -1,8 +1,13 @@
 from copy import deepcopy
 from typing import List
+import logging
 import numpy as np
 
 import torch
+
+# Disable MKLDNN globally before importing cellpose to prevent CUDA conflicts
+#torch.backends.mkldnn.enabled = False
+
 from torch import nn
 
 from cellpose import models, utils
@@ -43,14 +48,27 @@ class CustomCellpose(models.CellposeModel, Model):
         Model.__init__(
             self, model_name, model_config, data_config, eval_config
         )
-        models.CellposeModel.__init__(self, **model_config["segmentor"])
+        
+        # Add gpu=True to segmentor config if CUDA is available
+        segmentor_config = model_config["segmentor"].copy()
+        if torch.cuda.is_available():
+            segmentor_config["gpu"] = True
+        
+        models.CellposeModel.__init__(self, **segmentor_config)
         self.model_config = model_config
         self.data_config = data_config
         self.eval_config = eval_config
         self.model_name = model_name
-        self.mkldnn = False  # otherwise we get error with saving model
+        #self.mkldnn = False  # otherwise we get error with saving model
         self.loss = 1e6
         self.metric = 0
+        
+        # Log GPU status
+        logger = logging.getLogger(__name__)
+        if torch.cuda.is_available():
+            logger.info(f"GPU enabled: {torch.cuda.get_device_name(0)}")
+        else:
+            logger.info("Using CPU for inference")
 
     def eval(self, img: np.ndarray) -> np.ndarray:
         """Evaluate the model - find mask of the given image

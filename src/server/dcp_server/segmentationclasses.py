@@ -1,4 +1,6 @@
 import os
+import numpy as np
+from numpy.typing import NDArray
 
 from dcp_server.utils import helpers
 from dcp_server.utils.fsimagestorage import FilesystemImageStorage
@@ -25,35 +27,31 @@ class GeneralSegmentation:
         self.model = model
         self.no_files_msg = "No image-label pairs found in curated directory"
 
-    async def segment_image(self, input_path: str, list_of_images: str) -> None:
-        """Segments images from the given  directory
+    async def segment_image(self, image: NDArray) -> NDArray:
+        """Segments a single pre-loaded image.
 
-        :param input_path: directory where the images are saved and where segmentation results will be saved
-        :type input_path: str
-        :param list_of_images: list of image objects from the directory that are currently supported
-        :type list_of_images: list
+        :param image: Pre-loaded image as numpy array
+        :type image: NDArray
+        :return: Segmentation mask
+        :rtype: NDArray
         """
+        # Prepare the image for evaluation
+        prepared_img = self.imagestorage.prepare_img_for_eval(image)
+        
+        # Add channel ax into the model's evaluation parameters dictionary
+        self.model.eval_config["segmentor"][
+            "channel_axis"
+        ] = self.imagestorage.channel_ax
+        
+        # Evaluate the model
+        mask = await self.runner.evaluate(img=prepared_img)
 
-        for img_filepath in list_of_images:
-            img = self.imagestorage.prepare_img_for_eval(img_filepath)
-            # Add channel ax into the model's evaluation parameters dictionary
-            self.model.eval_config["segmentor"][
-                "channel_axis"
-            ] = self.imagestorage.channel_ax
-            # Evaluate the model
-            mask = await self.runner.evaluate(img=img)
-
-            # And prepare the mask for saving
-            mask = self.imagestorage.prepare_mask_for_save(
-                mask, self.model.eval_config["mask_channel_axis"]
-            )
-            # Save segmentation
-            seg_name = (
-                helpers.get_path_stem(img_filepath)
-                + self.imagestorage.seg_name_string
-                + ".tiff"
-            )
-            self.imagestorage.save_image(os.path.join(input_path, seg_name), mask)
+        # And prepare the mask for saving
+        mask = self.imagestorage.prepare_mask_for_save(
+            mask, self.model.eval_config["mask_channel_axis"]
+        )
+        
+        return mask
 
 '''
 class GFPProjectSegmentation(GeneralSegmentation):
