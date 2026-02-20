@@ -9,6 +9,7 @@
         "bento_model_path": "cells",
         "service_name": "SegmentationService",
         "port": 7010,
+        "host": 0.0.0.0,
         "timeout": 1000,
     },
 

@@ -79,9 +79,10 @@ def main() -> None:
         )
         service_name = str(service_config["service_name"])
         port = str(service_config["port"])
+        host = str(service_config["host"])
         timeout = str(service_config["timeout"])
         
-        logger.info(f"Service: {service_name}, Port: {port}, Timeout: {timeout}")
+        logger.info(f"Service: {service_name}, Port: {port}, Host: {host}, Timeout: {timeout}")
         logger.info("Starting BentoML server...")
         
         subprocess.run(
@@ -91,7 +92,8 @@ def main() -> None:
                 "service:"+service_name,
                 "--working-dir",
                 local_path,
-                "--reload",
+                "--host",
+                host,
                 "--port=" + port,
                 "--timeout=" + timeout
             ]
