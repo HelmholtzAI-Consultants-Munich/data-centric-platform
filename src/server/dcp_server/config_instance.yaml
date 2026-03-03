@@ -18,8 +18,6 @@
     },
 
     "data": {
-        "accepted_types": [".jpg", ".jpeg", ".png", ".tiff", ".tif"],
-        "seg_name_string": "_seg",
         "gray": True,
         "rescale": True
     },
