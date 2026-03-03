@@ -6,7 +6,6 @@
 
     "service": {
         "runner_name": "bento_runner",
-        "bento_model_path": "cells",
         "service_name": "SegmentationService",
         "port": 7010,
         "host": 0.0.0.0,
