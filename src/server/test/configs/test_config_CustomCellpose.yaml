@@ -21,7 +21,6 @@
     },
 
     "data": {
-        "data_root": "data",
         "gray": True,
         "rescale": True
     },
