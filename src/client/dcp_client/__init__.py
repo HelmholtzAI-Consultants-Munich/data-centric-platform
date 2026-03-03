@@ -22,7 +22,6 @@ Subpackages
     - ``dcp_client.utils.bentoml_model``: Handles interactions with BentoML for model inference and training.
     - ``dcp_client.utils.fsimagestorage``: Provides functions for managing images stored in the filesystem.
     - ``dcp_client.utils.settings``: Defines initialization functions and settings.
-    - ``dcp_client.utils.sync_src_dst``: Implements data synchronization between source and destination.
     - ``dcp_client.utils.utils``: Offers various utility functions for common tasks.
 
 Submodules
@@ -33,7 +32,6 @@ Submodules
   - **Classes**:
   
     - ``dcp_client.app.Application``: Represents the main application and provides methods for image management, model interaction, and server connectivity.
-    - ``dcp_client.app.DataSync``: Abstract base class for data synchronization operations.
     - ``dcp_client.app.ImageStorage``: Abstract base class for image storage operations.
     - ``dcp_client.app.Model``: Abstract base class for model operations.
 

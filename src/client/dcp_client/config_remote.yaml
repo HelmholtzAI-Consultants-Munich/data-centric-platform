@@ -1,7 +1,5 @@
 {
     "server":{
-        "user": "rocky",
-        "host": "jusuf-vm", 
         "ip": "134.94.199.84", 
         "port": 7010
     }

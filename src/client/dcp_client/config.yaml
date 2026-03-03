@@ -1,7 +1,5 @@
 {
     "server":{
-        "user": "local", 
-        "host": "local", 
         "ip": "localhost", 
         "port": 7010
     }
