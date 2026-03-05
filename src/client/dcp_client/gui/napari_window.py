@@ -205,7 +205,6 @@ class NapariWindow(MyWidget):
             self.viewer.dims.events.current_step.connect(self.axis_changed)
             self.original_instance_mask = {}
             self.original_class_mask = {}
-            self.instances = {}
             for seg_file in self.seg_files:
                 layer_name = get_path_stem(seg_file)
                 inst = self.viewer.layers[layer_name].data[0]
@@ -215,7 +214,6 @@ class NapariWindow(MyWidget):
                 self.original_class_mask[layer_name] = Compute4Mask.add_contour(
                     class_ch, inst
                 )
-                self.instances[layer_name] = Compute4Mask.get_unique_objects(inst)
                 # Show class channel without contours so touching objects stay distinct
                 self.viewer.layers[layer_name].data[1] = (
                     Compute4Mask.get_class_mask_display(
@@ -595,14 +593,12 @@ class NapariWindow(MyWidget):
                 self.original_class_mask[self.cur_selected_seg],
                 instance_mask,
                 self.original_instance_mask[self.cur_selected_seg],
-                self.instances[self.cur_selected_seg],
+                Compute4Mask.get_unique_objects(
+                    self.original_instance_mask[self.cur_selected_seg]
+                ),
             )
         )
-        # update original instance mask and instances
         self.original_instance_mask[self.cur_selected_seg] = instance_mask
-        self.instances[self.cur_selected_seg] = Compute4Mask.get_unique_objects(
-            self.original_instance_mask[self.cur_selected_seg]
-        )
         # Show class channel without contours (single place for display transform)
         self.layer.data[1] = Compute4Mask.get_class_mask_display(
             instance_mask, self.original_class_mask[self.cur_selected_seg]
@@ -627,9 +623,6 @@ class NapariWindow(MyWidget):
         # and compute the updated instance mask
         self.original_instance_mask[self.cur_selected_seg] = (
             Compute4Mask.compute_new_instance_mask(labels_mask, instance_mask)
-        )
-        self.instances[self.cur_selected_seg] = Compute4Mask.get_unique_objects(
-            self.original_instance_mask[self.cur_selected_seg]
         )
         self.original_class_mask[self.cur_selected_seg] = labels_mask
         # update the viewer
