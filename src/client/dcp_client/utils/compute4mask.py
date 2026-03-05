@@ -7,7 +7,36 @@ from scipy.ndimage import label as labelnd, binary_fill_holes
 class Compute4Mask:
     """
     Compute4Mask provides methods for manipulating masks to make visualisation in the viewer easier.
+
+    Class mask convention:
+    - **Canonical** class mask: every pixel of each instance has a class (including contour pixels).
+      Use this for storage, comparison, and propagation (e.g. compute_new_labels_mask).
+    - **Display** class mask: canonical with contour pixels set to 0, so touching objects do not
+      visually share a class in the viewer. Use only when setting layer.data[1] for the class channel.
+    - Use add_contour(display_class_mask, instance_mask) to get canonical from what the user sees.
+    - Use get_class_mask_display(instance_mask, canonical_class_mask) to get what to show in the viewer.
     """
+
+    @staticmethod
+    def get_class_mask_display(
+        instance_mask: np.ndarray,
+        class_mask_canonical: np.ndarray,
+        contours_level: float = 0.8,
+    ) -> np.ndarray:
+        """Return the class mask suitable for display (contour pixels set to 0).
+
+        Use this whenever setting the class channel in the viewer so that touching
+        objects are not assigned the same class visually.
+
+        :param instance_mask: The instance mask array.
+        :param class_mask_canonical: The canonical class mask (with contours filled).
+        :param contours_level: Value for find_contours. See get_contours.
+        :return: A copy of class_mask_canonical with contour pixels set to 0.
+        """
+        contour_mask = Compute4Mask.get_contours(instance_mask, contours_level=contours_level)
+        display = class_mask_canonical.copy()
+        display[contour_mask != 0] = 0
+        return display
 
     @staticmethod
     def get_contours(

@@ -206,27 +206,22 @@ class NapariWindow(MyWidget):
             self.original_instance_mask = {}
             self.original_class_mask = {}
             self.instances = {}
-            self.contours_mask = {}
             for seg_file in self.seg_files:
                 layer_name = get_path_stem(seg_file)
-                # get unique instance labels for each seg
-                self.original_instance_mask[layer_name] = deepcopy(
-                    self.viewer.layers[layer_name].data[0]
+                inst = self.viewer.layers[layer_name].data[0]
+                class_ch = self.viewer.layers[layer_name].data[1]
+                self.original_instance_mask[layer_name] = deepcopy(inst)
+                # Keep canonical class mask (with contours); display uses contour-free version
+                self.original_class_mask[layer_name] = Compute4Mask.add_contour(
+                    class_ch, inst
                 )
-                self.original_class_mask[layer_name] = deepcopy(
-                    self.viewer.layers[layer_name].data[1]
+                self.instances[layer_name] = Compute4Mask.get_unique_objects(inst)
+                # Show class channel without contours so touching objects stay distinct
+                self.viewer.layers[layer_name].data[1] = (
+                    Compute4Mask.get_class_mask_display(
+                        inst, self.original_class_mask[layer_name]
+                    )
                 )
-                # compute unique instance ids
-                self.instances[layer_name] = Compute4Mask.get_unique_objects(
-                    self.original_instance_mask[layer_name]
-                )
-                # remove border from class mask
-                self.contours_mask[layer_name] = Compute4Mask.get_contours(
-                    self.original_instance_mask[layer_name], contours_level=0.8
-                )
-                self.viewer.layers[layer_name].data[1][
-                    self.contours_mask[layer_name] != 0
-                ] = 0
 
             self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
 
@@ -529,7 +524,10 @@ class NapariWindow(MyWidget):
         and 'fill_button'.
         """
         
-        self.original_class_mask[self.cur_selected_seg] = deepcopy(self.layer.data[1])
+        # Layer holds display class mask; keep canonical form (with contours) for logic
+        self.original_class_mask[self.cur_selected_seg] = Compute4Mask.add_contour(
+            self.layer.data[1], self.layer.data[0]
+        )
         self.switch_controls("paint_button", True)
         self.switch_controls("erase_button", True)
         self.switch_controls("fill_button", True)
@@ -605,14 +603,10 @@ class NapariWindow(MyWidget):
         self.instances[self.cur_selected_seg] = Compute4Mask.get_unique_objects(
             self.original_instance_mask[self.cur_selected_seg]
         )
-        # compute contours to remove from class mask visualisation
-        self.contours_mask[self.cur_selected_seg] = Compute4Mask.get_contours(
-            instance_mask, contours_level=0.8
+        # Show class channel without contours (single place for display transform)
+        self.layer.data[1] = Compute4Mask.get_class_mask_display(
+            instance_mask, self.original_class_mask[self.cur_selected_seg]
         )
-        vis_labels_mask = deepcopy(self.original_class_mask[self.cur_selected_seg])
-        vis_labels_mask[self.contours_mask[self.cur_selected_seg] != 0] = 0
-        # update the viewer
-        self.layer.data[1] = vis_labels_mask
         self.layer.refresh()
 
     def update_instance_mask(
