@@ -271,7 +271,7 @@ class NapariWindow(MyWidget):
             self.layer = None
 
         # add buttons for moving images to other dirs
-        add_to_inprogress_button = QPushButton('Move to \'Curatation in progress\' folder')
+        add_to_inprogress_button = QPushButton('Move to \'Curation in progress\' folder')
         add_to_inprogress_button.setStyleSheet(
         """QPushButton 
             { 
@@ -472,6 +472,12 @@ class NapariWindow(MyWidget):
             if isinstance(act, napari.layers.Labels) and "_seg" in act.name:
                 self.cur_selected_seg = act.name
                 self.layer = act
+                # Keep qctrl in sync so paint/erase/fill target the active seg layer
+                if self.qctrl is not None:
+                    try:
+                        self.qctrl = self.viewer.window.qt_viewer.controls.widgets[act]
+                    except (KeyError, TypeError):
+                        pass
             elif isinstance(act, napari.layers.Image):
                 pass
         else:
@@ -645,7 +651,7 @@ class NapariWindow(MyWidget):
             getattr(self.qctrl, target_widget).setEnabled(status)
             if info_message is not None:
                 getattr(self.qctrl, target_widget).setToolTip(info_message)
-        except:
+        except Exception:
             pass
 
     def check_and_update_if_layers_changed(self, seg, class_mask_with_contour, seg_name_to_save):
@@ -698,7 +704,7 @@ class NapariWindow(MyWidget):
         # TODO if more than one item is selected this will break!
         if "_seg" not in seg_name_to_save:
             message_text = (
-                "Please select the segmenation you wish to save from the layer list."
+                "Please select the segmentation you wish to save from the layer list."
                 "The labels layer should have the same name as the image to which it corresponds, followed by _seg."
             )
             _ = self.create_warning_box(message_text, message_title="Warning")
@@ -715,7 +721,7 @@ class NapariWindow(MyWidget):
                 + ", ".join(str(id) for id in faulty_ids_annot[:-1])
                 + (", " if len(faulty_ids_annot) > 1 else "")
                 + str(faulty_ids_annot[-1])
-                + " more than one connected component was found. Would you like us to clean this up and keep only the largest connect component?"
+                + " more than one connected component was found. Would you like us to clean this up and keep only the largest connected component?"
             )
             usr_response = self.create_selection_box(message_text, "Clean up")
             logger.info('User response to connected components check: %s', usr_response)
@@ -734,7 +740,7 @@ class NapariWindow(MyWidget):
                 "For object(s) with ID(s): "+ ", ".join(str(id) for id in list(holes.keys())[:-1])
                 + (", " if len(list(holes.keys())) > 1 else "")
                 + str(list(holes.keys())[-1])
-                + " holes where found. Would you like us to clean this up and fill the holes in the segmentation?"
+                + " holes were found. Would you like us to clean this up and fill the holes in the segmentation?"
             )
             usr_response = self.create_selection_box(message_text, "Clean up")
             logger.info('User response to holes check: %s', usr_response)
@@ -755,7 +761,7 @@ class NapariWindow(MyWidget):
             if annot_error:
                 inst= seg[0]
                 message_text = (
-                    "You still haven't annotated all obects in your class mask. Please go back and complete the annotation, replacing" \
+                    "You still haven't annotated all objects in your class mask. Please go back and complete the annotation, replacing" \
                     + " any objects with default value '-1' with the actual class label. Instance id "+ str(np.unique(inst[np.where(seg[1]==-1)]) ) +" is still unlabelled."
                 )
                 usr_response = self.create_selection_box(message_text, "Annotation incomplete!")
@@ -765,7 +771,7 @@ class NapariWindow(MyWidget):
             if annot_error: 
                 class_ids = Compute4Mask.get_unique_objects(seg[1])
                 message_text = (
-                    "Your class label contains "+ str(len(class_ids)) +" classses, whereas you specified "
+                    "Your class label contains "+ str(len(class_ids)) +" classes, whereas you specified "
                     + str(self.app.num_classes) + " number of classes at runtime."
                     + "Please go back and fix your class mask. Current class ids in your image are: " 
                     + ", ".join(str(id) for id in class_ids)

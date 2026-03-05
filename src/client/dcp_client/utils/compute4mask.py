@@ -226,7 +226,7 @@ class Compute4Mask:
         :param mask: The mask which we want to test.
         :type mask: numpy.ndarray
         :return:
-            - A boolean which is True if there is more than one connected components corresponding to an instance id and Fale otherwise.
+            - A boolean which is True if there is more than one connected components corresponding to an instance id and False otherwise.
             - A list with all the instance ids for which more than one connected component was found.
         :rtype :
             - bool
@@ -262,8 +262,8 @@ class Compute4Mask:
         
         Parameters
         ----------
-        labels : np.ndarray
-            Instance mask.
+        mask : np.ndarray
+            Instance mask (or 2-channel seg with instance in channel 0).
         
         Returns
         -------
@@ -387,9 +387,10 @@ class Compute4Mask:
         :type faulty_ids: List
         :return: Numpy array of cleaned masks: (cleaned_mask, cleaned_class_mask)
         """
-        if mask.ndim>2:
+        if mask.ndim > 2:
             cleaned_mask = mask[0].copy()
             cleaned_class_mask = mask[1].copy()
+            stacked = np.stack([cleaned_mask, cleaned_class_mask], axis=0)
         else:
             cleaned_mask = mask.copy()
             cleaned_class_mask = np.zeros_like(mask)
@@ -419,8 +420,9 @@ class Compute4Mask:
                 cleaned_mask[remove_mask] = 0
                 cleaned_class_mask[remove_mask] = 0
 
-                # Stack along new first axis
-                stacked = np.stack([cleaned_mask, cleaned_class_mask], axis=0)
+                if mask.ndim > 2:
+                    stacked = np.stack([cleaned_mask, cleaned_class_mask], axis=0)
 
-        if mask.ndim>2: return stacked
-        else: return cleaned_mask
+        if mask.ndim > 2:
+            return stacked
+        return cleaned_mask
