@@ -41,8 +41,6 @@ class NapariWindow(MyWidget):
         screen_size = QGuiApplication.primaryScreen().geometry()
         self.resize(int(screen_size.width()*0.8), int(screen_size.height()*0.8))
 
-        self.fix_small_objs = True  # flag to control whether to fix small objects or not
-        self.fix_small_holes = True # flag to control whether to fix small holes or not
         # Load image and get corresponding segmentation filenames
         img = self.app.load_image()
         self.app.search_segs()
@@ -734,12 +732,11 @@ class NapariWindow(MyWidget):
             )
             usr_response = self.create_selection_box(message_text, "Clean up")
             logger.info('User response to connected components check: %s', usr_response)
-            if usr_response=='action' and self.fix_small_objs: 
+            if usr_response=='action': 
+                logger.info('Keeping largest connected component for object ids: %s', faulty_ids_annot)
                 seg = Compute4Mask.keep_largest_components_pair(seg, faulty_ids_annot)
                 self.viewer.layers[seg_name_to_save].data = seg
                 self.viewer.layers[seg_name_to_save].refresh()
-            else: 
-                self.fix_small_objs = False
                 
         logger.info('Connected component checks passed.')
 
@@ -754,12 +751,11 @@ class NapariWindow(MyWidget):
             )
             usr_response = self.create_selection_box(message_text, "Clean up")
             logger.info('User response to holes check: %s', usr_response)
-            if usr_response=='action' and self.fix_small_holes: 
+            if usr_response=='action': 
+                logger.info('Filling holes for object ids: %s', list(holes.keys()))
                 seg = Compute4Mask.fill_holes(seg, holes)
                 self.viewer.layers[seg_name_to_save].data = seg
                 self.viewer.layers[seg_name_to_save].refresh()
-            else:
-                self.fix_small_holes = False 
                 
         logger.info('Objects with holes checks passed.')
 

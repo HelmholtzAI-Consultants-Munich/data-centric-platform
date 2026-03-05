@@ -259,7 +259,7 @@ class Compute4Mask:
         return has_holes, hole_masks
 
     @staticmethod
-    def fill_holes(mask: np.ndarray, holes_dict: dict = None) -> np.ndarray:
+    def fill_holes(mask: np.ndarray, holes_dict: dict) -> np.ndarray:
         """
         Fill holes in all labeled instances of a mask.
         
@@ -282,14 +282,11 @@ class Compute4Mask:
             filled_mask = mask.copy()
             filled_class_mask = np.zeros_like(mask)
 
-
-        if holes_dict is None:
-            _, holes_dict = find_label_holes(filled_mask)
-
         for instance_id, holes in holes_dict.items():
-            filled_class_mask[holes] = filled_class_mask[filled_mask == instance_id][0]
             filled_mask[holes] = instance_id
-
+            class_id = np.max(filled_class_mask[filled_mask == instance_id]) # this will return 0 and class id
+            filled_class_mask[holes] = class_id
+            
         # Stack along new first axis
         stacked = np.stack([filled_mask, filled_class_mask], axis=0)
 
