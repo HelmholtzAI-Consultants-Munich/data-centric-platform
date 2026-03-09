@@ -67,22 +67,24 @@ def test_run_inference_no_connection(app):
 
 def test_run_inference_run(app):
     app, _, _, _ = app
-    # start the sevrer in the background locally
+    # start the server in the background locally
     command = [
         "bentoml",
         "serve",
         "--working-dir",
         "../server/dcp_server",
         "service:SegmentationService",
-        "--reload",
+        "--host=0.0.0.0",
         "--port=7010",
+        "--timeout=1000",
     ]
+
     process = subprocess.Popen(command, stdin=subprocess.PIPE, shell=False)
     # and wait until it is setup
     if sys.platform == "win32" or sys.platform == "cygwin":
         time.sleep(240)
     else:
-        time.sleep(60)
+        time.sleep(60) 
     # then do model serving
     message_text, message_title = app.run_inference()
     # and assert returning message
