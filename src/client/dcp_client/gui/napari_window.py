@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 from dcp_client.utils.utils import get_path_stem, check_equal_arrays
 from dcp_client.utils.compute4mask import Compute4Mask
 from dcp_client.gui._my_widget import MyWidget
-from dcp_client.gui.sam_controller import SAMController
+from dcp_client.utils.ai_assistance.sam_controller import SAMController
 
 logger = logging.getLogger(__name__)
 
