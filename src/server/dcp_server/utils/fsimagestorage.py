@@ -30,8 +30,6 @@ class FilesystemImageStorage:
         # tif can be grayscale 2D or 3D [Z, H, W]
         # image channels have already been removed in imread if self.gray=True
         # skimage.imread reads RGB or RGBA images in always with channel axis in dim=2
-
-        ## TODO: accept also RGB images
         
         if self.gray == False and len(orig_size) == 2:
             self.img_height, self.img_width = orig_size[0], orig_size[1]
@@ -40,6 +38,9 @@ class FilesystemImageStorage:
         elif self.gray == True and len(orig_size) == 2:
             self.img_height, self.img_width = orig_size[0], orig_size[1]
             self.channel_ax = None
+        elif self.gray == True and len(orig_size) == 3: # RGB or RGBA image
+            self.img_height, self.img_width = orig_size[0], orig_size[1]
+            self.channel_ax = 2
         # if we have 3 dimensions the [Z, H, W]
         elif self.gray == False and len(orig_size) == 3:
             self.img_height, self.img_width = orig_size[0], orig_size[1]
@@ -104,6 +105,7 @@ class FilesystemImageStorage:
         """
         # Normalise and rescale the image
         img = normalise(img)
+        print('AAAAAAAAAAA', img.shape)
         self.get_image_size_properties(img)
         # Get size properties
         if self.rescale:
