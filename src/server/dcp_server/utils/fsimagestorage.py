@@ -105,7 +105,6 @@ class FilesystemImageStorage:
         """
         # Normalise and rescale the image
         img = normalise(img)
-        print('AAAAAAAAAAA', img.shape)
         self.get_image_size_properties(img)
         # Get size properties
         if self.rescale:
