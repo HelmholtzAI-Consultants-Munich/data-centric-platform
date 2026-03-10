@@ -6,7 +6,6 @@
 
     "service": {
         "runner_name": "bento_runner",
-        "bento_model_path": "cells",
         "service_name": "SegmentationService",
         "port": 7010,
         "host": 0.0.0.0,
@@ -30,11 +29,6 @@
     },
 
     "data": {
-        "data_root": "data",
-        "accepted_types": [".jpg", ".jpeg", ".png", ".tiff", ".tif"],
-        "seg_name_string": "_seg",
-        "patch_size": 64,
-        "noise_intensity": 5,
         "gray": True,
         "rescale": True
     },

@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 from dcp_client.utils.utils import get_path_stem, check_equal_arrays
 from dcp_client.utils.compute4mask import Compute4Mask
 from dcp_client.gui._my_widget import MyWidget
-from dcp_client.gui.sam_controller import SAMController
+from dcp_client.utils.ai_assistance.sam_controller import SAMController
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +41,6 @@ class NapariWindow(MyWidget):
         screen_size = QGuiApplication.primaryScreen().geometry()
         self.resize(int(screen_size.width()*0.8), int(screen_size.height()*0.8))
 
-        self.fix_small_objs = True  # flag to control whether to fix small objects or not
-        self.fix_small_holes = True # flag to control whether to fix small holes or not
         # Load image and get corresponding segmentation filenames
         img = self.app.load_image()
         self.app.search_segs()
@@ -207,28 +205,21 @@ class NapariWindow(MyWidget):
             self.viewer.dims.events.current_step.connect(self.axis_changed)
             self.original_instance_mask = {}
             self.original_class_mask = {}
-            self.instances = {}
-            self.contours_mask = {}
             for seg_file in self.seg_files:
                 layer_name = get_path_stem(seg_file)
-                # get unique instance labels for each seg
-                self.original_instance_mask[layer_name] = deepcopy(
-                    self.viewer.layers[layer_name].data[0]
+                inst = self.viewer.layers[layer_name].data[0]
+                class_ch = self.viewer.layers[layer_name].data[1]
+                self.original_instance_mask[layer_name] = deepcopy(inst)
+                # Keep canonical class mask (with contours); display uses contour-free version
+                self.original_class_mask[layer_name] = Compute4Mask.add_contour(
+                    class_ch, inst
                 )
-                self.original_class_mask[layer_name] = deepcopy(
-                    self.viewer.layers[layer_name].data[1]
+                # Show class channel without contours so touching objects stay distinct
+                self.viewer.layers[layer_name].data[1] = (
+                    Compute4Mask.get_class_mask_display(
+                        inst, self.original_class_mask[layer_name]
+                    )
                 )
-                # compute unique instance ids
-                self.instances[layer_name] = Compute4Mask.get_unique_objects(
-                    self.original_instance_mask[layer_name]
-                )
-                # remove border from class mask
-                self.contours_mask[layer_name] = Compute4Mask.get_contours(
-                    self.original_instance_mask[layer_name], contours_level=0.8
-                )
-                self.viewer.layers[layer_name].data[1][
-                    self.contours_mask[layer_name] != 0
-                ] = 0
 
             self.qctrl = self.viewer.window.qt_viewer.controls.widgets[self.layer]
 
@@ -280,7 +271,7 @@ class NapariWindow(MyWidget):
             self.layer = None
 
         # add buttons for moving images to other dirs
-        add_to_inprogress_button = QPushButton('Move to \'Curatation in progress\' folder')
+        add_to_inprogress_button = QPushButton('Move to \'Curation in progress\' folder')
         add_to_inprogress_button.setStyleSheet(
         """QPushButton 
             { 
@@ -481,6 +472,12 @@ class NapariWindow(MyWidget):
             if isinstance(act, napari.layers.Labels) and "_seg" in act.name:
                 self.cur_selected_seg = act.name
                 self.layer = act
+                # Keep qctrl in sync so paint/erase/fill target the active seg layer
+                if self.qctrl is not None:
+                    try:
+                        self.qctrl = self.viewer.window.qt_viewer.controls.widgets[act]
+                    except (KeyError, TypeError):
+                        pass
             elif isinstance(act, napari.layers.Image):
                 pass
         else:
@@ -531,7 +528,10 @@ class NapariWindow(MyWidget):
         and 'fill_button'.
         """
         
-        self.original_class_mask[self.cur_selected_seg] = deepcopy(self.layer.data[1])
+        # Layer holds display class mask; keep canonical form (with contours) for logic
+        self.original_class_mask[self.cur_selected_seg] = Compute4Mask.add_contour(
+            self.layer.data[1], self.layer.data[0]
+        )
         self.switch_controls("paint_button", True)
         self.switch_controls("erase_button", True)
         self.switch_controls("fill_button", True)
@@ -599,22 +599,16 @@ class NapariWindow(MyWidget):
                 self.original_class_mask[self.cur_selected_seg],
                 instance_mask,
                 self.original_instance_mask[self.cur_selected_seg],
-                self.instances[self.cur_selected_seg],
+                Compute4Mask.get_unique_objects(
+                    self.original_instance_mask[self.cur_selected_seg]
+                ),
             )
         )
-        # update original instance mask and instances
         self.original_instance_mask[self.cur_selected_seg] = instance_mask
-        self.instances[self.cur_selected_seg] = Compute4Mask.get_unique_objects(
-            self.original_instance_mask[self.cur_selected_seg]
+        # Show class channel without contours (single place for display transform)
+        self.layer.data[1] = Compute4Mask.get_class_mask_display(
+            instance_mask, self.original_class_mask[self.cur_selected_seg]
         )
-        # compute contours to remove from class mask visualisation
-        self.contours_mask[self.cur_selected_seg] = Compute4Mask.get_contours(
-            instance_mask, contours_level=0.8
-        )
-        vis_labels_mask = deepcopy(self.original_class_mask[self.cur_selected_seg])
-        vis_labels_mask[self.contours_mask[self.cur_selected_seg] != 0] = 0
-        # update the viewer
-        self.layer.data[1] = vis_labels_mask
         self.layer.refresh()
 
     def update_instance_mask(
@@ -635,9 +629,6 @@ class NapariWindow(MyWidget):
         # and compute the updated instance mask
         self.original_instance_mask[self.cur_selected_seg] = (
             Compute4Mask.compute_new_instance_mask(labels_mask, instance_mask)
-        )
-        self.instances[self.cur_selected_seg] = Compute4Mask.get_unique_objects(
-            self.original_instance_mask[self.cur_selected_seg]
         )
         self.original_class_mask[self.cur_selected_seg] = labels_mask
         # update the viewer
@@ -660,7 +651,7 @@ class NapariWindow(MyWidget):
             getattr(self.qctrl, target_widget).setEnabled(status)
             if info_message is not None:
                 getattr(self.qctrl, target_widget).setToolTip(info_message)
-        except:
+        except Exception:
             pass
 
     def check_and_update_if_layers_changed(self, seg, class_mask_with_contour, seg_name_to_save):
@@ -713,7 +704,7 @@ class NapariWindow(MyWidget):
         # TODO if more than one item is selected this will break!
         if "_seg" not in seg_name_to_save:
             message_text = (
-                "Please select the segmenation you wish to save from the layer list."
+                "Please select the segmentation you wish to save from the layer list."
                 "The labels layer should have the same name as the image to which it corresponds, followed by _seg."
             )
             _ = self.create_warning_box(message_text, message_title="Warning")
@@ -730,16 +721,15 @@ class NapariWindow(MyWidget):
                 + ", ".join(str(id) for id in faulty_ids_annot[:-1])
                 + (", " if len(faulty_ids_annot) > 1 else "")
                 + str(faulty_ids_annot[-1])
-                + " more than one connected component was found. Would you like us to clean this up and keep only the largest connect component?"
+                + " more than one connected component was found. Would you like us to clean this up and keep only the largest connected component?"
             )
             usr_response = self.create_selection_box(message_text, "Clean up")
             logger.info('User response to connected components check: %s', usr_response)
-            if usr_response=='action' and self.fix_small_objs: 
+            if usr_response=='action': 
+                logger.info('Keeping largest connected component for object ids: %s', faulty_ids_annot)
                 seg = Compute4Mask.keep_largest_components_pair(seg, faulty_ids_annot)
                 self.viewer.layers[seg_name_to_save].data = seg
                 self.viewer.layers[seg_name_to_save].refresh()
-            else: 
-                self.fix_small_objs = False
                 
         logger.info('Connected component checks passed.')
 
@@ -750,16 +740,15 @@ class NapariWindow(MyWidget):
                 "For object(s) with ID(s): "+ ", ".join(str(id) for id in list(holes.keys())[:-1])
                 + (", " if len(list(holes.keys())) > 1 else "")
                 + str(list(holes.keys())[-1])
-                + " holes where found. Would you like us to clean this up and fill the holes in the segmentation?"
+                + " holes were found. Would you like us to clean this up and fill the holes in the segmentation?"
             )
             usr_response = self.create_selection_box(message_text, "Clean up")
             logger.info('User response to holes check: %s', usr_response)
-            if usr_response=='action' and self.fix_small_holes: 
+            if usr_response=='action': 
+                logger.info('Filling holes for object ids: %s', list(holes.keys()))
                 seg = Compute4Mask.fill_holes(seg, holes)
                 self.viewer.layers[seg_name_to_save].data = seg
                 self.viewer.layers[seg_name_to_save].refresh()
-            else:
-                self.fix_small_holes = False 
                 
         logger.info('Objects with holes checks passed.')
 
@@ -772,7 +761,7 @@ class NapariWindow(MyWidget):
             if annot_error:
                 inst= seg[0]
                 message_text = (
-                    "You still haven't annotated all obects in your class mask. Please go back and complete the annotation, replacing" \
+                    "You still haven't annotated all objects in your class mask. Please go back and complete the annotation, replacing" \
                     + " any objects with default value '-1' with the actual class label. Instance id "+ str(np.unique(inst[np.where(seg[1]==-1)]) ) +" is still unlabelled."
                 )
                 usr_response = self.create_selection_box(message_text, "Annotation incomplete!")
@@ -782,7 +771,7 @@ class NapariWindow(MyWidget):
             if annot_error: 
                 class_ids = Compute4Mask.get_unique_objects(seg[1])
                 message_text = (
-                    "Your class label contains "+ str(len(class_ids)) +" classses, whereas you specified "
+                    "Your class label contains "+ str(len(class_ids)) +" classes, whereas you specified "
                     + str(self.app.num_classes) + " number of classes at runtime."
                     + "Please go back and fix your class mask. Current class ids in your image are: " 
                     + ", ".join(str(id) for id in class_ids)

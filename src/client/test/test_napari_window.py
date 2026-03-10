@@ -6,18 +6,28 @@ import numpy as np
 import napari
 
 import pytest
+from PyQt5.QtWidgets import QApplication
 from dcp_client.app import Application
 from dcp_client.gui.napari_window import NapariWindow
 from dcp_client.utils.bentoml_model import BentomlModel
 from dcp_client.utils.fsimagestorage import FilesystemImageStorage
 from dcp_client.utils import settings
 
-# @pytest.fixture
-# def napari_app():
-#     app = Application([])
-#     napari_app = QtViewer()
-#     yield napari_app
-#     napari_app.close()
+
+def _patch_napari_qt_viewer_close_event(qt_viewer):
+    """Patch closeEvent to ignore 'canvas already deleted' RuntimeError (napari teardown order)."""
+    original_close_event = qt_viewer.closeEvent
+
+    def safe_close_event(event):
+        try:
+            original_close_event(event)
+        except RuntimeError as e:
+            if "has been deleted" in str(e):
+                event.accept()
+            else:
+                raise
+
+    qt_viewer.closeEvent = safe_close_event
 
 
 @pytest.fixture
@@ -60,7 +70,24 @@ def napari_window(qtbot):
 
     widget = NapariWindow(application)
     qtbot.addWidget(widget)
+    # Patch napari's qt_viewer closeEvent so teardown doesn't raise RuntimeError
+    # when the canvas C++ object was already deleted (known napari/Qt order issue)
+    if getattr(widget, "viewer", None) is not None and getattr(
+        widget.viewer.window, "qt_viewer", None
+    ) is not None:
+        _patch_napari_qt_viewer_close_event(widget.viewer.window.qt_viewer)
     yield widget
+    # Close napari viewer first, then clear reference so NapariWindow.closeEvent
+    # does not try to close it again
+    if getattr(widget, "viewer", None) is not None:
+        try:
+            widget.viewer.close()
+        except RuntimeError:
+            pass
+        except Exception:
+            pass
+        widget.viewer = None
+        QApplication.processEvents()
     widget.close()
 
 

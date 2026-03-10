@@ -49,3 +49,8 @@ documentation = "https://readthedocs.org/projects/data-centric-platform"
 
 [project.scripts]
 dcp-server = "dcp_server.main:main"
+
+[tool.pytest.ini_options]
+# Avoid loading pytest-qt when running server tests (server has no GUI)
+addopts = "-p no:qt"
+testpaths = ["test"]

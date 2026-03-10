@@ -122,7 +122,11 @@ class Application:
             try:
                 # Load the image
                 img = self.fs_image_storage.load_image(self.uncur_data_path, os.path.basename(img_path))
-                
+            except Exception as e:
+                logger.warning("Image loading failed for %s: %s", os.path.basename(img_path), e)
+                unsupported_files.append(os.path.basename(img_path))
+                continue
+            try:
                 # Segment the image
                 mask = await self.ml_model.segment_image(img)
                 

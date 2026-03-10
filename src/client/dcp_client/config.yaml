@@ -1,8 +1,5 @@
 {
     "server":{
-        "user": "local", 
-        "host": "local", 
-        "data-path": "None", 
         "ip": "localhost", 
         "port": 7010
     }

@@ -5,6 +5,7 @@ sys.path.append("../")
 import pytest
 import subprocess
 import time
+import socket
 
 from skimage import data
 from skimage.io import imsave
@@ -67,22 +68,32 @@ def test_run_inference_no_connection(app):
 
 def test_run_inference_run(app):
     app, _, _, _ = app
-    # start the sevrer in the background locally
+    # start the server in the background locally
     command = [
         "bentoml",
         "serve",
         "--working-dir",
         "../server/dcp_server",
         "service:SegmentationService",
-        "--reload",
+        "--host=0.0.0.0",
         "--port=7010",
+        "--timeout=1000",
     ]
+
     process = subprocess.Popen(command, stdin=subprocess.PIPE, shell=False)
-    # and wait until it is setup
-    if sys.platform == "win32" or sys.platform == "cygwin":
-        time.sleep(240)
-    else:
-        time.sleep(60)
+
+    def wait_for_server(host, port, timeout=300):
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            try:
+                with socket.create_connection((host, port), timeout=5):
+                    return True
+            except OSError:
+                time.sleep(5)
+        raise RuntimeError(f"Server at {host}:{port} not ready after {timeout} seconds")
+
+    # Replace sleep call
+    wait_for_server("0.0.0.0", 7010, timeout=300)
     # then do model serving
     message_text, message_title = app.run_inference()
     # and assert returning message

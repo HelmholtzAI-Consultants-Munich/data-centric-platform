@@ -117,22 +117,6 @@ def test_start_main(qtbot, app, setup_global_variable):
     assert app.isHidden()
 
 
-def test_start_upload_and_main(qtbot, app_remote, setup_global_variable, monkeypatch):
-    settings.accepted_types = setup_global_variable
-    app_remote.app.uncur_data_path = "/path/to/eval"
-    app_remote.app.cur_data_path = "/path/to/train"
-
-    # Define a custom exec method that always returns QMessageBox.Ok
-    def custom_exec(self):
-        return QMessageBox.Ok
-
-    monkeypatch.setattr(QMessageBox, "exec", custom_exec)
-    qtbot.mouseClick(app_remote.start_button, Qt.LeftButton)
-    # should close because error on upload!
-    assert app_remote.done_upload == False
-    assert not app_remote.isVisible()
-    assert not hasattr(app_remote, "mw")
-
 
 """'
 # TODO wait for github respose

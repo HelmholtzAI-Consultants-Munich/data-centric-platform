@@ -14,7 +14,7 @@ import numpy as np
 if TYPE_CHECKING:
     from dcp_client.app import Application
 
-from dcp_client.gui.sam_worker import SAMInferenceWorker
+from dcp_client.utils.ai_assistance.sam_worker import SAMInferenceWorker
 from dcp_client.utils.sam_model_manager import SAMModelManager
 from dcp_client.utils.utils import get_path_stem
 
@@ -463,4 +463,3 @@ class SAMController:
         from scipy.ndimage import zoom
         scale = (target_shape[0] / data.shape[0], target_shape[1] / data.shape[1])
         return zoom(data, scale, order=0).astype(data.dtype)
-

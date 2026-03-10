@@ -113,6 +113,7 @@ def test_item_eval_selected(qtbot, app, setup_global_variable):
     assert app.app.cur_selected_path == app.app.uncur_data_path
 
 
+@pytest.mark.skip(reason="Train button was removed from MainWindow UI")
 def test_train_button_click(qtbot, app):
     # Click the "Train Model" button
     app.sim = True
@@ -127,16 +128,15 @@ def test_inference_button_click(qtbot, app):
     # Click the "Generate Labels" button
     app.sim = True
     QTest.mouseClick(app.inference_button, Qt.LeftButton)
-    # Wait until the worker thread is done
+    # Wait until the worker thread is set and running, then wait for it to finish
+    qtbot.waitUntil(lambda: getattr(app, "worker_thread", None) is not None, timeout=3000)
     while app.worker_thread.isRunning():
         QTest.qSleep(1000)
-    # QTest.qWaitForWindowActive(app, timeout=5000)
     # The inference functionality of the thread is tested with app tests
 
 
 def test_on_finished(qtbot, app):
-    # Assert that the on_finished function re-enabled the buttons and set the worker thread to None
-    assert app.train_button.isEnabled()
+    # Assert initial state: inference button enabled and no worker thread running
     assert app.inference_button.isEnabled()
     assert app.worker_thread is None
     

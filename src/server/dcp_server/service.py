@@ -81,7 +81,6 @@ logger.info("Model initialized successfully")
 logger.debug(f"Creating runner: {service_config.get('runner_name', 'unknown')}")
 runner = CustomRunnable(name=service_config["runner_name"],
                         model= model,
-                        save_model_path= service_config["bento_model_path"]
 )
 logger.debug("Runner created successfully")
 

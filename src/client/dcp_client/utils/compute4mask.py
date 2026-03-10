@@ -7,7 +7,36 @@ from scipy.ndimage import label as labelnd, binary_fill_holes
 class Compute4Mask:
     """
     Compute4Mask provides methods for manipulating masks to make visualisation in the viewer easier.
+
+    Class mask convention:
+    - **Canonical** class mask: every pixel of each instance has a class (including contour pixels).
+      Use this for storage, comparison, and propagation (e.g. compute_new_labels_mask).
+    - **Display** class mask: canonical with contour pixels set to 0, so touching objects do not
+      visually share a class in the viewer. Use only when setting layer.data[1] for the class channel.
+    - Use add_contour(display_class_mask, instance_mask) to get canonical from what the user sees.
+    - Use get_class_mask_display(instance_mask, canonical_class_mask) to get what to show in the viewer.
     """
+
+    @staticmethod
+    def get_class_mask_display(
+        instance_mask: np.ndarray,
+        class_mask_canonical: np.ndarray,
+        contours_level: float = 0.8,
+    ) -> np.ndarray:
+        """Return the class mask suitable for display (contour pixels set to 0).
+
+        Use this whenever setting the class channel in the viewer so that touching
+        objects are not assigned the same class visually.
+
+        :param instance_mask: The instance mask array.
+        :param class_mask_canonical: The canonical class mask (with contours filled).
+        :param contours_level: Value for find_contours. See get_contours.
+        :return: A copy of class_mask_canonical with contour pixels set to 0.
+        """
+        contour_mask = Compute4Mask.get_contours(instance_mask, contours_level=contours_level)
+        display = class_mask_canonical.copy()
+        display[contour_mask != 0] = 0
+        return display
 
     @staticmethod
     def get_contours(
@@ -197,7 +226,7 @@ class Compute4Mask:
         :param mask: The mask which we want to test.
         :type mask: numpy.ndarray
         :return:
-            - A boolean which is True if there is more than one connected components corresponding to an instance id and Fale otherwise.
+            - A boolean which is True if there is more than one connected components corresponding to an instance id and False otherwise.
             - A list with all the instance ids for which more than one connected component was found.
         :rtype :
             - bool
@@ -233,8 +262,8 @@ class Compute4Mask:
         
         Parameters
         ----------
-        labels : np.ndarray
-            Instance mask.
+        mask : np.ndarray
+            Instance mask (or 2-channel seg with instance in channel 0).
         
         Returns
         -------
@@ -259,7 +288,7 @@ class Compute4Mask:
         return has_holes, hole_masks
 
     @staticmethod
-    def fill_holes(mask: np.ndarray, holes_dict: dict = None) -> np.ndarray:
+    def fill_holes(mask: np.ndarray, holes_dict: dict) -> np.ndarray:
         """
         Fill holes in all labeled instances of a mask.
         
@@ -282,14 +311,11 @@ class Compute4Mask:
             filled_mask = mask.copy()
             filled_class_mask = np.zeros_like(mask)
 
-
-        if holes_dict is None:
-            _, holes_dict = find_label_holes(filled_mask)
-
         for instance_id, holes in holes_dict.items():
-            filled_class_mask[holes] = filled_class_mask[filled_mask == instance_id][0]
             filled_mask[holes] = instance_id
-
+            class_id = np.max(filled_class_mask[filled_mask == instance_id]) # this will return 0 and class id
+            filled_class_mask[holes] = class_id
+            
         # Stack along new first axis
         stacked = np.stack([filled_mask, filled_class_mask], axis=0)
 
@@ -361,9 +387,10 @@ class Compute4Mask:
         :type faulty_ids: List
         :return: Numpy array of cleaned masks: (cleaned_mask, cleaned_class_mask)
         """
-        if mask.ndim>2:
+        if mask.ndim > 2:
             cleaned_mask = mask[0].copy()
             cleaned_class_mask = mask[1].copy()
+            stacked = np.stack([cleaned_mask, cleaned_class_mask], axis=0)
         else:
             cleaned_mask = mask.copy()
             cleaned_class_mask = np.zeros_like(mask)
@@ -393,8 +420,9 @@ class Compute4Mask:
                 cleaned_mask[remove_mask] = 0
                 cleaned_class_mask[remove_mask] = 0
 
-                # Stack along new first axis
-                stacked = np.stack([cleaned_mask, cleaned_class_mask], axis=0)
+                if mask.ndim > 2:
+                    stacked = np.stack([cleaned_mask, cleaned_class_mask], axis=0)
 
-        if mask.ndim>2: return stacked
-        else: return cleaned_mask
+        if mask.ndim > 2:
+            return stacked
+        return cleaned_mask
