@@ -64,7 +64,7 @@ setup(
         "scipy >=1.10", 
         "napari[pyqt5]>=0.4.17",
         "segment-anything @ git+https://github.com/facebookresearch/segment-anything.git@main",
-        "mobile_sam @ git+https://github.com/ChaoningZhang/MobileSAM.git@master",
+        "mobile_sam @ git+https://github.com/ChaoningZhang/MobileSAM.git@f706ad9c4eb7f219c00d9050e46328518ffb65d2",
         "torch",
         "torchvision",
         "bentoml[grpc]>=1.2.5"
