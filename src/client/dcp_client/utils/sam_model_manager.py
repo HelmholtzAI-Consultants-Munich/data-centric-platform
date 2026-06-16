@@ -128,6 +128,16 @@ class SAMModelManager:
         print(f"Checkpoint downloaded to {checkpoint_path}")
         return checkpoint_path
     
+    def uses_mobile_sam(self, model_type: str) -> bool:
+        """Return True if model_type requires the mobile_sam package."""
+        return model_type == "mobilesam"
+
+    def get_registry_model_type(self, model_type: str) -> str:
+        """Map internal model type to the key used by sam_model_registry."""
+        if model_type == "mobilesam":
+            return "vit_t"
+        return model_type
+
     def get_device(self) -> str:
         """
         Get best device for current hardware.

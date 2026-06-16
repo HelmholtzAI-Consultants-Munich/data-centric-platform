@@ -99,18 +99,18 @@ class SAMInferenceWorker(QThread):
     def _initialize_predictor(self):
         """Initialize SAM predictor in worker thread."""
         try:
-            from segment_anything import sam_model_registry, SamPredictor
-            
-            # Select model
             model_type = self.model_manager.select_model()
             device = self.model_manager.get_device()
             self.device = device
-            
-            # Get checkpoint path
             checkpoint_path = self.model_manager.get_checkpoint_path(model_type)
-            
-            # Load model
-            sam = sam_model_registry[model_type](checkpoint=str(checkpoint_path))
+            registry_model_type = self.model_manager.get_registry_model_type(model_type)
+
+            if self.model_manager.uses_mobile_sam(model_type):
+                from mobile_sam import sam_model_registry, SamPredictor
+            else:
+                from segment_anything import sam_model_registry, SamPredictor
+
+            sam = sam_model_registry[registry_model_type](checkpoint=str(checkpoint_path))
             sam.to(device=device)
             
             # Create predictor
